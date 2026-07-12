@@ -2891,8 +2891,10 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 }
 
 /* ============ AUTH GATE ============ */
-#authOverlay{ position:fixed; inset:0; z-index:100000; display:flex; align-items:center; justify-content:center; padding:22px; background:#080808; overflow-y:auto; }
+#authOverlay{ position:fixed; inset:0; z-index:100000; display:none; align-items:center; justify-content:center; padding:22px; background:#080808; overflow-y:auto; }
 #authOverlay .auth-card{ width:100%; max-width:380px; position:relative; }
+#authOverlay .auth-close{ position:absolute; top:-6px; right:-4px; z-index:2; background:transparent; border:none; color:var(--muted); font-size:26px; line-height:1; cursor:pointer; padding:4px 8px; }
+#authOverlay .auth-close:hover{ color:var(--gold); }
 #authOverlay .term-bar{ width:100%; display:flex; align-items:center; gap:10px; margin-bottom:26px; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); border:1px solid var(--border2); border-radius:6px; padding:8px 12px; background:rgba(255,255,255,0.015); }
 #authOverlay .term-dots{display:flex;gap:5px;}
 #authOverlay .term-dots i{width:8px;height:8px;border-radius:50%;background:var(--border3);display:block;}
@@ -2912,6 +2914,14 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 #authOverlay .auth-field label{ display:block; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--gold); text-transform:uppercase; margin-bottom:6px; opacity:.7; }
 #authOverlay .auth-field input{ width:100%; background:var(--bg2); border:1px solid var(--border2); border-left:2px solid var(--gold-dim); border-radius:4px; padding:13px 14px; color:var(--white); font-family:'Inter',sans-serif; font-size:15px; outline:none; transition:border-color .18s; }
 #authOverlay .auth-field input:focus{ border-left-color:var(--gold); border-color:var(--gold-dim); }
+#authOverlay .auth-pass-row{ position:relative; }
+#authOverlay .auth-pass-row input{ padding-right:58px; }
+#authOverlay .auth-pass-toggle{ position:absolute; right:8px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:var(--muted); font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1.5px; cursor:pointer; padding:6px; }
+#authOverlay .auth-pass-toggle:hover{ color:var(--gold); }
+#authOverlay .auth-confirm-icon{ width:56px;height:56px;line-height:56px;margin:0 auto 16px;border-radius:50%;border:2px solid var(--green);color:var(--green);font-size:26px; }
+#authOverlay .auth-confirm-title{ font-family:'Bebas Neue',sans-serif; font-size:30px; letter-spacing:3px; color:#fff; margin-bottom:14px; }
+#authOverlay .auth-confirm-sub{ font-size:13px; color:var(--text2); line-height:1.7; }
+#authOverlay .auth-confirm-sub b{ color:var(--gold); }
 #authOverlay .auth-msg{ min-height:16px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.5px; margin:2px 0 14px; text-align:center; line-height:1.5; color:var(--muted); }
 #authOverlay .auth-msg.err{ color:#f08a8a; }
 #authOverlay .auth-msg.ok{ color:var(--green); }
@@ -2959,8 +2969,10 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 <!-- AUTH GATE -->
 <div id="authOverlay">
   <div class="auth-card">
+    <button class="auth-close" onclick="rtcAuthClose()" aria-label="Close">&times;</button>
     <div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-path">rtc://access — members only</span><span class="term-stat"><i></i>SECURE</span></div>
     <div class="auth-brand"><span class="ab-the">THE</span> <span class="ab-rev">REVENGE</span> <span class="ab-tc">TRADER CLUB</span></div>
+    <div id="authFormView">
     <div class="auth-tabs">
       <button id="authTabIn" class="auth-tab active" onclick="rtcAuthMode('in')">LOG IN</button>
       <button id="authTabUp" class="auth-tab" onclick="rtcAuthMode('up')">CREATE ACCOUNT</button>
@@ -2975,13 +2987,23 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
     <div class="auth-field" id="authPassWrap">
       <label>// PASSWORD</label>
-      <input id="authPass" type="password" autocomplete="current-password" placeholder="password">
+      <div class="auth-pass-row">
+        <input id="authPass" type="password" autocomplete="current-password" placeholder="password">
+        <button type="button" id="authPassToggle" class="auth-pass-toggle" onclick="rtcTogglePass()">SHOW</button>
+      </div>
     </div>
     <div id="authMsg" class="auth-msg"></div>
     <button id="authSubmit" class="auth-submit" onclick="rtcAuthSubmit()"><span class="skfix">LOG IN &rarr;</span></button>
     <div class="auth-foot">
       <span id="authForgot" onclick="rtcAuthMode('reset')">Forgot password?</span>
       <span class="auth-legal">Your journal is private &middot; encrypted at rest</span>
+    </div>
+    </div><!-- /authFormView -->
+    <div id="authConfirmView" style="display:none;text-align:center;">
+      <div class="auth-confirm-icon">&#10003;</div>
+      <div class="auth-confirm-title">ACCOUNT CREATED</div>
+      <div class="auth-confirm-sub">We just sent a confirmation link to<br><b id="authConfirmEmail"></b><br><br>Click it to verify your account, then come back and log in.</div>
+      <button class="auth-submit" onclick="rtcAuthBackToLogin()" style="margin-top:22px;"><span class="skfix">BACK TO LOG IN</span></button>
     </div>
   </div>
 </div>
@@ -3051,7 +3073,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
 
     <div style="width:100%;margin-bottom:12px;">
-      <button class="btn-primary" onclick="showScreen('pledgeScreen')" style="width:100%;"><span class="skfix">Enter The Club &rarr;</span></button>
+      <button class="btn-primary" onclick="rtcEnterClub()" style="width:100%;"><span class="skfix">Enter The Club &rarr;</span></button>
       <div class="cta-note">Free &middot; No card &middot; Cancel your excuses, not a subscription</div>
     </div>
     <div id="backToDashBtn" style="display:none;margin-top:16px;width:100%;">
@@ -6526,7 +6548,8 @@ rtcOnReady(function init() {
     saveAccounts(accs);
     if (getActiveIdx() >= accs.length) setActiveIdx(0);
   }
-  if (RTCStore.get('rtc_member') === 'true' && getAccounts().length > 0) {
+  if (!window.RTCsb && RTCStore.get('rtc_member') === 'true' && getAccounts().length > 0) {
+    // offline / no auth layer: keep the old local behaviour
     goalData = getGoal();
     pnlLog   = getPnl();
     loadDash();
@@ -11877,8 +11900,8 @@ rtcOnReady(function(){
       sb.auth.signUp({email:email,password:pass,options:{data:{display_name:name}}}).then(function(r){
         busy(false);
         if(r.error){ msg(r.error.message,'err'); return; }
-        if(r.data && r.data.session){ /* applySession hides + loads cloud */ }
-        else { msg('Account created. Check your email to confirm, then log in.','ok'); rtcAuthMode('in'); }
+        if(r.data && r.data.session){ /* auto-confirm on -> applySession hides + loads cloud */ }
+        else { rtcAuthConfirmSent(email); }
       });
     } else {
       sb.auth.signInWithPassword({email:email,password:pass}).then(function(r){
@@ -11913,10 +11936,41 @@ rtcOnReady(function(){
       if (RTCStore.get('rtc_member')==='true' && getAccounts().length>0){
         try{ goalData=getGoal(); }catch(e){}
         try{ pnlLog=getPnl(); }catch(e){}
-        loadDash();
+        window._rtcPostAuth=null; loadDash();
+      } else if (window._rtcPostAuth){
+        var cb=window._rtcPostAuth; window._rtcPostAuth=null; cb();
       } else { showScreen('welcomeScreen'); }
     }catch(e){ console.error('[RTC] enter app',e); }
   }
+  window.rtcAuthClose=function(){ var o=document.getElementById('authOverlay'); if(o) o.style.display='none'; };
+  window.rtcAuthConfirmSent=function(email){
+    var f=document.getElementById('authFormView'), c=document.getElementById('authConfirmView');
+    if(f) f.style.display='none';
+    if(c) c.style.display='block';
+    var e=document.getElementById('authConfirmEmail'); if(e) e.textContent=email;
+    var pw=document.getElementById('authPass'); if(pw) pw.value='';   // never leave the password sitting there
+  };
+  window.rtcAuthBackToLogin=function(){
+    var f=document.getElementById('authFormView'), c=document.getElementById('authConfirmView');
+    if(c) c.style.display='none';
+    if(f) f.style.display='block';
+    rtcAuthMode('in');
+    var pw=document.getElementById('authPass'); if(pw) pw.value='';
+  };
+  window.rtcTogglePass=function(){
+    var i=document.getElementById('authPass'), b=document.getElementById('authPassToggle');
+    if(!i) return;
+    if(i.type==='password'){ i.type='text'; if(b) b.textContent='HIDE'; }
+    else { i.type='password'; if(b) b.textContent='SHOW'; }
+  };
+  window.rtcEnterClub=function(){
+    window._rtcPostAuth=function(){ showScreen('pledgeScreen'); };
+    if(!sb){ showScreen('pledgeScreen'); return; }          // offline fallback
+    sb.auth.getSession().then(function(res){
+      if(res.data && res.data.session){ rtcEnterApp(); }     // logged in -> dashboard or pledge
+      else { show(); rtcAuthMode('up'); }                    // not logged in -> default to CREATE ACCOUNT
+    }).catch(function(){ show(); });
+  };
 
   var applied=false;
   function applySession(session){
@@ -11944,14 +11998,14 @@ rtcOnReady(function(){
   }
 
   function boot(){
-    if(!sb){ hide(); return; }   // offline: run local-only
+    if(!sb){ hide(); return; }   // offline: run local-only, home is public
     sb.auth.getSession().then(function(res){
       if(res.data && res.data.session){ applySession(res.data.session); }
-      else { show(); }
-    }).catch(function(){ hide(); });
+      // no session -> leave the public home page showing; user signs up via "Enter The Club"
+    }).catch(function(){});
     sb.auth.onAuthStateChange(function(evt,session){
-      if(session){ applySession(session); }
-      else { applied=false; show(); }
+      if(session){ applied=false; applySession(session); }
+      else { applied=false; }   // signed out -> home is public, no forced gate
     });
   }
   if(document.readyState!=='loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
