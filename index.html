@@ -1325,7 +1325,7 @@ button, .mood-btn, .sleep-btn, .wu-step, .cl-item, .kill-item,
 
 /* Sound toggle button */
 .sound-toggle{
-  position:fixed; bottom:18px; right:18px; z-index:500;
+  position:fixed; bottom:18px; right:max(18px, calc(50% - 604px)); z-index:500;
   width:40px; height:40px; border-radius:50%;
   background:var(--bg3); border:1px solid var(--border2);
   display:flex; align-items:center; justify-content:center;
@@ -1749,7 +1749,7 @@ button, .btn-gold, .btn-calc {
 
 /* ============ FIGHT CAMP x TERMINAL REDESIGN ============ */
 body{
-  background-image:repeating-linear-gradient(45deg,transparent,transparent 70px,rgba(201,168,76,0.016) 70px,rgba(201,168,76,0.016) 71px);
+  background-color:#080808;
 }
 .welcome-eyebrow{
   display:inline-block;
@@ -2780,11 +2780,212 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   }
 }
 
-</style></style></style></style></style></style></style></style></style></style></style></style></style></style></style></style>
+
+
+/* left: live data readout, descending under RTC://SYSTEM */
+#hudFrame .hud-data{
+  position:absolute; left:64px; top:66px; width:150px;
+  display:flex; flex-direction:column; gap:13px;
+  font-family:'IBM Plex Mono',monospace; text-transform:uppercase;
+}
+#hudFrame .hud-data .hd-row{ display:flex; flex-direction:column; gap:2px; }
+#hudFrame .hud-data .hd-k{ font-size:8px; letter-spacing:2px; color:rgba(201,168,76,0.42); }
+#hudFrame .hud-data .hd-v{ font-size:11px; letter-spacing:1px; color:rgba(201,168,76,0.7); }
+#hudFrame .hud-data .hd-v.pos{ color:rgba(0,208,132,0.55); }
+#hudFrame .hud-data .hd-v.neg{ color:rgba(240,138,138,0.6); }
+
+/* right: creed, ascending from the bottom */
+#hudFrame .hud-mantra{
+  position:absolute; right:64px; bottom:96px;
+  display:flex; flex-direction:column-reverse; gap:26px; align-items:flex-end;
+  font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:2px;
+  text-transform:uppercase; color:rgba(201,168,76,0.42); text-align:right;
+}
+#hudFrame .hud-mantra span:first-child{ color:rgba(201,168,76,0.68); }
+
+/* live New York clock, bottom-right */
+#hudFrame .hud-clock{
+  position:absolute; left:70px; bottom:76px;   /* lifted clear of the corner bracket */
+  font-family:'IBM Plex Mono',monospace;
+}
+#hudFrame .hud-clock .wc{ display:flex; align-items:baseline; gap:10px; margin-bottom:5px; }
+#hudFrame .hud-clock .wc:last-child{ margin-bottom:0; }
+#hudFrame .hud-clock .wc-k{ font-size:8px; letter-spacing:2px; color:rgba(201,168,76,0.42); text-transform:uppercase; width:58px; }
+#hudFrame .hud-clock .wc-v{ font-size:12px; letter-spacing:1.5px; color:rgba(201,168,76,0.7); }
+#hudFrame .hud-clock .wc-s{ font-size:8px; letter-spacing:2px; margin-left:2px; color:rgba(0,208,132,0.9); }
+#hudFrame .hud-clock .wc.open .wc-k{ color:rgba(0,208,132,0.85); }
+#hudFrame .hud-clock .wc.open .wc-v{ color:rgba(0,208,132,0.95); }
+#hudFrame .hud-clock .wc-fut{ margin-top:7px; padding-top:7px; border-top:1px solid rgba(201,168,76,0.12); }
+#hudFrame .hud-clock .wc-fut .wc-v.st-rth{ color:rgba(0,208,132,0.95); }
+#hudFrame .hud-clock .wc-fut .wc-v.st-open{ color:rgba(0,208,132,0.62); }
+#hudFrame .hud-clock .wc-fut .wc-v.st-halt{ color:rgba(201,168,76,0.8); }
+#hudFrame .hud-clock .wc-fut .wc-v.st-closed{ color:rgba(201,168,76,0.38); }
+#hudFrame .hud-clock .wc-fut .wc-v.st-holiday{ color:rgba(201,168,76,0.55); }
+#hudFrame .hud-txt.tr-t.closed i{ background:var(--muted) !important; box-shadow:none !important; animation:none !important; }  /* NO EXCUSES brightest */
+
+/* ============ TERMINAL HUD FRAME (gutter chrome) ============ */
+#hudFrame{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  display:none;                       /* only shown when there's real gutter room */
+}
+@media (min-width:1280px){ #hudFrame{ display:block; } }
+
+/* content sits above the frame (.dash-hdr already sticky + z-index:100, leave it) */
+.screen{ position:relative; z-index:1; }
+
+/* edges fall into shadow so the eye locks on the center column */
+
+/* corner brackets frame the viewport like a terminal window */
+#hudFrame .hud-br{ position:absolute; width:38px; height:38px; border-color:rgba(201,168,76,0.42); }
+#hudFrame .hud-br.tl{ top:22px; left:22px; border-left:1px solid; border-top:1px solid; }
+#hudFrame .hud-br.tr{ top:22px; right:22px; border-right:1px solid; border-top:1px solid; }
+#hudFrame .hud-br.bl{ bottom:22px; left:22px; border-left:1px solid; border-bottom:1px solid; }
+#hudFrame .hud-br.brr{ bottom:22px; right:22px; border-right:1px solid; border-bottom:1px solid; }
+
+/* tick rulers down each edge, fading top & bottom */
+#hudFrame .hud-ruler{
+  position:absolute; top:96px; bottom:96px; width:16px;
+  background:repeating-linear-gradient(0deg, rgba(201,168,76,0.26) 0 1px, transparent 1px 26px);
+  -webkit-mask-image:linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);
+          mask-image:linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);
+}
+#hudFrame .hud-ruler.l{ left:38px; }
+#hudFrame .hud-ruler.r{ right:38px; }
+
+/* faint mono readouts, tucked by the corners */
+#hudFrame .hud-txt{
+  position:absolute; font-family:'IBM Plex Mono',monospace; font-size:9px;
+  letter-spacing:2px; text-transform:uppercase; color:rgba(201,168,76,0.34);
+  display:flex; align-items:center; gap:6px;
+}
+#hudFrame .hud-txt.tl-t{ top:28px; left:72px; }
+#hudFrame .hud-txt.tr-t{ top:28px; right:72px; color:rgba(201,168,76,0.5); }
+#hudFrame .hud-txt.bl-t{ bottom:28px; right:72px; text-align:right; }
+#hudFrame .hud-txt.br-t{ bottom:28px; right:72px; }
+#hudFrame .hud-txt.tr-t i{
+  width:6px; height:6px; border-radius:50%; background:var(--gold);
+  box-shadow:0 0 8px var(--gold); animation:tstat 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce){
+  #hudFrame .hud-txt.tr-t i{ animation:none; }
+}
+
+/* ---- MOBILE POLISH ---- */
+/* terminal bars: never wrap the path — truncate cleanly instead */
+.term-path{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+@media(max-width:480px){
+  #welcomeScreen .term-bar, #pledgeScreen .term-bar, #styleScreen .term-bar, #onboardingOverlay .term-bar{
+    font-size:8px !important; letter-spacing:1px !important; gap:8px;
+  }
+  /* the tape line fits on fewer rows */
+  #welcomeScreen .tape{ font-size:9px; letter-spacing:2px; gap:6px 8px; }
+  /* mono labels: tighten so they stop wrapping the [ REQUIRED ] tag */
+  #pledgeScreen .sign-label, #styleScreen .acc-label{
+    font-size:9px !important; letter-spacing:1px !important; flex-wrap:wrap; gap:4px 8px;
+  }
+  #pledgeScreen .sign-label span, #styleScreen .acc-label span{ letter-spacing:1px !important; }
+  /* accent + doc-meta run tighter so they don't stack into big blocks */
+  #pledgeScreen .pledge-body .accent{ letter-spacing:1.4px !important; }
+  #pledgeScreen .doc-meta{ font-size:8px; letter-spacing:1px; gap:6px; }
+  #pledgeScreen .feat-head, #welcomeScreen .feat-head, #styleScreen .sec-label{ letter-spacing:1.5px; }
+}
+
+/* ============ AUTH GATE ============ */
+#authOverlay{ position:fixed; inset:0; z-index:100000; display:flex; align-items:center; justify-content:center; padding:22px; background:#080808; overflow-y:auto; }
+#authOverlay .auth-card{ width:100%; max-width:380px; position:relative; }
+#authOverlay .term-bar{ width:100%; display:flex; align-items:center; gap:10px; margin-bottom:26px; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); border:1px solid var(--border2); border-radius:6px; padding:8px 12px; background:rgba(255,255,255,0.015); }
+#authOverlay .term-dots{display:flex;gap:5px;}
+#authOverlay .term-dots i{width:8px;height:8px;border-radius:50%;background:var(--border3);display:block;}
+#authOverlay .term-dots i:first-child{background:var(--red);}
+#authOverlay .term-dots i:nth-child(2){background:var(--gold);}
+#authOverlay .term-path{flex:1;text-align:left;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+#authOverlay .term-stat{color:var(--gold);display:flex;align-items:center;gap:6px;}
+#authOverlay .term-stat i{width:6px;height:6px;border-radius:50%;background:var(--gold);display:block;box-shadow:0 0 8px var(--gold);animation:tstat 1.6s ease-in-out infinite;}
+#authOverlay .auth-brand{ text-align:center; font-family:'Inter',sans-serif; font-weight:900; font-size:22px; letter-spacing:-.5px; line-height:1; margin-bottom:22px; }
+#authOverlay .ab-the{ font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:6px; color:var(--muted); font-weight:600; }
+#authOverlay .ab-rev{ color:#fff; }
+#authOverlay .ab-tc{ color:var(--gold); }
+#authOverlay .auth-tabs{ display:flex; gap:8px; margin-bottom:20px; }
+#authOverlay .auth-tab{ flex:1; padding:11px; background:transparent; border:1px solid var(--border2); border-radius:4px; color:var(--muted); cursor:pointer; font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:1.5px; transition:all .18s; }
+#authOverlay .auth-tab.active{ border-color:var(--gold); color:var(--gold); background:rgba(201,168,76,0.06); }
+#authOverlay .auth-field{ margin-bottom:14px; }
+#authOverlay .auth-field label{ display:block; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--gold); text-transform:uppercase; margin-bottom:6px; opacity:.7; }
+#authOverlay .auth-field input{ width:100%; background:var(--bg2); border:1px solid var(--border2); border-left:2px solid var(--gold-dim); border-radius:4px; padding:13px 14px; color:var(--white); font-family:'Inter',sans-serif; font-size:15px; outline:none; transition:border-color .18s; }
+#authOverlay .auth-field input:focus{ border-left-color:var(--gold); border-color:var(--gold-dim); }
+#authOverlay .auth-msg{ min-height:16px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.5px; margin:2px 0 14px; text-align:center; line-height:1.5; color:var(--muted); }
+#authOverlay .auth-msg.err{ color:#f08a8a; }
+#authOverlay .auth-msg.ok{ color:var(--green); }
+#authOverlay .auth-submit{ width:100%; padding:15px; background:linear-gradient(135deg,#b8922e,#e8c97a,#b8922e); border:none; border-radius:4px; color:#080808; font-family:'Bebas Neue',sans-serif; font-size:17px; letter-spacing:3px; cursor:pointer; transform:skewX(-6deg); box-shadow:0 4px 20px rgba(201,168,76,0.22); transition:transform .12s ease, box-shadow .12s ease; }
+#authOverlay .auth-submit .skfix{ display:inline-block; transform:skewX(6deg); }
+#authOverlay .auth-submit:hover{ transform:skewX(-6deg) translateY(-2px); }
+#authOverlay .auth-submit:active{ transform:skewX(-6deg) translateY(1px) scale(.985); }
+#authOverlay .auth-submit[disabled]{ opacity:.5; pointer-events:none; }
+#authOverlay .auth-foot{ margin-top:18px; text-align:center; }
+#authOverlay #authForgot{ display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1px; color:var(--muted); cursor:pointer; text-transform:uppercase; }
+#authOverlay #authForgot:hover{ color:var(--gold); }
+#authOverlay .auth-legal{ display:block; margin-top:14px; font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:1.5px; color:var(--faint); text-transform:uppercase; }
+</style></style></style></style></style></style></style></style></style></style></style></style></style></style></style></style></style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+<!-- Terminal HUD frame — ambient chrome in the wide-screen gutters. Purely decorative. -->
+<div id="hudFrame" aria-hidden="true">
+  <div class="hud-br tl"></div><div class="hud-br tr"></div>
+  <div class="hud-br bl"></div><div class="hud-br brr"></div>
+  <div class="hud-ruler l"></div><div class="hud-ruler r"></div>
+  <div class="hud-txt tl-t">RTC://SYSTEM</div>
+  <div class="hud-txt tr-t" id="hudSess"><i></i><span id="hudSessTxt">LIVE</span></div>
+  <div class="hud-txt bl-t">V2.1 &middot; BETA</div>
+  <div id="hudClock" class="hud-clock">
+    <div class="wc" data-city="tokyo"><span class="wc-k">TOKYO</span><span class="wc-v" data-tz="Asia/Tokyo">--:--:--</span><span class="wc-s"></span></div>
+    <div class="wc" data-city="london"><span class="wc-k">LONDON</span><span class="wc-v" data-tz="Europe/London">--:--:--</span><span class="wc-s"></span></div>
+    <div class="wc" data-city="ny"><span class="wc-k">NEW YORK</span><span class="wc-v" data-tz="America/New_York">--:--:--</span><span class="wc-s"></span></div>
+    <div class="wc wc-fut"><span class="wc-k">FUTURES</span><span class="wc-v" id="futStatus">—</span></div>
+  </div>
+  <!-- LEFT: live personal readout, filled from session data -->
+  <div id="hudDataL" class="hud-data"></div>
+  <!-- RIGHT: creed, ascending from the bottom -->
+  <div class="hud-mantra">
+    <span>NO EXCUSES</span>
+    <span>STAY DISCIPLINED</span>
+    <span>TRUST THE PROCESS</span>
+    <span>MASTER YOURSELF</span>
+    <span>PROTECT CAPITAL</span>
+    <span>DONE LOSING</span>
+  </div>
+</div>
 
 <!-- ══ WELCOME ══ -->
+<!-- AUTH GATE -->
+<div id="authOverlay">
+  <div class="auth-card">
+    <div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-path">rtc://access — members only</span><span class="term-stat"><i></i>SECURE</span></div>
+    <div class="auth-brand"><span class="ab-the">THE</span> <span class="ab-rev">REVENGE</span> <span class="ab-tc">TRADER CLUB</span></div>
+    <div class="auth-tabs">
+      <button id="authTabIn" class="auth-tab active" onclick="rtcAuthMode('in')">LOG IN</button>
+      <button id="authTabUp" class="auth-tab" onclick="rtcAuthMode('up')">CREATE ACCOUNT</button>
+    </div>
+    <div id="authNameWrap" class="auth-field" style="display:none;">
+      <label>// NAME</label>
+      <input id="authName" type="text" autocomplete="name" placeholder="Your name">
+    </div>
+    <div class="auth-field">
+      <label>// EMAIL</label>
+      <input id="authEmail" type="email" autocomplete="email" placeholder="you@email.com">
+    </div>
+    <div class="auth-field" id="authPassWrap">
+      <label>// PASSWORD</label>
+      <input id="authPass" type="password" autocomplete="current-password" placeholder="password">
+    </div>
+    <div id="authMsg" class="auth-msg"></div>
+    <button id="authSubmit" class="auth-submit" onclick="rtcAuthSubmit()"><span class="skfix">LOG IN &rarr;</span></button>
+    <div class="auth-foot">
+      <span id="authForgot" onclick="rtcAuthMode('reset')">Forgot password?</span>
+      <span class="auth-legal">Your journal is private &middot; encrypted at rest</span>
+    </div>
+  </div>
+</div>
+
 <div id="welcomeScreen" class="screen active">
   <div class="welcome-bg"></div>
   <div class="welcome-inner">
@@ -2817,14 +3018,10 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       </div>
 
       <div class="wf-row" onclick="openFeatureModal('risk')" style="cursor:pointer;">
-        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-        <div><div class="wf-name">Divide By 7 Risk System</div><div class="wf-desc">Your max daily loss and max risk per trade — calculated automatically from your balance</div></div>
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <div><div class="wf-name">Risk &amp; Drawdown System</div><div class="wf-desc">Auto-calculated max daily loss and per-trade risk from your balance — plus a drawdown alarm before you blow your limit</div></div>
       </div>
 
-      <div class="wf-row" onclick="openFeatureModal('drawdown')" style="cursor:pointer;">
-        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div>
-        <div><div class="wf-name">Drawdown Alarm</div><div class="wf-desc">Set your account limit — get warned before you blow through it. Never lose control again.</div></div>
-      </div>
 
       <div class="wf-row" onclick="openFeatureModal('goals')" style="cursor:pointer;">
         <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
@@ -2839,6 +3036,11 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div class="wf-row" onclick="openFeatureModal('performance')" style="cursor:pointer;">
         <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
         <div><div class="wf-name">Performance Intelligence</div><div class="wf-desc">Mood vs performance, best time to trade, pattern alerts & weekly risk report</div></div>
+      </div>
+
+      <div class="wf-row" onclick="openFeatureModal('recovery')" style="cursor:pointer;">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></div>
+        <div><div class="wf-name">Recovery Mode</div><div class="wf-desc">Took a hit? A structured cooldown and step-by-step path back — rebuild discipline before you rebuild the account</div></div>
       </div>
 
       <div class="wf-row" onclick="openFeatureModal('multiaccount')" style="grid-column:1/-1;cursor:pointer;">
@@ -3028,7 +3230,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   </button>
 
   <!-- TRADING MODE BUTTON -->
-  <button id="tradingModeBtn" onclick="openTradingMode()" title="Trading Mode" style="position:fixed;bottom:132px;right:18px;z-index:491;width:44px;height:44px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(201,168,76,0.35);transition:all .2s;" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">
+  <button id="tradingModeBtn" onclick="openTradingMode()" title="Trading Mode" style="position:fixed;bottom:132px;right:max(18px, calc(50% - 604px));z-index:491;width:44px;height:44px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(201,168,76,0.35);transition:all .2s;" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#080808" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
   </button>
 
@@ -3294,7 +3496,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   </div>
 
   <!-- RTC COMPANION -->
-  <div id="companionWrap" style="position:fixed;bottom:76px;right:18px;z-index:490;display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+  <div id="companionWrap" style="position:fixed;bottom:76px;right:max(18px, calc(50% - 604px));z-index:490;display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
     <div id="companionBubble" style="display:none;max-width:220px;background:#141414;border:1px solid var(--gold-dim);border-radius:4px 12px 0 12px;padding:12px 14px;font-size:12px;color:var(--text2);line-height:1.6;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:companionBubbleIn .3s cubic-bezier(.2,.8,.3,1);">
       <div style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;">RTC</div>
       <div id="companionText"></div>
@@ -3415,6 +3617,10 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div class="mood-indicator" style="background:var(--gold);"></div>
           <div class="mood-lbl">Neutral</div>
         </div>
+        <div class="mood-btn" onclick="selectMood(this,'Overconfident')">
+          <div class="mood-indicator" style="background:#e8952f;"></div>
+          <div class="mood-lbl">Overconfident</div>
+        </div>
         <div class="mood-btn" onclick="selectMood(this,'Frustrated')">
           <div class="mood-indicator" style="background:var(--orange);"></div>
           <div class="mood-lbl">Frustrated</div>
@@ -3422,6 +3628,10 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
         <div class="mood-btn" onclick="selectMood(this,'Anxious')">
           <div class="mood-indicator" style="background:var(--red);"></div>
           <div class="mood-lbl">Anxious</div>
+        </div>
+        <div class="mood-btn" onclick="selectMood(this,'Defeated')">
+          <div class="mood-indicator" style="background:#6b7280;"></div>
+          <div class="mood-lbl">Defeated</div>
         </div>
       </div>
     </div>
@@ -4765,12 +4975,18 @@ var RTCStore = (function () {
       }
     },
 
-    remove: function (key) { delete cache[key]; try { backend.drop(key); } catch (e) {} },
+    remove: function (key) {
+      delete cache[key];
+      var r;
+      try { r = backend.drop(key); } catch (e) {}
+      try { localStorage.removeItem(key); } catch (e) {}   // also clear the migration copy
+      return Promise.resolve(r);
+    },
 
     keys: function () { return Object.keys(cache); },
 
     /* scoped wipe — never nukes the whole origin the way RTCStore.clearNamespace() does */
-    clearNamespace: function () { this.keys().forEach(this.remove, this); },
+    clearNamespace: function () { return Promise.all(this.keys().map(this.remove, this)); },
 
     usage: function () {
       var bytes = 0;
@@ -4779,7 +4995,13 @@ var RTCStore = (function () {
     },
 
     /* swap in IndexedDB / Supabase later; call hydrate() before first render */
-    setBackend: function (b) { backend = b; }
+    setBackend: function (b) { backend = b; },
+
+    /* clear the in-memory cache and load a fresh snapshot (no persist) */
+    replaceCache: function (obj) {
+      Object.keys(cache).forEach(function (k) { delete cache[k]; });
+      if (obj) Object.keys(obj).forEach(function (k) { cache[k] = String(obj[k]); });
+    }
   };
 })();
 
@@ -4825,7 +5047,15 @@ function makeIDBBackend() {
         });
       });
     },
-    drop: function (k) { return open().then(function () { os('readwrite').delete(k); }); }
+    drop: function (k) {
+      return open().then(function () {
+        return new Promise(function (res, rej) {
+          var t = os('readwrite').delete(k);
+          t.onsuccess = function () { res(); };
+          t.onerror   = function (e) { rej(e.target.error); };
+        });
+      });
+    }
   };
 }
 
@@ -4865,6 +5095,52 @@ function rtcOnReady(fn) {
 }
 
 function rtcSet(key, val) { return RTCStore.set(key, val); }
+
+(function(){
+  // Accurate market hours + computed US holiday calendar (no maintenance needed).
+  function zoneNow(tz){var f=new Intl.DateTimeFormat('en-US',{timeZone:tz,weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false});var o={};f.formatToParts(new Date()).forEach(function(x){o[x.type]=x.value;});return{wd:o.weekday,t:((parseInt(o.hour,10)||0)%24)+(parseInt(o.minute,10)||0)/60};}
+  function wk(w){return w!=='Sat'&&w!=='Sun';}
+  // --- holiday computation (real rules, so it never goes stale) ---
+  function easter(y){var a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(Date.UTC(y,mo-1,da));}
+  function nth(y,mo,wd,n){var d=new Date(Date.UTC(y,mo,1)),off=(wd-d.getUTCDay()+7)%7;return new Date(Date.UTC(y,mo,1+off+(n-1)*7));}
+  function last(y,mo,wd){var d=new Date(Date.UTC(y,mo+1,0)),off=(d.getUTCDay()-wd+7)%7;return new Date(Date.UTC(y,mo+1,0-off));}
+  function obs(d,noBack){var wd=d.getUTCDay();if(wd===6)return noBack?null:new Date(+d-864e5);if(wd===0)return new Date(+d+864e5);return d;}
+  function ymd(d){return d&&d.toISOString().slice(0,10);}
+  function usHol(y){var gf=new Date(+easter(y)-2*864e5);return [obs(new Date(Date.UTC(y,0,1)),true),nth(y,0,1,3),nth(y,1,1,3),gf,last(y,4,1),obs(new Date(Date.UTC(y,5,19))),obs(new Date(Date.UTC(y,6,4))),nth(y,8,1,1),nth(y,10,4,4),obs(new Date(Date.UTC(y,11,25)))].filter(Boolean).map(ymd);}
+  function globalHol(y){return [obs(new Date(Date.UTC(y,0,1)),true),obs(new Date(Date.UTC(y,11,25)))].filter(Boolean).map(ymd);}
+  function halfDays(y){var out=[];out.push(ymd(new Date(+nth(y,10,4,4)+864e5)));var xe=new Date(Date.UTC(y,11,24));if([1,2,3,4,5].indexOf(xe.getUTCDay())>=0)out.push(ymd(xe));var j4=new Date(Date.UTC(y,6,4));if([2,3,4,5].indexOf(j4.getUTCDay())>=0)out.push(ymd(new Date(Date.UTC(y,6,3))));return out;}
+  var HOLUS={},HOLG={},HALF={};
+  (function(){var y=new Date().getUTCFullYear();[y-1,y,y+1].forEach(function(yy){usHol(yy).forEach(function(d){HOLUS[d]=1;});globalHol(yy).forEach(function(d){HOLG[d]=1;});halfDays(yy).forEach(function(d){HALF[d]=1;});});})();
+  function etDate(){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
+  // --- sessions ---
+  var CITY={
+    tokyo:function(){if(HOLG[etDate()])return false;var z=zoneNow('Asia/Tokyo');return wk(z.wd)&&z.t>=9&&z.t<18;},
+    london:function(){if(HOLG[etDate()])return false;var z=zoneNow('Europe/London');return wk(z.wd)&&z.t>=8&&z.t<17;},
+    ny:function(){var d=etDate();if(HOLUS[d]||HOLG[d])return false;var z=zoneNow('America/New_York');return wk(z.wd)&&z.t>=8&&z.t<17;}
+  };
+  function futuresState(){
+    var d=etDate();
+    if(HOLUS[d]||HOLG[d])return 'HOLIDAY';
+    var z=zoneNow('America/New_York'),wd=z.wd,t=z.t,open;
+    if(wd==='Sat')open=false;else if(wd==='Sun')open=t>=18;else if(wd==='Fri')open=t<17;else open=!(t>=17&&t<18);
+    if(!open)return (t>=17&&t<18&&wk(wd))?'HALT':'CLOSED';
+    var rc=HALF[d]?13:16;
+    return (wk(wd)&&t>=9.5&&t<rc)?'RTH':'OPEN';
+  }
+  var LABEL={tokyo:'TOKYO',london:'LONDON',ny:'NY'};
+  function tick(){
+    var els=document.querySelectorAll('#hudClock [data-tz]');
+    for(var i=0;i<els.length;i++){var z=els[i].getAttribute('data-tz');try{els[i].textContent=new Date().toLocaleTimeString('en-US',{hour12:false,timeZone:z});}catch(e){els[i].textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}}
+    var openCities=[];
+    Object.keys(CITY).forEach(function(k){var on=false;try{on=CITY[k]();}catch(e){}var row=document.querySelector('#hudClock .wc[data-city="'+k+'"]');if(row){row.classList.toggle('open',on);var st=row.querySelector('.wc-s');if(st)st.textContent=on?'● LIVE':'';}if(on)openCities.push(LABEL[k]);});
+    var fs='CLOSED';try{fs=futuresState();}catch(e){}
+    var fEl=document.getElementById('futStatus');
+    if(fEl){var map={RTH:'● OPEN · RTH',OPEN:'● OPEN',HALT:'○ HALT',CLOSED:'○ CLOSED',HOLIDAY:'○ HOLIDAY'};fEl.textContent=map[fs]||fs;fEl.className='wc-v st-'+fs.toLowerCase();}
+    var sessEl=document.getElementById('hudSess'),sessTxt=document.getElementById('hudSessTxt');
+    if(sessEl&&sessTxt){var label;if(openCities.length)label=openCities.join(' + ');else if(fs==='HOLIDAY')label='MARKET HOLIDAY';else if(fs==='OPEN')label='FUTURES · OVERNIGHT';else if(fs==='HALT')label='DAILY HALT';else label='MARKETS CLOSED';sessTxt.textContent=label;sessEl.classList.toggle('closed',!openCities.length&&fs!=='OPEN');}
+  }
+  setInterval(tick,1000);tick();
+})();
 function rtcStorageUsage() { return RTCStore.usage(); }
 
 
@@ -5247,6 +5523,7 @@ function showScreen(id) {
   s.style.display = 'flex';
   s.scrollTop = 0;
   window.scrollTo(0, 0);
+  try { renderHudData(); } catch(e) {}
 
   // Show back-to-dashboard if returning to welcome as existing member
   const backBtn = document.getElementById('backToDashBtn');
@@ -6218,9 +6495,8 @@ function executeReset() {
     RTCStore.remove(pnlKey(i));
     goalData = null; pnlLog = [];
   } else if (pendingResetType === 'all') {
-    RTCStore.clearNamespace();
     closeModal();
-    location.reload();
+    RTCStore.clearNamespace().then(function () { location.reload(); });  // wait for async deletes
     return;
   }
   closeModal();
@@ -6236,6 +6512,7 @@ rtcOnReady(function() {
 });
 
 rtcOnReady(function init() {
+  try{ renderHudData(); }catch(e){}
   // Clean up any duplicate blank accounts from old bug
   let accs = getAccounts();
   if (accs.length > 1) {
@@ -9464,6 +9741,14 @@ function renderStayTheCourse() {
 // ═══════════════════════════════════════════════════════
 
 const FEATURE_DETAILS = {
+  recovery: {
+    icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>',
+    title: 'Recovery Mode',
+    tagline: 'The comeback, turned into a process',
+    body: '<p>Everyone tells you to just stop revenge trading. Nobody gives you a system for the moment right after a loss — when you are down, emotional, and one click away from making it worse. That moment is exactly what Recovery Mode is built for.</p>'
+      + '<p>Took a hit? Enter what you lost and start the protocol. RTC puts you in a structured cooldown, walks you through a step-by-step path back, and tracks your progress out of the hole.</p>'
+      + '<p>It is not about making it back fast. It is about rebuilding your discipline before you rebuild the account — so the comeback is real, instead of the setup for another blowup. This is the heart of the club: the comeback starts here.</p>',
+  },
   mindset: {
     icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 01-4.96-.44 2.5 2.5 0 01-2.96-3.08 3 3 0 01-.34-5.58 2.5 2.5 0 013.32-3.97A2.5 2.5 0 019.5 2z"/><path d="M14.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 004.96-.44 2.5 2.5 0 002.96-3.08 3 3 0 00.34-5.58 2.5 2.5 0 00-3.32-3.97A2.5 2.5 0 0014.5 2z"/></svg>',
     title: 'Daily Mindset Message',
@@ -9492,12 +9777,13 @@ const FEATURE_DETAILS = {
       + '<p>This is the ritual that turns trading from reactive into intentional, before a single chart is even opened.</p>',
   },
   risk: {
-    icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
-    title: 'Divide By 7 Risk System',
-    tagline: 'One number, calculated for you, that protects your account',
+    icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>',
+    title: 'Risk & Drawdown System',
+    tagline: 'One pre-decided number that protects your account — and an alarm before you cross the line',
     body: '<p>Most traders blow accounts not because they cannot find good setups, but because they do not have a clear, pre-decided number for how much they are allowed to lose in a day. Without that number, every loss becomes a negotiation with yourself in the heat of the moment \u2014 and that negotiation almost always ends in revenge trading.</p>'
       + '<p>The Divide By 7 system removes the negotiation entirely. Enter your account balance once, and the app instantly calculates your maximum daily loss and your maximum risk per individual trade, based on a maximum of three trades per day. No formulas to remember, no math to do under pressure.</p>'
-      + '<p>The name comes from the underlying principle: dividing your account into seven working days creates a sustainable, survivable daily risk number instead of an arbitrary guess. It is the same category of math professional risk managers use, simplified into one clear number a beginner can act on immediately.</p>',
+      + '<p>The name comes from the underlying principle: dividing your account into seven working days creates a sustainable, survivable daily risk number instead of an arbitrary guess. It is the same category of math professional risk managers use, simplified into one clear number a beginner can act on immediately.</p>'
+      + '<p><strong>Built in: the Drawdown Alarm.</strong> Set your account limit — funded or personal — and RTC warns you <em>before</em> you breach it, not after. One undisciplined session can end a Topstep, Apex, or FTMO evaluation that took weeks to build. This is the guardrail that keeps you in the game.</p>',
   },
   drawdown: {
     icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>',
@@ -11015,38 +11301,6 @@ const OB_STEPS = [
         + '</div>';
     }
   },
-  // ── STEP 1: Account Setup ────────────────────────────
-  {
-    type: 'setup',
-    title: 'Name Your Account',
-    desc: 'Give your account a name and enter your current balance. This powers your risk calculator.',
-    render: function() {
-      const acc = getActiveAcc();
-      return '<div>'
-        + '<div style="text-align:center;margin-bottom:20px;">'
-        + '<div style="width:56px;height:56px;border-radius:50%;background:rgba(201,168,76,0.1);border:1.5px solid rgba(201,168,76,0.25);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#c9a84c\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"3\" width=\"20\" height=\"14\" rx=\"2\"/><line x1=\"8\" y1=\"21\" x2=\"16\" y2=\"21\"/><line x1=\"12\" y1=\"17\" x2=\"12\" y2=\"21\"/></svg></div>'
-        + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;letter-spacing:3px;color:var(--white);">Your Account</div>'
-        + '<div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;">Name your account and enter your balance.<br>This powers your risk calculator.</div>'
-        + '</div>'
-        + '<div style="display:flex;flex-direction:column;gap:12px;">'
-        + '<div><div style="font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Account Name</div>'
-        + '<input id="obAccName" value="' + (acc ? acc.name || '' : '') + '" placeholder="e.g. Topstep MNQ" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:12px 14px;color:var(--text);font-size:16px;font-family:\'Inter\',sans-serif;outline:none;"></div>'
-        + '<div><div style="font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Account Balance ($)</div>'
-        + '<input id="obBalance" type="number" value="' + (acc ? acc.balance || '' : '') + '" placeholder="e.g. 50000" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:12px 14px;color:var(--text);font-size:16px;font-family:\'Inter\',sans-serif;outline:none;"></div>'
-        + '</div></div>';
-    },
-    save: function() {
-      const name = (document.getElementById('obAccName') || {}).value || '';
-      const bal  = parseFloat((document.getElementById('obBalance') || {}).value) || 0;
-      const accs = getAccounts();
-      const idx  = getActiveIdx();
-      if (accs[idx]) {
-        if (name) accs[idx].name = name;
-        if (bal)  accs[idx].balance = bal;
-        saveAccounts(accs);
-      }
-    }
-  },
   // ── STEP 2: Set Goal ─────────────────────────────────
   {
     type: 'setup',
@@ -11524,6 +11778,35 @@ function getSessionNo() {
   return n;
 }
 
+function renderHudData() {
+  var el = document.getElementById('hudDataL');
+  if (!el) return;
+  try {
+    // Personal stats are private: show only for a logged-in member, and never on the
+    // public intake screens (welcome / pledge / style). Ready to swap for a real auth check.
+    var member = RTCStore.get('rtc_member') === 'true' && getAccounts().length > 0;
+    var onIntake = ['welcomeScreen','pledgeScreen','styleScreen'].some(function(id){
+      var e = document.getElementById(id); return e && e.classList.contains('active');
+    });
+    if (!member || onIntake) { el.innerHTML = ''; return; }
+    var acc = getActiveAcc();
+    var now = new Date();
+    var bal = acc && acc.balance ? parseFloat(acc.balance) : 0;
+    var maxLoss = bal > 0 ? bal / 7 : 0;
+    var rec = (typeof getRecState === 'function') ? getRecState() : null;
+    var rows = [];
+    rows.push(['SESSION', '#' + String(getSessionNo()).padStart(3,'0'), '']);
+    rows.push(['DATE', now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase(), '']);
+    if (acc && acc.name) rows.push(['ACCOUNT', acc.name.toUpperCase(), '']);
+    rows.push(['BALANCE', bal > 0 ? '$' + bal.toLocaleString() : '—', bal>0?'pos':'']);
+    rows.push(['MAX LOSS', maxLoss > 0 ? '-$' + maxLoss.toFixed(0) : '—', maxLoss>0?'neg':'']);
+    rows.push(['STATUS', (rec && rec.active) ? 'RECOVERY' : 'SYSTEM READY', (rec&&rec.active)?'':'pos']);
+    el.innerHTML = rows.map(function(r){
+      return '<div class="hd-row"><div class="hd-k">' + r[0] + '</div><div class="hd-v ' + r[2] + '">' + r[1] + '</div></div>';
+    }).join('');
+  } catch(e) {}
+}
+
 function renderSessionStrip() {
   var el = document.getElementById('sessionStrip');
   if (!el) return;
@@ -11542,6 +11825,7 @@ function renderSessionStrip() {
     else parts.push('<span style="color:var(--green);">[SYSTEM READY]</span>');
     el.innerHTML = parts.join('<span class="ss-sep">//</span>');
   } catch(e) {}
+  renderHudData();
 }
 
 </script>
@@ -11550,6 +11834,128 @@ rtcOnReady(function(){
   var d=document.getElementById('sigDate');
   if(d){d.textContent='DATED: '+new Date().toLocaleDateString('en-US',{month:'short',day:'2-digit',year:'numeric'}).toUpperCase();}
 });
+</script>
+<script>
+(function(){
+  var URL_='https://jqbzzyaxdoykvajvjwvt.supabase.co';
+  var ANON_='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxYnp6eWF4ZG95a3ZhanZqd3Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4Nzg4NjgsImV4cCI6MjA5OTQ1NDg2OH0.BHI9dJdDPsHI0j6SAmZZH988i8D8f3cLiYtHAYWFp4w';
+  var sb=null;
+  try{ sb=window.supabase.createClient(URL_,ANON_); window.RTCsb=sb; }
+  catch(e){ console.error('[RTC] Supabase failed to load',e); }
+  var mode='in';
+  function el(id){ return document.getElementById(id); }
+  function show(){ var o=el('authOverlay'); if(o) o.style.display='flex'; }
+  function hide(){ var o=el('authOverlay'); if(o) o.style.display='none'; }
+  function msg(t,cls){ var m=el('authMsg'); if(m){ m.textContent=t||''; m.className='auth-msg'+(cls?' '+cls:''); } }
+  function busy(b){ var s=el('authSubmit'); if(s) s.disabled=b; }
+  window.rtcAuthMode=function(m){
+    mode=m; msg('');
+    el('authTabIn').classList.toggle('active', m==='in');
+    el('authTabUp').classList.toggle('active', m==='up');
+    el('authNameWrap').style.display = (m==='up')?'block':'none';
+    el('authPassWrap').style.display = (m==='reset')?'none':'block';
+    el('authForgot').style.display   = (m==='reset')?'none':'inline-block';
+    var label = m==='in' ? 'LOG IN \u2192' : m==='up' ? 'CREATE ACCOUNT \u2192' : 'SEND RESET LINK \u2192';
+    el('authSubmit').innerHTML = '<span class="skfix">'+label+'</span>';
+    if(m==='reset') msg('Enter your email and we\u2019ll send a reset link.');
+  };
+  window.rtcAuthSubmit=function(){
+    if(!sb){ msg('Auth service unavailable. Check your connection.','err'); return; }
+    var email=(el('authEmail').value||'').trim();
+    var pass=(el('authPass').value||'');
+    var name=(el('authName').value||'').trim();
+    if(!email){ msg('Enter your email.','err'); return; }
+    if(mode==='reset'){
+      busy(true); msg('Sending...');
+      sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin}).then(function(r){
+        busy(false); if(r.error) msg(r.error.message,'err'); else msg('Reset link sent. Check your email.','ok');
+      }); return;
+    }
+    if(pass.length<6){ msg('Password must be at least 6 characters.','err'); return; }
+    busy(true); msg(mode==='up'?'Creating account...':'Signing in...');
+    if(mode==='up'){
+      sb.auth.signUp({email:email,password:pass,options:{data:{display_name:name}}}).then(function(r){
+        busy(false);
+        if(r.error){ msg(r.error.message,'err'); return; }
+        if(r.data && r.data.session){ /* applySession hides + loads cloud */ }
+        else { msg('Account created. Check your email to confirm, then log in.','ok'); rtcAuthMode('in'); }
+      });
+    } else {
+      sb.auth.signInWithPassword({email:email,password:pass}).then(function(r){
+        busy(false); if(r.error){ msg(r.error.message,'err'); return; } /* applySession hides + loads cloud */
+      });
+    }
+  };
+  window.rtcSignOut=function(){ if(sb) sb.auth.signOut().then(function(){ location.reload(); }); };
+
+  // ---- Supabase storage backend: reads/writes the user_store table (RLS-scoped) ----
+  function makeSupaBackend(userId){
+    return {
+      name:'supabase',
+      hydrate:function(){
+        return sb.from('user_store').select('key,value').then(function(r){
+          if(r.error) throw r.error;
+          var out={}; (r.data||[]).forEach(function(row){
+            out[row.key] = (typeof row.value==='string') ? row.value : JSON.stringify(row.value);
+          }); return out;
+        });
+      },
+      persist:function(k,v){
+        return sb.from('user_store').upsert({user_id:userId,key:k,value:v},{onConflict:'user_id,key'}).then(function(r){ if(r.error) throw r.error; });
+      },
+      drop:function(k){ return sb.from('user_store').delete().eq('key',k); }
+    };
+  }
+
+  // re-render the app view from whatever is now in the store
+  function rtcEnterApp(){
+    try{
+      if (RTCStore.get('rtc_member')==='true' && getAccounts().length>0){
+        try{ goalData=getGoal(); }catch(e){}
+        try{ pnlLog=getPnl(); }catch(e){}
+        loadDash();
+      } else { showScreen('welcomeScreen'); }
+    }catch(e){ console.error('[RTC] enter app',e); }
+  }
+
+  var applied=false;
+  function applySession(session){
+    if(applied) return; applied=true;
+    var userId=session.user.id;
+    var backend=makeSupaBackend(userId);
+    backend.hydrate().then(function(cloud){
+      var cloudEmpty = Object.keys(cloud).length===0;
+      var localAccts=0; try{ localAccts=JSON.parse(RTCStore.get('rtc_accounts')||'[]').length; }catch(e){}
+      RTCStore.setBackend(backend);
+      if(cloudEmpty && localAccts>0){
+        if(window.confirm('Import the journal saved on this device into your account?')){
+          var ks=RTCStore.keys(); for(var i=0;i<ks.length;i++){ RTCStore.set(ks[i], RTCStore.get(ks[i])); }
+        } else { RTCStore.replaceCache({}); }
+      } else {
+        RTCStore.replaceCache(cloud);
+      }
+      RTCStore.set('rtc_cloud_started','1');   // sentinel so we never re-ask to import
+      hide();
+      rtcEnterApp();
+    }).catch(function(e){
+      console.error('[RTC] cloud hydrate failed — staying local',e);
+      hide();  // don't lock the user out if the cloud call fails
+    });
+  }
+
+  function boot(){
+    if(!sb){ hide(); return; }   // offline: run local-only
+    sb.auth.getSession().then(function(res){
+      if(res.data && res.data.session){ applySession(res.data.session); }
+      else { show(); }
+    }).catch(function(){ hide(); });
+    sb.auth.onAuthStateChange(function(evt,session){
+      if(session){ applySession(session); }
+      else { applied=false; show(); }
+    });
+  }
+  if(document.readyState!=='loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
+})();
 </script>
 </body>
 </html>
