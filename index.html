@@ -2986,6 +2986,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <button class="auth-close" onclick="rtcAuthClose()" aria-label="Close">&times;</button>
     <div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-path">rtc://access — members only</span><span class="term-stat"><i></i>SECURE</span></div>
     <div class="auth-brand"><span class="ab-the">THE</span> <span class="ab-rev">REVENGE</span> <span class="ab-tc">TRADER CLUB</span></div>
+    <div id="authSealNote" style="display:none;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin:-8px 0 18px;line-height:1.7;">&#10003; Pledge signed &mdash; create your account to seal it</div>
     <div id="authFormView">
     <div class="auth-tabs">
       <button id="authTabIn" class="auth-tab active" onclick="rtcAuthMode('in')">LOG IN</button>
@@ -3174,6 +3175,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
     <button class="pledge-btn" id="pledgeBtn" onclick="enterStyle()"><span class="skfix">I Accept — Enter The Club</span></button>
     <div class="cta-note">Binding · No refunds on excuses</div>
+    <div class="cta-note" style="margin-top:14px;">Already sealed your pledge? <span onclick="rtcOpenLogin()" style="color:var(--gold);cursor:pointer;text-decoration:underline;">Log in</span></div>
   </div>
   </div>
 </div>
@@ -3560,7 +3562,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
         </button>
-        <div class="dash-acc-badge" id="dashAccBadge" title="Today's discipline">
+        <div class="dash-acc-badge" id="dashAccBadge" title="Account & settings" onclick="gotoSettings()" style="cursor:pointer;">
           <div class="dash-acc-ring" id="dashAccRing"></div>
           <div class="dash-acc-initials" id="dashAccInitials">—</div>
         </div>
@@ -3575,7 +3577,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div class="nav-tab" onclick="switchTab('goals',this)">Goals</div>
       <div class="nav-tab" onclick="switchTab('perf',this)">Performance</div>
       <div class="nav-tab" onclick="switchTab('journal',this)">Journal</div>
-      <div class="nav-tab" onclick="switchTab('settings',this)">Settings</div>
+      <div class="nav-tab" id="navTabSettings" onclick="switchTab('settings',this)">Settings</div>
       <div class="nav-tab" onclick="switchTab('learn',this)" style="position:relative;">Learn<span style="position:absolute;top:6px;right:2px;font-size:7px;background:var(--gold);color:#080808;padding:1px 4px;border-radius:3px;font-weight:800;letter-spacing:.5px;">NEW</span></div>
       <div class="nav-slider" id="navSlider"></div>
     </div>
@@ -4481,30 +4483,39 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   <!-- SETTINGS -->
   <div class="tab-body" id="tab-settings" style="display:none;">
 
-    <div class="settings-profile">
-      <div class="settings-avatar">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 3C9 3 7 5 7 7c0 1 .5 2 1 2.5C6 10 4 11 3 13c1 0 2-.5 3-1 0 2 1 4 3 5v2h6v-2c2-1 3-3 3-5 1 .5 2 1 3 1-1-2-3-3-5-3.5.5-.5 1-1.5 1-2.5 0-2-2-4-5-4z"/>
-          <line x1="9" y1="3" x2="7" y2="1"/>
-          <line x1="15" y1="3" x2="17" y2="1"/>
-        </svg>
-      </div>
-      <div>
-        <div class="settings-name" id="settingsName">—</div>
-        <div class="settings-style" id="settingsStyle">—</div>
-        <div class="settings-since" id="settingsMember">Member since —</div>
-      </div>
-    </div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold2);-webkit-text-fill-color:var(--gold2);margin:2px 2px 16px;">// Settings</div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-      <div class="perf-stat"><div class="perf-num" id="settingsTrades">0</div><div class="perf-lbl">Trades</div></div>
-      <div class="perf-stat"><div class="perf-num" id="settingsCheckins">0</div><div class="perf-lbl">Check-Ins</div></div>
+    <div class="card card-top-gold">
+      <div class="card-title">Account</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+        <div class="settings-avatar">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3C9 3 7 5 7 7c0 1 .5 2 1 2.5C6 10 4 11 3 13c1 0 2-.5 3-1 0 2 1 4 3 5v2h6v-2c2-1 3-3 3-5 1 .5 2 1 3 1-1-2-3-3-5-3.5.5-.5 1-1.5 1-2.5 0-2-2-4-5-4z"/>
+            <line x1="9" y1="3" x2="7" y2="1"/>
+            <line x1="15" y1="3" x2="17" y2="1"/>
+          </svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div class="settings-name" id="settingsName">—</div>
+          <div class="settings-style" id="settingsStyle">—</div>
+          <div class="settings-since" id="settingsMember">Member since —</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="perf-stat"><div class="perf-num" id="settingsTrades">0</div><div class="perf-lbl">Trades</div></div>
+        <div class="perf-stat"><div class="perf-num" id="settingsCheckins">0</div><div class="perf-lbl">Check-Ins</div></div>
+      </div>
+      <div id="logoutRow" style="display:none;margin-top:14px;">
+        <button onclick="rtcSignOut()" style="width:100%;padding:12px;background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s ease,color .15s ease;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)';" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)';">Log Out</button>
+      </div>
     </div>
 
     <div class="card">
-      <div class="card-title">Trading Accounts</div>
+      <div class="card-title">Trading Accounts <span id="settingsAccCount" style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);-webkit-text-fill-color:var(--muted);">—</span></div>
       <div class="card-sub">Each account has its own separate journal, stats, and goals. Switch anytime.</div>
-      <div id="accountList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
+      <div id="accountList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+      <button id="addAccToggle" onclick="rtcToggleAddAccount()" style="width:100%;padding:12px;background:transparent;border:1px dashed var(--gold-dim);border-radius:var(--r-sm);color:var(--gold);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s,background .15s;" onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,168,76,0.05)';" onmouseout="this.style.borderColor='var(--gold-dim)';this.style.background='transparent';">+ Add Account</button>
+      <div id="addAccForm" style="display:none;margin-top:14px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;" class="acc-inputs-grid">
         <div><div class="risk-lbl2">Account Name</div><input class="risk-input" id="newAccName" placeholder="e.g. Topstep 150K" style="width:100%;margin-top:6px;"></div>
         <div><div class="risk-lbl2">Balance ($)</div><input class="risk-input" id="newAccBal" type="number" placeholder="e.g. 150000" style="width:100%;margin-top:6px;"></div>
@@ -4547,6 +4558,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
         </div>
       </div>
       <button class="btn-gold" style="width:100%;flex:none;" onclick="addAccount()">Add Account</button>
+      </div><!-- /addAccForm -->
     </div>
 
     <!-- DATA EXPORT -->
@@ -5574,6 +5586,11 @@ function showScreen(id) {
 }
 
 // ── TAB SWITCHING ───────────────────────────────────────────────
+function gotoSettings() {
+  var el = document.getElementById('navTabSettings');
+  switchTab('settings', el);
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) { window.scrollTo(0, 0); }
+}
 function switchTab(tab, el) {
   document.querySelectorAll('.tab-body').forEach(t => {
     t.classList.remove('active');
@@ -5687,8 +5704,33 @@ function enterStyle() {
   pendingName = (document.getElementById('pledgeName').value || '').trim();
   const greet = document.getElementById('styleGreeting');
   if (greet) greet.textContent = 'Welcome, ' + pendingName + '.';
-  showScreen('styleScreen');
+  // Pledge-first flow: they've signed — now seal it with an account (if a cloud backend exists and they're logged out)
+  var sb = window.RTCsb;
+  if (sb && sb.auth) {
+    sb.auth.getSession().then(function(res){
+      if (res && res.data && res.data.session) {
+        showScreen('styleScreen');                 // already logged in -> continue to setup
+      } else if (typeof window.rtcSealPledge === 'function') {
+        window.rtcSealPledge(pendingName);         // logged out -> create account to seal the pledge
+      } else {
+        showScreen('styleScreen');
+      }
+    }).catch(function(){ showScreen('styleScreen'); });
+  } else {
+    showScreen('styleScreen');                     // offline fallback
+  }
 }
+// Resume onboarding at the setup screen (used after the account is sealed, incl. returning from the email-confirm link)
+window.rtcResumeSetup = function() {
+  var nm = '';
+  try { nm = localStorage.getItem('rtc_seal_name') || ''; } catch(e){}
+  if (nm) {
+    pendingName = nm;
+    var greet = document.getElementById('styleGreeting');
+    if (greet) greet.textContent = 'Welcome, ' + nm + '.';
+  }
+  showScreen('styleScreen');
+};
 
 // ── STYLE SELECTION ─────────────────────────────────────────────
 function selectStyle(el, s) {
@@ -5703,18 +5745,26 @@ function checkStyle() {
   if (btn) { btn.classList.toggle('on', bal > 0); }
 }
 function enterDash() {
+  // onboarding complete — clear the "seal / needs setup" breadcrumbs
+  try { localStorage.removeItem('rtc_seal_setup'); localStorage.removeItem('rtc_seal_name'); } catch(e){}
   const bal  = parseFloat(document.getElementById('accountBal').value) || 0;
   const name = pendingName || 'Trader';
   const style = selectedStyle || 'Day Trader';
   const accs = getAccounts();
-  const exists = accs.find(a => a.name.toLowerCase() === name.toLowerCase());
-  if (!exists) {
+  const idx = accs.findIndex(a => a.name.toLowerCase() === name.toLowerCase());
+  if (idx === -1) {
     accs.push({
       name, style, balance: bal,
       createdAt: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
     });
     saveAccounts(accs);
     setActiveIdx(accs.length - 1);
+  } else {
+    // Name already exists — honor the style/balance the user just picked instead of silently keeping the old one
+    accs[idx].style = style;
+    if (bal > 0) accs[idx].balance = bal;
+    saveAccounts(accs);
+    setActiveIdx(idx);
   }
   rtcSet('rtc_member', 'true');
   window._rtcFirstEntry = true; // flag for the dashboard self-build sequence
@@ -6434,6 +6484,15 @@ function openFullScreen(tradeId) {
 }
 
 // ── SETTINGS ────────────────────────────────────────────────────
+window.rtcToggleAddAccount = function() {
+  var f = document.getElementById('addAccForm');
+  var t = document.getElementById('addAccToggle');
+  if (!f) return;
+  var open = f.style.display !== 'none';
+  f.style.display = open ? 'none' : 'block';
+  if (t) t.textContent = open ? '+ Add Account' : '– Close';
+  if (!open) { try { f.scrollIntoView({behavior:'smooth', block:'nearest'}); } catch(e){} }
+};
 function renderSettings() {
   const acc  = getActiveAcc();
   const accs = getAccounts();
@@ -6444,6 +6503,7 @@ function renderSettings() {
   set('settingsMember',  'Member since ' + (acc.createdAt||'—'));
   set('settingsTrades',  getTrades().length);
   set('settingsCheckins',getCheckins().length);
+  set('settingsAccCount', String(accs.length).padStart(2,'0'));
   const list = document.getElementById('accountList');
   if (list) {
     list.innerHTML = accs.map((a, i) => {
@@ -11885,6 +11945,7 @@ rtcOnReady(function(){
   catch(e){ console.error('[RTC] Supabase failed to load',e); }
   var mode='in';
   var lastEmail='';
+  var sealMode=false;
   function el(id){ return document.getElementById(id); }
   function showInlineResend(v){ var r=el('authInlineResend'); if(r) r.style.display=v?'block':'none'; }
   function show(){ var o=el('authOverlay'); if(o) o.style.display='flex'; }
@@ -11893,6 +11954,7 @@ rtcOnReady(function(){
   function busy(b){ var s=el('authSubmit'); if(s) s.disabled=b; }
   window.rtcAuthMode=function(m){
     mode=m; msg(''); showInlineResend(false);
+    var seal=el('authSealNote'); if(seal) seal.style.display=(sealMode && m==='up')?'block':'none';
     el('authTabIn').classList.toggle('active', m==='in');
     el('authTabUp').classList.toggle('active', m==='up');
     el('authNameWrap').style.display = (m==='up')?'block':'none';
@@ -11936,7 +11998,11 @@ rtcOnReady(function(){
       });
     }
   };
-  window.rtcSignOut=function(){ if(sb) sb.auth.signOut().then(function(){ location.reload(); }); };
+  window.rtcSignOut=function(){
+    if(!sb) return;
+    if(!window.confirm('Log out of your account? Your journal is saved to the cloud — you can log back in anytime.')) return;
+    sb.auth.signOut().then(function(){ location.reload(); }).catch(function(){ location.reload(); });
+  };
 
   // ---- Supabase storage backend: reads/writes the user_store table (RLS-scoped) ----
   function makeSupaBackend(userId){
@@ -11966,6 +12032,8 @@ rtcOnReady(function(){
         window._rtcPostAuth=null; loadDash();
       } else if (window._rtcPostAuth){
         var cb=window._rtcPostAuth; window._rtcPostAuth=null; cb();
+      } else if (rtcNeedsSetup()){
+        if(typeof window.rtcResumeSetup==='function') window.rtcResumeSetup(); else showScreen('styleScreen');
       } else { showScreen('welcomeScreen'); }
     }catch(e){ console.error('[RTC] enter app',e); }
   }
@@ -12037,13 +12105,22 @@ rtcOnReady(function(){
     else { i.type='password'; if(b) b.textContent='SHOW'; }
   };
   window.rtcEnterClub=function(){
-    window._rtcPostAuth=function(){ showScreen('pledgeScreen'); };
-    if(!sb){ showScreen('pledgeScreen'); return; }          // offline fallback
+    if(!sb){ showScreen('pledgeScreen'); return; }          // offline -> pledge first
     sb.auth.getSession().then(function(res){
-      if(res.data && res.data.session){ rtcEnterApp(); }     // logged in -> dashboard or pledge
-      else { show(); rtcAuthMode('up'); }                    // not logged in -> default to CREATE ACCOUNT
-    }).catch(function(){ show(); });
+      if(res.data && res.data.session){ rtcEnterApp(); }     // logged in -> dashboard or resume setup
+      else { showScreen('pledgeScreen'); }                   // logged out -> PLEDGE FIRST, seal after
+    }).catch(function(){ showScreen('pledgeScreen'); });
   };
+  function rtcNeedsSetup(){ try{ return localStorage.getItem('rtc_seal_setup')==='1'; }catch(e){ return false; } }
+  // After signing the pledge, a logged-out user seals it by creating an account
+  window.rtcSealPledge=function(name){
+    try{ localStorage.setItem('rtc_seal_setup','1'); if(name) localStorage.setItem('rtc_seal_name',name); }catch(e){}
+    window._rtcPostAuth=function(){ if(typeof window.rtcResumeSetup==='function') window.rtcResumeSetup(); else showScreen('styleScreen'); };
+    sealMode=true; show(); rtcAuthMode('up');                // create-account tab, seal framing
+    var n=el('authName'); if(n){ n.value=name||''; }         // carry the signed name in
+  };
+  // Returning members log in from the pledge screen
+  window.rtcOpenLogin=function(){ sealMode=false; show(); rtcAuthMode('in'); };
 
   var applied=false;
   function applySession(session){
@@ -12062,6 +12139,7 @@ rtcOnReady(function(){
         RTCStore.replaceCache(cloud);
       }
       RTCStore.set('rtc_cloud_started','1');   // sentinel so we never re-ask to import
+      var lo=document.getElementById('logoutRow'); if(lo) lo.style.display='block';   // signed in -> show Log Out
       hide();
       rtcEnterApp();
     }).catch(function(e){
