@@ -2930,6 +2930,15 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 #authOverlay .auth-submit:hover{ transform:skewX(-6deg) translateY(-2px); }
 #authOverlay .auth-submit:active{ transform:skewX(-6deg) translateY(1px) scale(.985); }
 #authOverlay .auth-submit[disabled]{ opacity:.5; pointer-events:none; }
+#authOverlay .auth-resend{ width:100%; margin-top:18px; padding:13px; background:transparent; border:1px solid var(--gold-dim); border-radius:4px; color:var(--gold); font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:2.5px; cursor:pointer; transform:skewX(-6deg); transition:border-color .12s ease, background .12s ease; }
+#authOverlay .auth-resend .skfix{ display:inline-block; transform:skewX(6deg); }
+#authOverlay .auth-resend:hover{ border-color:var(--gold); background:rgba(201,168,76,0.06); }
+#authOverlay .auth-resend[disabled]{ opacity:.45; pointer-events:none; }
+#authOverlay .auth-hint{ margin-top:16px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.5px; line-height:1.7; color:var(--muted); text-transform:uppercase; }
+#authOverlay .auth-inline-resend{ display:none; margin:-6px 0 14px; text-align:center; }
+#authOverlay .auth-inline-resend button{ background:transparent; border:1px solid var(--gold-dim); border-radius:4px; color:var(--gold); font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1px; padding:8px 14px; cursor:pointer; text-transform:uppercase; }
+#authOverlay .auth-inline-resend button:hover{ border-color:var(--gold); background:rgba(201,168,76,0.06); }
+#authOverlay .auth-inline-resend button[disabled]{ opacity:.45; pointer-events:none; }
 #authOverlay .auth-foot{ margin-top:18px; text-align:center; }
 #authOverlay #authForgot{ display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1px; color:var(--muted); cursor:pointer; text-transform:uppercase; }
 #authOverlay #authForgot:hover{ color:var(--gold); }
@@ -2993,6 +3002,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       </div>
     </div>
     <div id="authMsg" class="auth-msg"></div>
+    <div id="authInlineResend" class="auth-inline-resend"><button id="authInlineResendBtn" type="button" onclick="rtcAuthResend()">Resend confirmation email</button></div>
     <button id="authSubmit" class="auth-submit" onclick="rtcAuthSubmit()"><span class="skfix">LOG IN &rarr;</span></button>
     <div class="auth-foot">
       <span id="authForgot" onclick="rtcAuthMode('reset')">Forgot password?</span>
@@ -3003,7 +3013,10 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div class="auth-confirm-icon">&#10003;</div>
       <div class="auth-confirm-title">ACCOUNT CREATED</div>
       <div class="auth-confirm-sub">We just sent a confirmation link to<br><b id="authConfirmEmail"></b><br><br>Click it to verify your account, then come back and log in.</div>
-      <button class="auth-submit" onclick="rtcAuthBackToLogin()" style="margin-top:22px;"><span class="skfix">BACK TO LOG IN</span></button>
+      <div class="auth-hint">Didn&rsquo;t get it? Check your spam folder,<br>or give it a couple of minutes.</div>
+      <button id="authResendBtn" class="auth-resend" onclick="rtcAuthResend()"><span class="skfix">RESEND CONFIRMATION EMAIL</span></button>
+      <div id="authResendMsg" class="auth-msg" style="margin-top:10px;min-height:14px;"></div>
+      <button class="auth-submit" onclick="rtcAuthBackToLogin()" style="margin-top:6px;"><span class="skfix">BACK TO LOG IN</span></button>
     </div>
   </div>
 </div>
@@ -11866,13 +11879,15 @@ rtcOnReady(function(){
   try{ sb=window.supabase.createClient(URL_,ANON_); window.RTCsb=sb; }
   catch(e){ console.error('[RTC] Supabase failed to load',e); }
   var mode='in';
+  var lastEmail='';
   function el(id){ return document.getElementById(id); }
+  function showInlineResend(v){ var r=el('authInlineResend'); if(r) r.style.display=v?'block':'none'; }
   function show(){ var o=el('authOverlay'); if(o) o.style.display='flex'; }
   function hide(){ var o=el('authOverlay'); if(o) o.style.display='none'; }
   function msg(t,cls){ var m=el('authMsg'); if(m){ m.textContent=t||''; m.className='auth-msg'+(cls?' '+cls:''); } }
   function busy(b){ var s=el('authSubmit'); if(s) s.disabled=b; }
   window.rtcAuthMode=function(m){
-    mode=m; msg('');
+    mode=m; msg(''); showInlineResend(false);
     el('authTabIn').classList.toggle('active', m==='in');
     el('authTabUp').classList.toggle('active', m==='up');
     el('authNameWrap').style.display = (m==='up')?'block':'none';
@@ -11887,6 +11902,7 @@ rtcOnReady(function(){
     var email=(el('authEmail').value||'').trim();
     var pass=(el('authPass').value||'');
     var name=(el('authName').value||'').trim();
+    lastEmail=email; showInlineResend(false);
     if(!email){ msg('Enter your email.','err'); return; }
     if(mode==='reset'){
       busy(true); msg('Sending...');
@@ -11905,7 +11921,13 @@ rtcOnReady(function(){
       });
     } else {
       sb.auth.signInWithPassword({email:email,password:pass}).then(function(r){
-        busy(false); if(r.error){ msg(r.error.message,'err'); return; } /* applySession hides + loads cloud */
+        busy(false);
+        if(r.error){
+          var em=(r.error.message||'').toLowerCase();
+          if(em.indexOf('confirm')>-1){ msg('Email not confirmed yet — check your inbox, or resend below.','err'); showInlineResend(true); }
+          else { msg(r.error.message,'err'); }
+          return;
+        } /* applySession hides + loads cloud */
       });
     }
   };
@@ -11948,8 +11970,54 @@ rtcOnReady(function(){
     if(f) f.style.display='none';
     if(c) c.style.display='block';
     var e=document.getElementById('authConfirmEmail'); if(e) e.textContent=email;
+    lastEmail=email;
+    var rm=document.getElementById('authResendMsg'); if(rm){ rm.textContent=''; rm.className='auth-msg'; }
     var pw=document.getElementById('authPass'); if(pw) pw.value='';   // never leave the password sitting there
   };
+  var _resendCooldown=false;
+  window.rtcAuthResend=function(){
+    if(!sb){ return; }
+    var email = lastEmail || (el('authEmail').value||'').trim();
+    if(!email){ msg('Enter your email first.','err'); return; }
+    if(_resendCooldown){ return; }
+    var onConfirm = el('authConfirmView') && el('authConfirmView').style.display!=='none';
+    function say(t,cls){
+      if(onConfirm){ var m=el('authResendMsg'); if(m){ m.textContent=t; m.className='auth-msg'+(cls?' '+cls:''); } }
+      else { msg(t,cls); }
+    }
+    var b1=el('authResendBtn'), b2=el('authInlineResendBtn');
+    if(b1) b1.disabled=true; if(b2) b2.disabled=true;
+    say('Sending…');
+    sb.auth.resend({type:'signup',email:email}).then(function(r){
+      if(r.error){
+        var t=r.error.message||'Could not resend right now.';
+        if(t.toLowerCase().indexOf('rate')>-1 || r.error.status===429){ t='Please wait a minute before requesting another.'; }
+        say(t,'err');
+        if(b1) b1.disabled=false; if(b2) b2.disabled=false;
+      } else {
+        say('✓ Sent. Check your inbox and spam — give it a minute or two.','ok');
+        startResendCooldown();
+      }
+    }).catch(function(){
+      say('Could not resend right now. Try again shortly.','err');
+      if(b1) b1.disabled=false; if(b2) b2.disabled=false;
+    });
+  };
+  function startResendCooldown(){
+    _resendCooldown=true;
+    var b1=el('authResendBtn'), b2=el('authInlineResendBtn'), secs=60;
+    (function tick(){
+      if(secs>0){
+        if(b1){ b1.disabled=true; b1.innerHTML='<span class="skfix">RESEND IN '+secs+'S</span>'; }
+        if(b2){ b2.disabled=true; b2.textContent='Resend in '+secs+'s'; }
+        secs--; setTimeout(tick,1000);
+      } else {
+        _resendCooldown=false;
+        if(b1){ b1.disabled=false; b1.innerHTML='<span class="skfix">RESEND CONFIRMATION EMAIL</span>'; }
+        if(b2){ b2.disabled=false; b2.textContent='Resend confirmation email'; }
+      }
+    })();
+  }
   window.rtcAuthBackToLogin=function(){
     var f=document.getElementById('authFormView'), c=document.getElementById('authConfirmView');
     if(c) c.style.display='none';
