@@ -631,6 +631,8 @@ html,body{background:#000000;font-family:"Inter",sans-serif;color:var(--text);mi
 .rk-ex-lbl{font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
 .rk-ex-val{font-size:18px;font-weight:800;color:var(--gold2);font-family:'Inter',sans-serif;}
 .rk-ex-val.white{color:#fff;}
+.rk-badge.teal{background:rgba(45,212,191,0.1);border-color:rgba(45,212,191,0.3);color:var(--orange);}
+.rk-step.teal{border-bottom-color:rgba(45,212,191,0.1);}
 
 .risk-result{
   background:var(--bg3);border:1px solid var(--border2);
@@ -708,7 +710,7 @@ html,body{background:#000000;font-family:"Inter",sans-serif;color:var(--text);mi
   background:var(--bg3);border:1px solid var(--border2);
   border-radius:var(--r-sm);padding:18px 14px;text-align:center;
 }
-.perf-num{font-size:32px;font-weight:900;color:var(--gold);letter-spacing:-1px;line-height:1;}
+.perf-num{font-size:32px;font-weight:900;color:var(--gold);letter-spacing:-1px;line-height:1;font-family:'Inter',sans-serif;}
 .perf-lbl{font-size:9px;color:var(--muted);margin-top:6px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;}
 .skip-bars{display:flex;flex-direction:column;gap:10px;}
 .skip-row{display:flex;flex-direction:column;gap:5px;}
@@ -3071,7 +3073,30 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   </div>
 </div>
 
-<style>@keyframes rtcSpin{to{transform:rotate(360deg);}}</style>
+<style>@keyframes rtcSpin{to{transform:rotate(360deg);}}
+#acctMenu .acct-item{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;background:transparent;border:none;border-radius:6px;cursor:pointer;}
+#acctMenu .acct-item:hover{background:rgba(255,255,255,0.04);}
+#acctMenu .acct-item.active{background:rgba(201,168,76,0.08);}
+#acctMenu .acct-nm{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#acctMenu .acct-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+#acctMenu .acct-check{color:var(--gold);font-size:13px;flex-shrink:0;}
+#acctMenu .acct-action{width:100%;text-align:left;padding:9px 10px;background:transparent;border:none;border-radius:6px;cursor:pointer;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+#acctMenu .acct-action:hover{background:rgba(255,255,255,0.04);}</style>
+<div id="acctMenuBackdrop" onclick="rtcCloseAcctMenu()" style="display:none;position:fixed;inset:0;z-index:9997;"></div>
+<div id="acctMenu" style="display:none;position:fixed;top:54px;right:14px;z-index:9998;width:256px;background:#111;border:1px solid var(--gold-dim);border-radius:10px;box-shadow:0 16px 50px rgba(0,0,0,0.6);overflow:hidden;">
+  <div style="padding:13px 15px;border-bottom:1px solid var(--border2);">
+    <div id="acctMenuName" style="font-size:15px;font-weight:800;color:#fff;">&mdash;</div>
+    <div id="acctMenuStyle" style="font-size:11px;color:var(--gold);margin-top:1px;"></div>
+  </div>
+  <div style="padding:6px;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;padding:6px 8px 4px;">Accounts</div>
+    <div id="acctMenuList" style="max-height:200px;overflow-y:auto;"></div>
+  </div>
+  <div style="border-top:1px solid var(--border2);padding:6px;">
+    <button class="acct-action" onclick="gotoSettings();rtcCloseAcctMenu();">Settings</button>
+    <button id="acctMenuLogout" class="acct-action" style="display:none;color:#e05a5a;" onclick="rtcSignOut()">Log Out</button>
+  </div>
+</div>
 <div id="bootLoading" style="position:fixed;inset:0;z-index:100002;background:#080808;display:flex;align-items:center;justify-content:center;transition:opacity .22s ease;">
   <div style="text-align:center;">
     <div style="font-family:'Inter',sans-serif;font-weight:900;font-size:22px;letter-spacing:-.5px;color:#fff;">THE REVENGE <span style="color:var(--gold);">TRADER CLUB</span></div>
@@ -3315,7 +3340,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   </div>
   <div class="acc-wrap">
     <div class="acc-label">// CURRENT ACCOUNT BALANCE ($) <span>[ required ]</span></div>
-    <input class="acc-input" id="accountBal" type="number" inputmode="decimal" placeholder="e.g. 2000" oninput="checkStyle()">
+    <input class="acc-input" id="accountBal" type="number" inputmode="decimal" placeholder="2000" oninput="checkStyle()">
   </div>
   <button class="style-btn" id="styleBtn" onclick="enterDash()"><span class="skfix">Enter My Dashboard &rarr;</span></button>
   <div class="cta-note">Your risk math is calculated from this balance</div>
@@ -3553,7 +3578,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div style="border-left:1px solid var(--border);padding-left:16px;">
             <div style="font-size:8px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:5px;">Quick Log P&amp;L</div>
             <div style="display:flex;gap:6px;">
-              <input id="tmPnlInput" type="number" placeholder="e.g. 450" style="width:100px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-size:16px;font-family:'Inter',sans-serif;outline:none;">
+              <input id="tmPnlInput" type="number" placeholder="450" style="width:100px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-size:16px;font-family:'Inter',sans-serif;outline:none;">
               <button onclick="tmLogPnl()" style="padding:7px 14px;background:var(--gold);border:none;border-radius:7px;color:#080808;font-size:11px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;">LOG</button>
             </div>
           </div>
@@ -3586,7 +3611,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div id="tmOutcomeAmtWrap" style="display:none;margin-top:14px;">
             <div id="tmOutcomeLabel" style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center;"></div>
             <div style="display:flex;gap:8px;">
-              <input id="tmOutcomeAmt" type="number" placeholder="e.g. 340" style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:12px 14px;color:var(--text);font-size:18px;font-family:'Inter',sans-serif;outline:none;text-align:center;">
+              <input id="tmOutcomeAmt" type="number" placeholder="340" style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:12px 14px;color:var(--text);font-size:18px;font-family:'Inter',sans-serif;outline:none;text-align:center;">
               <button onclick="confirmTmOutcome()" style="padding:12px 18px;background:var(--gold);border:none;border-radius:4px;color:#080808;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;">SAVE</button>
             </div>
             <button onclick="closeTmOutcomePrompt()" style="width:100%;margin-top:8px;padding:8px;background:transparent;border:none;color:var(--faint);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;">Skip for now</button>
@@ -3623,7 +3648,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
         </button>
-        <div class="dash-acc-badge" id="dashAccBadge" title="Account & settings" onclick="gotoSettings()" style="cursor:pointer;">
+        <div class="dash-acc-badge" id="dashAccBadge" title="Account menu" onclick="rtcToggleAcctMenu(event)" style="cursor:pointer;">
           <div class="dash-acc-ring" id="dashAccRing"></div>
           <div class="dash-acc-initials" id="dashAccInitials">—</div>
         </div>
@@ -3763,7 +3788,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
         <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:8px;">
           <div style="flex:1;">
             <div class="risk-lbl2" style="margin-bottom:6px;">Add Your Own Step</div>
-            <input class="risk-input" id="warmupCustomInput" placeholder="e.g. Work out, drink water, meditate..." style="width:100%;font-size:14px;" onkeydown="if(event.key==='Enter')addWarmupStep()">
+            <input class="risk-input" id="warmupCustomInput" placeholder="Work out, drink water, meditate..." style="width:100%;font-size:14px;" onkeydown="if(event.key==='Enter')addWarmupStep()">
           </div>
           <button class="btn-calc" onclick="addWarmupStep()">Add</button>
         </div>
@@ -3838,7 +3863,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div class="card-sub" style="margin-bottom:0;">Add, edit or remove rules. Changes only affect this account.</div>
       <div id="customEditorPanel" style="display:none;margin-top:14px;">
         <div style="background:var(--bg3);border-radius:var(--r-sm);padding:14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;">
-          <div><div class="risk-lbl2" style="margin-bottom:6px;">Rule Text</div><input class="risk-input" id="customItemText" placeholder="e.g. I have checked the economic calendar" style="width:100%;"></div>
+          <div><div class="risk-lbl2" style="margin-bottom:6px;">Rule Text</div><input class="risk-input" id="customItemText" placeholder="I have checked the economic calendar" style="width:100%;"></div>
           <div style="display:flex;gap:8px;align-items:flex-end;">
             <div style="flex:1;"><div class="risk-lbl2" style="margin-bottom:6px;">Section</div>
               <select id="customItemSection" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:12px 10px;color:var(--white);font-size:13px;font-family:'Inter',sans-serif;outline:none;">
@@ -3980,7 +4005,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div class="risk-row">
         <div class="risk-field">
           <div class="risk-lbl2">Current Balance ($)</div>
-          <input class="risk-input" id="d7Input" type="number" placeholder="e.g. 5000">
+          <input class="risk-input" id="d7Input" type="number" placeholder="5000">
         </div>
         <button class="btn-calc" onclick="calcD7()">Calculate</button>
       </div>
@@ -4010,11 +4035,11 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
         <div>
           <div class="risk-lbl2" style="margin-bottom:6px;">Account Max Loss Limit ($)</div>
-          <input class="risk-input" id="ddLimit" type="number" placeholder="e.g. 1000" style="width:100%;" oninput="updateDrawdownAlarm()">
+          <input class="risk-input" id="ddLimit" type="number" placeholder="1000" style="width:100%;" oninput="updateDrawdownAlarm()">
         </div>
         <div>
           <div class="risk-lbl2" style="margin-bottom:6px;">Today's P&L ($)</div>
-          <input class="risk-input" id="ddPnl" type="number" placeholder="e.g. -350" style="width:100%;" oninput="updateDrawdownAlarm()">
+          <input class="risk-input" id="ddPnl" type="number" placeholder="-350" style="width:100%;" oninput="updateDrawdownAlarm()">
         </div>
       </div>
 
@@ -4064,7 +4089,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
       <div style="margin-bottom:14px;">
         <div class="risk-lbl2" style="margin-bottom:6px;">Account Balance ($)</div>
-        <input class="risk-input" id="psBalance" type="number" placeholder="e.g. 10000" style="width:100%;font-size:18px;" oninput="calcRiskPerTrade()">
+        <input class="risk-input" id="psBalance" type="number" placeholder="10000" style="width:100%;font-size:18px;" oninput="calcRiskPerTrade()">
       </div>
 
       <button class="btn-gold" style="width:100%;margin-bottom:16px;" onclick="calcRiskPerTrade()">Calculate</button>
@@ -4075,7 +4100,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
         <div style="background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.03));border:1px solid var(--gold-dim);border-radius:var(--r);padding:24px;text-align:center;margin-bottom:12px;position:relative;overflow:hidden;">
           <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent);"></div>
           <div style="font-size:12px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Max Risk Per Trade Today</div>
-          <div style="font-size:56px;font-weight:900;color:var(--gold);letter-spacing:-2px;line-height:1;" id="psPerTrade">$0</div>
+          <div style="font-size:56px;font-weight:900;color:var(--gold);letter-spacing:-1.5px;line-height:1;font-family:'Inter',sans-serif;" id="psPerTrade">$0</div>
           <div style="font-size:13px;color:var(--muted);margin-top:8px;">Do not risk more than this on any single trade</div>
         </div>
 
@@ -4086,14 +4111,14 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
               <div style="font-size:13px;font-weight:700;color:var(--white);">Daily Max Loss</div>
               <div style="font-size:11px;color:var(--muted);margin-top:2px;">Balance ÷ 7 — stop trading if you hit this</div>
             </div>
-            <div style="font-size:20px;font-weight:900;color:var(--white);" id="psDailyMax">$0</div>
+            <div style="font-size:20px;font-weight:900;color:var(--white);font-family:'Inter',sans-serif;" id="psDailyMax">$0</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg3);border-radius:var(--r-sm);border:1px solid var(--border);">
             <div>
               <div style="font-size:13px;font-weight:700;color:var(--white);">Max Trades Per Day</div>
               <div style="font-size:11px;color:var(--muted);margin-top:2px;">3 trades maximum — then you are done</div>
             </div>
-            <div style="font-size:20px;font-weight:900;color:var(--white);">3</div>
+            <div style="font-size:20px;font-weight:900;color:var(--white);font-family:'Inter',sans-serif;">3</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(229,57,53,0.06);border-radius:var(--r-sm);border:1px solid #2a1212;">
             <div>
@@ -4116,27 +4141,22 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
   <!-- RECOVERY -->
   <div class="tab-body" id="tab-recovery" style="display:none;">
-    <div class="guide-box guide-box-orange">
-      <div class="card-title" style="margin-bottom:14px;color:var(--orange);">What Is Recovery Mode?</div>
-      <div class="guide-row">
-        <div class="guide-icon guide-icon-orange">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+    <div class="guide-box guide-box-orange" style="padding:6px;">
+      <div class="card-title" style="margin:12px 10px 3px;color:var(--orange);">What Is Recovery Mode?</div>
+      <div style="font-size:12px;color:var(--muted);margin:0 10px 10px;">Lose the right way &mdash; survive, recover, come back sharper.</div>
+      <div class="rk-step teal">
+        <div class="rk-badge teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div>
+        <div><div class="rk-title">Log what you lost</div><div class="rk-desc">Get your path back: 1% of your balance per day at half size. Time, not luck, is the plan.</div></div>
       </div>
-        <div class="guide-text"><strong>Log what you lost today</strong> — and get your path back: 1% of your balance per day at half size. Time, not luck, is the recovery plan.</div>
+      <div class="rk-step teal">
+        <div class="rk-badge teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div><div class="rk-title">Run the Cooldown Protocol</div><div class="rk-desc">After every loss &mdash; step away, name the mistake, journal it, decide if you're done for the day.</div></div>
       </div>
-      <div class="guide-row">
-        <div class="guide-icon guide-icon-orange">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <div class="rk-step teal">
+        <div class="rk-badge teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div><div class="rk-title">Your limit adjusts as you grow</div><div class="rk-desc">Hit your daily max loss &mdash; stop. Come back tomorrow. Never revenge trade.</div></div>
       </div>
-        <div class="guide-text">Run the <strong>Cooldown Protocol</strong> after every loss — step away, name the mistake, journal it, decide if you're done for the day.</div>
-      </div>
-      <div class="guide-row" style="margin-bottom:0;">
-        <div class="guide-icon guide-icon-orange">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      </div>
-        <div class="guide-text">Each day's limit <strong>adjusts as your balance grows</strong>. Hit your daily max loss — stop. Come back tomorrow. Do not revenge trade.</div>
-      </div>
-      <div class="guide-callout guide-callout-orange">Recovery Mode is NOT about getting rich fast. It's about surviving long enough to trade another day.</div>
+      <div style="padding:10px;"><div class="guide-callout guide-callout-orange" style="margin-top:0;">Recovery Mode is NOT about getting rich fast. It's about surviving long enough to trade another day.</div></div>
     </div>
 
     <!-- RECOVERY MODE (stateful) -->
@@ -4215,10 +4235,10 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div class="card-title">Set Your Trading Goal</div>
       <div class="card-sub">This page is your personal trading journal — not just a number. Enter how much you want to make and your timeline. We'll break it into daily targets so you can see it's achievable — one day at a time.</div>
       <div class="info-grid" style="margin-bottom:12px;">
-        <div class="info-field"><div class="info-label">Profit Goal ($)</div><input class="info-input" id="goalAmt" type="number" placeholder="e.g. 9000" oninput="checkGoalReady()"></div>
-        <div class="info-field"><div class="info-label">Trading Days</div><input class="info-input" id="goalDays" type="number" placeholder="e.g. 20" oninput="checkGoalReady()"></div>
-        <div class="info-field"><div class="info-label">Starting Balance ($)</div><input class="info-input" id="goalBal" type="number" placeholder="e.g. 5000" oninput="checkGoalReady()"></div>
-        <div class="info-field"><div class="info-label">Goal Name (optional)</div><input class="info-input" id="goalName" placeholder="e.g. June Target"></div>
+        <div class="info-field"><div class="info-label">Profit Goal ($)</div><input class="info-input" id="goalAmt" type="number" placeholder="9000" oninput="checkGoalReady()"></div>
+        <div class="info-field"><div class="info-label">Trading Days</div><input class="info-input" id="goalDays" type="number" placeholder="20" oninput="checkGoalReady()"></div>
+        <div class="info-field"><div class="info-label">Starting Balance ($)</div><input class="info-input" id="goalBal" type="number" placeholder="5000" oninput="checkGoalReady()"></div>
+        <div class="info-field"><div class="info-label">Goal Name (optional)</div><input class="info-input" id="goalName" placeholder="June Target"></div>
       </div>
       <button class="btn-gold" id="goalSetBtn" style="width:100%;flex:none;opacity:.4;pointer-events:none;" onclick="setGoal()">Build My Plan</button>
     </div>
@@ -4257,7 +4277,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
         <div class="card-title">Log Today's P&L</div>
         <div class="card-sub">Enter what you made or lost today. Negative = loss.</div>
         <div style="display:flex;gap:10px;align-items:flex-end;">
-          <div style="flex:1;"><div class="risk-lbl2">Today's P&L ($)</div><input class="risk-input" id="pnlInput" type="number" placeholder="e.g. 450 or -200"></div>
+          <div style="flex:1;"><div class="risk-lbl2">Today's P&L ($)</div><input class="risk-input" id="pnlInput" type="number" placeholder="450 or -200"></div>
           <button class="btn-calc" onclick="logPnl()">Log Day</button>
         </div>
       </div>
@@ -4570,9 +4590,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div class="settings-since" id="settingsMember">Member since —</div>
         </div>
       </div>
-      <div id="logoutRow" style="display:none;margin-top:2px;">
-        <button onclick="rtcSignOut()" style="width:100%;padding:12px;background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s ease,color .15s ease;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)';" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)';">Log Out</button>
-      </div>
+      <div id="logoutRow" style="display:none;"></div>
     </div>
 
     <div class="card">
@@ -4582,8 +4600,8 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <button id="addAccToggle" onclick="rtcToggleAddAccount()" style="width:100%;padding:12px;background:transparent;border:1px dashed var(--gold-dim);border-radius:var(--r-sm);color:var(--gold);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s,background .15s;" onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,168,76,0.05)';" onmouseout="this.style.borderColor='var(--gold-dim)';this.style.background='transparent';">+ Add Account</button>
       <div id="addAccForm" style="display:none;margin-top:14px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;" class="acc-inputs-grid">
-        <div><div class="risk-lbl2">Account Name</div><input class="risk-input" id="newAccName" placeholder="e.g. Topstep 150K" style="width:100%;margin-top:6px;"></div>
-        <div><div class="risk-lbl2">Balance ($)</div><input class="risk-input" id="newAccBal" type="number" placeholder="e.g. 150000" style="width:100%;margin-top:6px;"></div>
+        <div><div class="risk-lbl2">Account Name</div><input class="risk-input" id="newAccName" placeholder="Topstep 150K" style="width:100%;margin-top:6px;"></div>
+        <div><div class="risk-lbl2">Balance ($)</div><input class="risk-input" id="newAccBal" type="number" placeholder="150000" style="width:100%;margin-top:6px;"></div>
       </div>
       <div style="margin-bottom:14px;">
         <div class="risk-lbl2" style="margin-bottom:10px;">Trading Style</div>
@@ -4904,7 +4922,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
       <div style="margin-bottom:18px;">
         <div class="risk-lbl2" style="margin-bottom:8px;">P&L for this day ($)</div>
-        <input class="risk-input" id="editPnlInput" type="number" placeholder="e.g. 450 or -200" style="width:100%;font-size:18px;text-align:center;">
+        <input class="risk-input" id="editPnlInput" type="number" placeholder="450 or -200" style="width:100%;font-size:18px;text-align:center;">
       </div>
 
       <div style="display:flex;gap:10px;margin-bottom:10px;">
@@ -5661,6 +5679,40 @@ function gotoSettings() {
   var el = document.getElementById('navTabSettings');
   switchTab('settings', el);
   try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) { window.scrollTo(0, 0); }
+}
+function rtcCloseAcctMenu() {
+  var m = document.getElementById('acctMenu'), b = document.getElementById('acctMenuBackdrop');
+  if (m) m.style.display = 'none';
+  if (b) b.style.display = 'none';
+}
+function rtcToggleAcctMenu(ev) {
+  if (ev) ev.stopPropagation();
+  var m = document.getElementById('acctMenu'); if (!m) return;
+  if (m.style.display === 'block') { rtcCloseAcctMenu(); return; }
+  var acc = getActiveAcc(), accs = getAccounts(), idx = getActiveIdx();
+  var nm = document.getElementById('acctMenuName'); if (nm) nm.textContent = acc ? acc.name : '—';
+  var st = document.getElementById('acctMenuStyle'); if (st) st.textContent = acc ? acc.style : '';
+  var list = document.getElementById('acctMenuList');
+  if (list) {
+    list.innerHTML = accs.map(function(a, i) {
+      var active = (i === idx);
+      return '<button class="acct-item' + (active ? ' active' : '') + '" onclick="rtcMenuSwitch(' + i + ')">'
+        + '<div style="min-width:0;"><div class="acct-nm">' + a.name + '</div><div class="acct-sub">' + a.style + ' &middot; $' + Number(a.balance).toLocaleString() + '</div></div>'
+        + (active ? '<span class="acct-check">&#10003;</span>' : '')
+        + '</button>';
+    }).join('');
+  }
+  var lo = document.getElementById('acctMenuLogout');
+  if (lo) { lo.style.display = 'none'; if (window.RTCsb && window.RTCsb.auth) { window.RTCsb.auth.getSession().then(function(r){ lo.style.display = (r && r.data && r.data.session) ? 'block' : 'none'; }).catch(function(){}); } }
+  var badge = document.getElementById('dashAccBadge');
+  if (badge) { var rr = badge.getBoundingClientRect(); m.style.top = (rr.bottom + 8) + 'px'; m.style.right = Math.max(10, (window.innerWidth - rr.right)) + 'px'; }
+  var bd = document.getElementById('acctMenuBackdrop'); if (bd) bd.style.display = 'block';
+  m.style.display = 'block';
+}
+function rtcMenuSwitch(i) {
+  rtcCloseAcctMenu();
+  if (i === getActiveIdx()) return;
+  try { switchAccount(i); } catch(e) {}
 }
 function switchTab(tab, el) {
   document.querySelectorAll('.tab-body').forEach(t => {
@@ -11502,9 +11554,9 @@ const OB_STEPS = [
         + '</div>'
         + '<div style="display:flex;flex-direction:column;gap:12px;">'
         + '<div><div style="font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Profit Target ($)</div>'
-        + '<input id="obGoalAmt" type="number" placeholder="e.g. 9000" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:12px 14px;color:var(--text);font-size:16px;font-family:\'Inter\',sans-serif;outline:none;"></div>'
+        + '<input id="obGoalAmt" type="number" placeholder="9000" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:12px 14px;color:var(--text);font-size:16px;font-family:\'Inter\',sans-serif;outline:none;"></div>'
         + '<div><div style="font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Number of Trading Days</div>'
-        + '<input id="obGoalDays" type="number" placeholder="e.g. 30" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:12px 14px;color:var(--text);font-size:16px;font-family:\'Inter\',sans-serif;outline:none;"></div>'
+        + '<input id="obGoalDays" type="number" placeholder="30" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:12px 14px;color:var(--text);font-size:16px;font-family:\'Inter\',sans-serif;outline:none;"></div>'
         + '<div id="obDailyCalc" style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);border-radius:4px;padding:12px 14px;display:none;">'
         + '<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Daily target to hit your goal:</div>'
         + '<div id="obDailyAmt" style="font-family:\'Bebas Neue\',sans-serif;font-size:24px;color:var(--gold);letter-spacing:2px;"></div>'
@@ -11555,7 +11607,7 @@ const OB_STEPS = [
         + '<div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;">Your maximum daily loss. This activates the Drawdown Alarm<br>and powers your Trading Mode safety system.</div>'
         + '</div>'
         + '<div><div style="font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Max Daily Loss ($)</div>'
-        + '<input id="obMaxLoss" type="number" value="' + (dd.maxLoss || '') + '" placeholder="e.g. 1000" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:12px 14px;color:var(--text);font-size:16px;font-family:\'Inter\',sans-serif;outline:none;">'
+        + '<input id="obMaxLoss" type="number" value="' + (dd.maxLoss || '') + '" placeholder="1000" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:12px 14px;color:var(--text);font-size:16px;font-family:\'Inter\',sans-serif;outline:none;">'
         + '<div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;">For Topstep MNQ: typical daily loss limit is $1,000\u2013$1,500 depending on your account size.</div>'
         + '</div></div>';
     },
@@ -11879,7 +11931,7 @@ function renderRecoveryMode() {
     body.innerHTML = '<div class="card-sub">Took a hit? Enter what you lost and start Recovery Mode. We\u2019ll track every day until you\u2019re back: 1% of your balance per day, at half your normal size.</div>'
       + '<div class="risk-row">'
       + '<div class="risk-field"><div class="risk-lbl2">Amount Lost ($)</div>'
-      + '<input class="risk-input" id="recLossInput" type="number" placeholder="e.g. 350" style="font-size:16px;"></div>'
+      + '<input class="risk-input" id="recLossInput" type="number" placeholder="350" style="font-size:16px;"></div>'
       + '<button class="btn-calc" onclick="enterRecoveryMode()">Enter Recovery Mode</button></div>';
     return;
   }
@@ -11917,7 +11969,7 @@ function renderRecoveryMode() {
     + '<div style="text-align:center;padding:10px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:18px;font-weight:800;color:var(--gold);">$' + hs.half.toFixed(0) + '</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;">MAX/TRADE</div></div></div>';
 
   h += '<div style="display:flex;gap:8px;margin-bottom:14px;">'
-    + '<input class="risk-input" id="recDayInput" type="number" placeholder="Today\u2019s P&L, e.g. 120 or -45" style="flex:1;font-size:16px;">'
+    + '<input class="risk-input" id="recDayInput" type="number" placeholder="Today\u2019s P&L (120 or -45)" style="flex:1;font-size:16px;">'
     + '<button class="btn-calc" onclick="logRecoveryResult()" style="flex-shrink:0;">Log Day</button></div>';
 
   if (s.entries.length) {
