@@ -403,6 +403,15 @@ html,body{background:#000000;font-family:"Inter",sans-serif;color:var(--text);mi
   font-size:12px;font-weight:600;color:var(--muted);transition:all .15s;
 }
 .sleep-btn.on{border-color:var(--gold);color:var(--gold);background:var(--gold-glow);}
+.hours-row,.stress-row,.conf-row{display:flex;gap:6px;flex-wrap:wrap;}
+.hours-btn,.stress-btn,.conf-btn{
+  flex:1;min-width:40px;padding:12px 6px;
+  background:var(--bg3);border:1.5px solid var(--border2);
+  border-radius:var(--r-sm);text-align:center;cursor:pointer;
+  font-size:13px;font-weight:700;color:var(--muted);transition:all .15s;font-family:'Inter',sans-serif;
+}
+.hours-btn.on,.stress-btn.on,.conf-btn.on{border-color:var(--gold);color:var(--gold);background:var(--gold-glow);}
+.ci-sublabel{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin:16px 0 8px;}
 
 .warmup-list{display:flex;flex-direction:column;gap:8px;}
 .wu-step{
@@ -553,7 +562,7 @@ html,body{background:#000000;font-family:"Inter",sans-serif;color:var(--text);mi
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   text-align:center;pointer-events:none;
 }
-.score-pct{font-size:38px;font-weight:900;color:var(--white);line-height:1;letter-spacing:-2px;}
+.score-pct{font-size:38px;font-weight:900;color:var(--white);line-height:1;letter-spacing:-2px;font-family:'Inter',sans-serif;}
 .score-label-sm{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
 .score-verdict{
   font-size:15px;font-weight:800;text-align:center;letter-spacing:.5px;
@@ -633,6 +642,27 @@ html,body{background:#000000;font-family:"Inter",sans-serif;color:var(--text);mi
 .rk-ex-val.white{color:#fff;}
 .rk-badge.teal{background:rgba(45,212,191,0.1);border-color:rgba(45,212,191,0.3);color:var(--orange);}
 .rk-step.teal{border-bottom-color:rgba(45,212,191,0.1);}
+.mir-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:3px;}
+.mir-sub{font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5;}
+.mir-heroes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.mir-hero{border:1px solid var(--border2);border-radius:8px;padding:14px;}
+.mir-kryp{background:rgba(229,57,53,0.05);border-color:rgba(229,57,53,0.25);border-left:3px solid var(--red);}
+.mir-edge{background:rgba(201,168,76,0.05);border-color:var(--gold-dim);border-left:3px solid var(--gold);}
+.mir-hero-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
+.mir-lbl-red{color:var(--red);}
+.mir-lbl-gold{color:var(--gold);}
+.mir-hero-title{font-size:16px;font-weight:800;color:#fff;margin-bottom:6px;font-family:'Inter',sans-serif;}
+.mir-hero-detail{font-size:11px;color:var(--text2);line-height:1.6;}
+.mir-feed-lbl{display:flex;align-items:baseline;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;}
+.mir-feed-lbl span{color:var(--muted);font-size:10px;}
+.mir-feed{display:flex;flex-direction:column;gap:8px;}
+.mir-row{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:12px 15px;font-size:13px;color:var(--text2);line-height:1.55;}
+.mir-row b{color:#fff;}
+.mir-row-red{border-left:3px solid var(--red);}
+.mir-row-gold{border-left:3px solid var(--gold);}
+.mir-row-green{border-left:3px solid var(--green);background:rgba(0,208,132,0.05);border-color:rgba(0,208,132,0.2);}
+.mir-foot{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--faint);text-transform:uppercase;margin-top:16px;}
+@media(max-width:560px){ .mir-heroes{grid-template-columns:1fr;} }
 
 .risk-result{
   background:var(--bg3);border:1px solid var(--border2);
@@ -724,7 +754,7 @@ html,body{background:#000000;font-family:"Inter",sans-serif;color:var(--text);mi
   background:radial-gradient(ellipse at center, rgba(201,168,76,0.08) 0%, transparent 70%);
   border-radius:var(--r);border:1px solid var(--gold-dim);
 }
-.streak-num{font-size:72px;font-weight:900;color:var(--gold);line-height:1;letter-spacing:-4px;}
+.streak-num{font-size:72px;font-weight:900;color:var(--gold);line-height:1;letter-spacing:-4px;font-family:'Inter',sans-serif;}
 .streak-lbl{font-size:10px;color:var(--muted);margin-top:10px;text-transform:uppercase;letter-spacing:3px;font-weight:700;}
 
 /* ══════════════════════════════════════════════════════════
@@ -3077,8 +3107,8 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 #acctMenu .acct-item{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;background:transparent;border:none;border-radius:6px;cursor:pointer;}
 #acctMenu .acct-item:hover{background:rgba(255,255,255,0.04);}
 #acctMenu .acct-item.active{background:rgba(201,168,76,0.08);}
-#acctMenu .acct-nm{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#acctMenu .acct-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+#acctMenu .acct-nm{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;letter-spacing:0;}
+#acctMenu .acct-sub{font-size:10px;color:var(--muted);margin-top:1px;text-transform:none;letter-spacing:0;}
 #acctMenu .acct-check{color:var(--gold);font-size:13px;flex-shrink:0;}
 #acctMenu .acct-action{width:100%;text-align:left;padding:9px 10px;background:transparent;border:none;border-radius:6px;cursor:pointer;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;}
 #acctMenu .acct-action:hover{background:rgba(255,255,255,0.04);}</style>
@@ -3771,6 +3801,24 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
         <div class="sleep-btn" onclick="selectSleep(this,'OK')">OK</div>
         <div class="sleep-btn" onclick="selectSleep(this,'Poor')">Poor</div>
       </div>
+      <div class="ci-sublabel">Hours Slept</div>
+      <div class="hours-row">
+        <div class="hours-btn" onclick="selectHours(this,4)">&le;4</div>
+        <div class="hours-btn" onclick="selectHours(this,5)">5</div>
+        <div class="hours-btn" onclick="selectHours(this,6)">6</div>
+        <div class="hours-btn" onclick="selectHours(this,7)">7</div>
+        <div class="hours-btn" onclick="selectHours(this,8)">8</div>
+        <div class="hours-btn" onclick="selectHours(this,9)">9+</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title card-title-display">Life Stress</div>
+      <div class="card-sub">Stress outside trading bleeds into your decisions. Be honest about today.</div>
+      <div class="stress-row">
+        <div class="stress-btn" onclick="selectStress(this,'Low')">Low</div>
+        <div class="stress-btn" onclick="selectStress(this,'Medium')">Medium</div>
+        <div class="stress-btn" onclick="selectStress(this,'High')">High</div>
+      </div>
     </div>
     <div class="card">
       <div class="card-title card-title-display">Pre-Market Warmup</div>
@@ -3906,6 +3954,19 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <div class="card" style="margin-bottom:12px;">
       <div class="card-title" style="margin-bottom:10px;">Trade Notes</div>
       <textarea class="notes-input" id="cl-notes" placeholder="Why are you taking this trade? What is your thesis?"></textarea>
+    </div>
+
+    <!-- CONFIDENCE BEFORE ENTRY -->
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title" style="margin-bottom:6px;">Confidence Before Entry</div>
+      <div class="card-sub" style="margin-bottom:12px;">How sure were you before you pulled the trigger? 1 = a coin flip, 5 = certain.</div>
+      <div class="conf-row">
+        <div class="conf-btn" onclick="selectConfidence(this,1)">1</div>
+        <div class="conf-btn" onclick="selectConfidence(this,2)">2</div>
+        <div class="conf-btn" onclick="selectConfidence(this,3)">3</div>
+        <div class="conf-btn" onclick="selectConfidence(this,4)">4</div>
+        <div class="conf-btn" onclick="selectConfidence(this,5)">5</div>
+      </div>
     </div>
 
     <!-- TRADE TAGS -->
@@ -4354,6 +4415,9 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   <!-- PERFORMANCE -->
   <div class="tab-body" id="tab-perf" style="display:none;">
 
+    <!-- THE MIRROR — self-knowledge surface, rendered by renderMirror() -->
+    <div id="mirrorSection" style="display:none;margin-bottom:16px;"></div>
+
     <!-- Empty state — shown when no trades logged -->
     <div id="perfEmptyState" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;">
       <div style="width:56px;height:56px;border-radius:50%;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
@@ -4366,7 +4430,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <!-- DISCIPLINE NET WORTH — hero stat, always climbing -->
     <div class="card card-top-gold" style="text-align:center;">
       <div style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Discipline Net Worth</div>
-      <div id="disciplineNetWorth" style="font-size:48px;font-weight:900;color:var(--gold);letter-spacing:-2px;line-height:1;">0</div>
+      <div id="disciplineNetWorth" style="font-size:48px;font-weight:900;color:var(--gold);letter-spacing:-2px;line-height:1;font-family:'Inter',sans-serif;">0</div>
       <div style="font-size:11px;color:var(--muted);margin-top:6px;">Total discipline points earned across every trade, ever</div>
     </div>
 
@@ -5705,7 +5769,7 @@ function rtcToggleAcctMenu(ev) {
   var lo = document.getElementById('acctMenuLogout');
   if (lo) { lo.style.display = 'none'; if (window.RTCsb && window.RTCsb.auth) { window.RTCsb.auth.getSession().then(function(r){ lo.style.display = (r && r.data && r.data.session) ? 'block' : 'none'; }).catch(function(){}); } }
   var badge = document.getElementById('dashAccBadge');
-  if (badge) { var rr = badge.getBoundingClientRect(); m.style.top = (rr.bottom + 8) + 'px'; m.style.right = Math.max(10, (window.innerWidth - rr.right)) + 'px'; }
+  if (badge) { var rr = badge.getBoundingClientRect(); m.style.top = Math.round(rr.bottom + 8) + 'px'; m.style.right = Math.round(Math.max(10, window.innerWidth - rr.right)) + 'px'; }
   var bd = document.getElementById('acctMenuBackdrop'); if (bd) bd.style.display = 'block';
   m.style.display = 'block';
 }
@@ -5897,6 +5961,9 @@ function enterDash() {
 // ── CHECK-IN ────────────────────────────────────────────────────
 let currentMood  = '';
 let currentSleep = '';
+let currentSleepHours = null;
+let currentStress = '';
+let currentConfidence = null;
 
 function selectMood(el, m) {
   document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('on'));
@@ -5908,6 +5975,21 @@ function selectSleep(el, s) {
   el.classList.add('on');
   currentSleep = s;
 }
+function selectHours(el, h) {
+  document.querySelectorAll('.hours-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  currentSleepHours = h;
+}
+function selectStress(el, s) {
+  document.querySelectorAll('.stress-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  currentStress = s;
+}
+function selectConfidence(el, c) {
+  document.querySelectorAll('.conf-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  currentConfidence = c;
+}
 function toggleWarmup(el) {
   el.classList.toggle('done');
 }
@@ -5915,7 +5997,7 @@ function saveCheckin() {
   const btn = document.getElementById('saveCheckinBtn');
   if (!btn || btn.disabled) return;
   const checkins = getCheckins();
-  checkins.unshift({ date: new Date().toLocaleDateString(), mood: currentMood, sleep: currentSleep });
+  checkins.unshift({ date: new Date().toLocaleDateString(), mood: currentMood, sleep: currentSleep, sleepHours: currentSleepHours, stress: currentStress });
   saveCheckins(checkins);
   renderPerf();
   btn.disabled = true;
@@ -6168,6 +6250,9 @@ function saveTrade() {
     notes:     (document.getElementById('cl-notes')  || {}).value || '',
     mood:      currentMood,
     sleep:     currentSleep,
+    sleepHours: currentSleepHours,
+    stress:    currentStress,
+    confidence: currentConfidence,
     tags:      [...selectedTags]
   };
   const trades = getTrades();
@@ -6187,6 +6272,8 @@ function saveTrade() {
   btn.classList.add('saving');
   btn.textContent = 'Trade Saved';
   resetTags();
+  currentConfidence = null;
+  document.querySelectorAll('.conf-btn').forEach(function(b){ b.classList.remove('on'); });
   setTimeout(() => {
     btn.classList.remove('saving');
     btn.textContent = 'Save Trade';
@@ -6441,6 +6528,120 @@ function renderGoals() {
 }
 
 // ── PERFORMANCE ─────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════
+// THE MIRROR — what your data knows about you
+// ══════════════════════════════════════════════════════
+function _mAvg(a){ return a.length ? a.reduce(function(x,y){return x+y;},0)/a.length : 0; }
+function _mPct(ts){ return _mAvg(ts.map(function(t){return t.pct||0;})); }
+function _mHour(t){ if(!t.time) return null; var m=/(\d+):(\d+)\s*(AM|PM)/i.exec(t.time); if(!m) return null; var h=parseInt(m[1],10)%12; if(/PM/i.test(m[3])) h+=12; return h; }
+function _mDay(t){ if(!t.date) return null; var m=/^([A-Za-z]{3})/.exec(t.date); return m?m[1]:null; }
+
+function computeMirror(trades){
+  var MIN=4;
+  var feed=[], worst=null, best=null;
+  var base=_mPct(trades);
+  function cWorst(label,detail,gap){ if(!worst||gap>worst.gap) worst={label:label,detail:detail,gap:gap}; }
+  function cBest(label,detail,avg){ if(!best||avg>best.avg) best={label:label,detail:detail,avg:avg}; }
+  function groupAvg(keyFn){
+    var g={}; trades.forEach(function(t){ var k=keyFn(t); if(k==null) return; (g[k]=g[k]||[]).push(t.pct||0); });
+    var out={}; for(var k in g){ if(g[k].length>=MIN) out[k]={avg:Math.round(_mAvg(g[k])),n:g[k].length}; }
+    return out;
+  }
+  // Sleep — prefer precise hours; fall back to quality rating
+  var _sleepFired=false;
+  var lowH=trades.filter(function(t){return typeof t.sleepHours==='number'&&t.sleepHours<6;});
+  var hiH =trades.filter(function(t){return typeof t.sleepHours==='number'&&t.sleepHours>=7;});
+  if(lowH.length>=MIN && hiH.length>=MIN){ var loHa=Math.round(_mPct(lowH)), hiHa=Math.round(_mPct(hiH)), gH=hiHa-loHa;
+    if(gH>=10){ _sleepFired=true; feed.push({text:'On under 6 hours of sleep your discipline drops <b>'+gH+' points</b> ('+loHa+'% vs <b>'+hiHa+'%</b> on 7+). You are running on empty before you click buy.',sentiment:'leak',gap:gH});
+      cWorst('Under 6 Hours','You average '+loHa+'% on under 6 hours of sleep vs '+hiHa+'% on 7+.',gH); } }
+  if(!_sleepFired){ var sl=groupAvg(function(t){return t.sleep;});
+    if(sl['Poor'] && sl['Well Rested']){ var g1=sl['Well Rested'].avg-sl['Poor'].avg;
+      if(g1>=10){ feed.push({text:'On poor sleep you score <b>'+sl['Poor'].avg+'%</b> vs <b>'+sl['Well Rested'].avg+'%</b> rested — a '+g1+'-point drop. Your brain is offline before you click buy.',sentiment:'leak',gap:g1});
+        cWorst('Poor Sleep','You score '+sl['Poor'].avg+'% on poor sleep vs '+sl['Well Rested'].avg+'% rested.',g1); } } }
+  // Mood
+  var md=groupAvg(function(t){return t.mood;});
+  var moodArr=Object.keys(md).map(function(k){return {mood:k,avg:md[k].avg};});
+  if(moodArr.length>=2){ moodArr.sort(function(a,b){return b.avg-a.avg;});
+    var bm=moodArr[0], wm=moodArr[moodArr.length-1], g2=bm.avg-wm.avg;
+    if(g2>=12){ feed.push({text:'Your worst trading headspace is <b>'+wm.mood+'</b> ('+wm.avg+'%). Your sharpest is <b>'+bm.mood+'</b> ('+bm.avg+'%).',sentiment:'leak',gap:g2});
+      cWorst(wm.mood,'You average just '+wm.avg+'% when you trade feeling '+wm.mood+'.',g2);
+      cBest('Feeling '+bm.mood,'You average '+bm.avg+'% when you trade feeling '+bm.mood+'.',bm.avg); } }
+  // Life stress
+  var stg=groupAvg(function(t){return t.stress;});
+  if(stg['High'] && (stg['Low']||stg['Medium'])){ var lowStr=stg['Low']||stg['Medium']; var gS=lowStr.avg-stg['High'].avg;
+    if(gS>=10){ feed.push({text:'On <b>high-stress</b> days your discipline drops to <b>'+stg['High'].avg+'%</b> (vs '+lowStr.avg+'% calm). Life outside the charts is bleeding into your trades.',sentiment:'leak',gap:gS});
+      cWorst('High-Stress Days','You average '+stg['High'].avg+'% when your life stress is high.',gS); } }
+  // Tags
+  var tg={}; trades.forEach(function(t){ (t.tags||[]).forEach(function(tag){ (tg[tag]=tg[tag]||[]).push(t.pct||0); }); });
+  var tagArr=Object.keys(tg).filter(function(k){return tg[k].length>=MIN;}).map(function(k){return {tag:k,avg:Math.round(_mAvg(tg[k]))};});
+  if(tagArr.length>=2){ tagArr.sort(function(a,b){return b.avg-a.avg;});
+    var bt=tagArr[0], wt=tagArr[tagArr.length-1];
+    if(bt.avg-wt.avg>=15){ var mult=wt.avg>0?(bt.avg/wt.avg):0;
+      feed.push({text:'Your <b>'+bt.tag+'</b> trades score '+(mult>=1.5?('<b>'+mult.toFixed(1)+'x</b> higher than'):'well above')+' your <b>'+wt.tag+'</b> trades.',sentiment:'pattern',gap:bt.avg-wt.avg});
+      cBest(bt.tag+' setups','Your '+bt.tag+' trades average '+bt.avg+'%.',bt.avg); } }
+  // Time of day
+  var morn=trades.filter(function(t){var h=_mHour(t);return h!=null&&h<12;});
+  var aft=trades.filter(function(t){var h=_mHour(t);return h!=null&&h>=12;});
+  if(morn.length>=MIN&&aft.length>=MIN){ var am=Math.round(_mPct(morn)), pm=Math.round(_mPct(aft));
+    if(Math.abs(am-pm)>=10){ if(am>pm){ feed.push({text:'Your discipline drops <b>'+(am-pm)+' points</b> in the afternoon ('+pm+'% vs '+am+'% mornings). Your edge is early.',sentiment:'leak',gap:am-pm});
+        cWorst('Afternoons','You average '+pm+'% after noon vs '+am+'% in the morning.',am-pm); cBest('Mornings','You average '+am+'% before noon.',am); }
+      else { feed.push({text:'You trade sharper in the <b>afternoon</b> ('+pm+'% vs '+am+'% mornings).',sentiment:'pattern',gap:pm-am}); cBest('Afternoons','You average '+pm+'% after noon.',pm); } } }
+  // Day of week
+  var dd=groupAvg(function(t){return _mDay(t);});
+  var dayNames={Mon:'Mondays',Tue:'Tuesdays',Wed:'Wednesdays',Thu:'Thursdays',Fri:'Fridays',Sat:'Saturdays',Sun:'Sundays'};
+  var dayArr=Object.keys(dd).map(function(k){return {d:k,avg:dd[k].avg};});
+  if(dayArr.length>=3){ dayArr.sort(function(a,b){return a.avg-b.avg;});
+    var wd=dayArr[0], others=dayArr.slice(1), oavg=Math.round(_mAvg(others.map(function(x){return x.avg;})));
+    if(oavg-wd.avg>=12){ feed.push({text:'<b>'+(dayNames[wd.d]||wd.d)+'</b> are your weakest day — '+wd.avg+'% vs '+oavg+'% the rest of the week.',sentiment:'leak',gap:oavg-wd.avg});
+      cWorst((dayNames[wd.d]||wd.d),'You average '+wd.avg+'% on '+(dayNames[wd.d]||wd.d)+'.',oavg-wd.avg); } }
+  // Tilt (trade after a loss)
+  var afterLoss=[];
+  for(var i=0;i<trades.length-1;i++){ var prev=trades[i+1]; if(prev.review&&prev.review.outcome==='loss') afterLoss.push(trades[i].pct||0); }
+  if(afterLoss.length>=MIN){ var alAvg=Math.round(_mAvg(afterLoss)), g6=Math.round(base)-alAvg;
+    if(g6>=10){ feed.push({text:'Right after a loss, your next trade scores <b>'+g6+' points worse</b> ('+alAvg+'% vs your '+Math.round(base)+'% norm). That is tilt.',sentiment:'leak',gap:g6});
+      cWorst('Trading On Tilt','After a loss you drop to '+alAvg+'% — '+g6+' points below your norm.',g6); } }
+  // Revenge trades
+  var rev=trades.filter(function(t){return (t.tags||[]).indexOf('Revenge Trade')>-1;});
+  if(rev.length>=3){ var rAvg=Math.round(_mPct(rev)), g7=Math.round(base)-rAvg;
+    feed.push({text:'You have logged <b>'+rev.length+'</b> revenge trades, averaging <b>'+rAvg+'%</b>'+(g7>=8?(' — '+g7+' points below your norm'):'')+'. This is where accounts die.',sentiment:'leak',gap:Math.max(g7,10)});
+    cWorst('Revenge Trading','Your '+rev.length+' revenge trades average '+rAvg+'%.',Math.max(g7,12)); }
+  // Growth
+  if(trades.length>=8){ var half=Math.floor(trades.length/2);
+    var recent=Math.round(_mPct(trades.slice(0,half))), older=Math.round(_mPct(trades.slice(half)));
+    if(recent-older>=8){ feed.push({text:'Your discipline is <b>up '+(recent-older)+' points</b> from when you started ('+recent+'% now vs '+older+'% then). <b>That is real growth.</b>',sentiment:'growth',gap:recent-older}); } }
+  // Confidence (only if logged)
+  var conf=trades.filter(function(t){return typeof t.confidence==='number';});
+  if(conf.length>=MIN+2){ var hi=conf.filter(function(t){return t.confidence>=4;}), lo=conf.filter(function(t){return t.confidence<=2;});
+    if(hi.length>=MIN&&lo.length>=MIN){ var hiA=Math.round(_mPct(hi)), loA=Math.round(_mPct(lo));
+      if(loA-hiA>=10){ feed.push({text:'Your <b>most confident</b> trades score <b>lower</b> ('+hiA+'%) than your least confident ('+loA+'%). Overconfidence is a tell.',sentiment:'leak',gap:loA-hiA});
+        cWorst('Overconfidence','Your most confident trades average just '+hiA+'%.',loA-hiA); } } }
+
+  feed.sort(function(a,b){ if(a.sentiment==='growth'&&b.sentiment!=='growth')return 1; if(b.sentiment==='growth'&&a.sentiment!=='growth')return -1; return b.gap-a.gap; });
+  return { feed:feed.slice(0,6), kryptonite:worst, edge:best };
+}
+
+function renderMirror(){
+  var host=document.getElementById('mirrorSection'); if(!host) return;
+  var trades=getTrades();
+  if(trades.length<5){ host.style.display='none'; host.innerHTML=''; return; }
+  var m=computeMirror(trades);
+  if(!m.feed.length && !m.kryptonite && !m.edge){ host.style.display='none'; host.innerHTML=''; return; }
+  var h='<div class="mir-eyebrow">// The Mirror</div><div class="mir-sub">What your data knows about you — the market was never the problem.</div>';
+  if(m.kryptonite || m.edge){
+    h+='<div class="mir-heroes">';
+    if(m.kryptonite) h+='<div class="mir-hero mir-kryp"><div class="mir-hero-lbl mir-lbl-red">// Your Kryptonite</div><div class="mir-hero-title">'+m.kryptonite.label+'</div><div class="mir-hero-detail">'+m.kryptonite.detail+' Your single biggest leak.</div></div>';
+    if(m.edge) h+='<div class="mir-hero mir-edge"><div class="mir-hero-lbl mir-lbl-gold">// Your Edge</div><div class="mir-hero-title">'+m.edge.label+'</div><div class="mir-hero-detail">'+m.edge.detail+' This is your zone.</div></div>';
+    h+='</div>';
+  }
+  if(m.feed.length){
+    h+='<div class="mir-feed-lbl">// What your data knows &nbsp;<span>'+String(m.feed.length).padStart(2,'0')+'</span></div><div class="mir-feed">';
+    m.feed.forEach(function(x){ var c=x.sentiment==='growth'?'mir-row-green':(x.sentiment==='pattern'?'mir-row-gold':'mir-row-red'); h+='<div class="mir-row '+c+'">'+x.text+'</div>'; });
+    h+='</div>';
+  }
+  h+='<div class="mir-foot">The mirror sharpens as you log &middot; keep feeding it</div>';
+  host.innerHTML=h; host.style.display='block';
+}
+
 function renderPerf() {
   checkPerfEmptyStates();
   const trades   = getTrades();
@@ -6454,6 +6655,7 @@ function renderPerf() {
   const goodSleep = checkins.filter(c => c.sleep && c.sleep.includes('Well')).length;
   set('p-sleep', checkins.length ? Math.round((goodSleep/checkins.length)*100)+'%' : '—');
   try { renderWeeklyReport(); }   catch(e) {}
+  try { renderMirror(); }         catch(e) {}
   try { renderMoodPerf(); }       catch(e) {}
   try { renderTimeOfDay(); }      catch(e) {}
   try { renderPatternAlerts(); }  catch(e) {}
@@ -7891,7 +8093,7 @@ function renderWeeklyReport() {
     // Weekly score card
     '<div style="display:flex;align-items:center;gap:16px;padding:20px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);margin-bottom:10px;">'
     + '<div style="text-align:center;flex-shrink:0;">'
-    + '<div style="font-size:48px;font-weight:900;color:' + scoreColor + ';letter-spacing:-2px;line-height:1;">' + avgScore + '%</div>'
+    + '<div style="font-size:48px;font-weight:900;color:' + scoreColor + ';letter-spacing:-2px;line-height:1;font-family:Inter,sans-serif;">' + avgScore + '%</div>'
     + '<div style="font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:1px;">AVG SCORE</div>'
     + '</div>'
     + '<div style="flex:1;">'
@@ -8708,8 +8910,8 @@ function positionNavSlider(activeTabEl) {
   const wrapRect = wrap.getBoundingClientRect();
   const tabRect  = activeTabEl.getBoundingClientRect();
   const left = tabRect.left - wrapRect.left + wrap.scrollLeft;
-  slider.style.left  = left + 'px';
-  slider.style.width = tabRect.width + 'px';
+  slider.style.left  = Math.round(left) + 'px';
+  slider.style.width = Math.round(tabRect.width) + 'px';
 }
 
 function initNavSlider() {
