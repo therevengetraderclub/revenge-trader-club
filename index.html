@@ -3029,6 +3029,33 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   </div>
 </div>
 
+<style>#agreeAcceptBtn:disabled{opacity:.42;cursor:not-allowed;filter:grayscale(.35);}</style>
+<div id="agreementModal" style="display:none;position:fixed;inset:0;z-index:100003;background:rgba(4,4,4,0.9);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:22px;">
+  <div style="width:100%;max-width:440px;background:#0d0d0d;border:1px solid var(--gold-dim);border-radius:8px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,0.7);">
+    <div style="padding:20px 22px 14px;border-bottom:1px solid var(--border2);">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">// The Fine Print</div>
+      <div style="font-family:'Inter',sans-serif;font-weight:900;font-size:20px;color:#fff;letter-spacing:-.3px;">Before You Enter</div>
+    </div>
+    <div id="agreementScroll" onscroll="rtcAgreementScroll(this)" style="max-height:44vh;overflow-y:auto;padding:16px 22px;font-size:13px;line-height:1.7;color:var(--text2);-webkit-overflow-scrolling:touch;">
+      <p style="margin:0 0 12px;"><b style="color:#fff;">This is not financial advice.</b> The Revenge Trader Club is a discipline and journaling tool. We are not a broker, financial adviser, or signal service, and nothing here is a recommendation to buy or sell anything.</p>
+      <p style="margin:0 0 12px;"><b style="color:#fff;">Your discipline score is not a prediction.</b> Every score, grade, and insight measures only whether you followed your own process — not whether a trade will win. A high score does not make a trade safe. The market can do anything: news, gaps, and volatility can turn any trade into a loss.</p>
+      <p style="margin:0 0 12px;"><b style="color:#fff;">You are responsible for your trades.</b> Trading involves substantial risk of loss and is not suitable for everyone. You can lose some or all of your capital. Every decision you make is yours alone, and you accept full responsibility for the outcomes.</p>
+      <p style="margin:0 0 12px;"><b style="color:#fff;">No guarantees.</b> We do not promise that using this platform will make you profitable or improve your results. Past results and statistics do not predict future results.</p>
+      <p style="margin:0 0 12px;"><b style="color:#fff;">Your privacy.</b> Your journal is stored to your account so only you can access it. You can export or delete your data anytime in Settings. See our Privacy Policy for details.</p>
+      <p style="margin:0 0 4px;">By continuing, you confirm you are at least 18 years old and you agree to our
+        <a href="/terms.html" target="_blank" style="color:var(--gold);">Terms of Service</a>,
+        <a href="/privacy.html" target="_blank" style="color:var(--gold);">Privacy Policy</a>, and
+        <a href="/risk-disclosure.html" target="_blank" style="color:var(--gold);">Risk Disclosure &amp; Disclaimer</a>.</p>
+      <div style="height:4px;"></div>
+    </div>
+    <div id="agreeScrollHint" style="text-align:center;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;padding:8px;border-top:1px solid var(--border2);">&darr; Scroll to the bottom to continue</div>
+    <div style="display:flex;gap:10px;padding:14px 22px 18px;">
+      <button onclick="rtcAgreementDecline()" style="flex:1;padding:13px;background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;">Decline</button>
+      <button id="agreeAcceptBtn" onclick="rtcAgreementAccept()" disabled style="flex:2;padding:13px;background:linear-gradient(135deg,#b8922e,#e8c97a,#b8922e);border:none;border-radius:6px;color:#080808;font-family:'Inter',sans-serif;font-weight:800;font-size:13px;letter-spacing:.5px;cursor:pointer;">Agree &amp; Create Account</button>
+    </div>
+  </div>
+</div>
+
 <style>@keyframes rtcSpin{to{transform:rotate(360deg);}}</style>
 <div id="bootLoading" style="position:fixed;inset:0;z-index:100002;background:#080808;display:flex;align-items:center;justify-content:center;transition:opacity .22s ease;">
   <div style="text-align:center;">
@@ -3110,6 +3137,11 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       </button>
     </div>
     <div class="welcome-footer">Beta · Free · No Excuses · Built For Traders Who Are Done Losing</div>
+    <div class="welcome-footer" style="opacity:.55;letter-spacing:1px;margin-top:10px;text-transform:none;line-height:1.7;">Not financial advice. Trading involves risk of loss. You alone are responsible for your trades.<br>
+      <a href="/terms.html" style="color:var(--muted);text-decoration:underline;">Terms</a> &middot;
+      <a href="/privacy.html" style="color:var(--muted);text-decoration:underline;">Privacy</a> &middot;
+      <a href="/risk-disclosure.html" style="color:var(--muted);text-decoration:underline;">Risk Disclosure</a>
+    </div>
   </div>
 </div>
 
@@ -3429,7 +3461,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div id="tmKillList" style="display:flex;flex-direction:column;gap:10px;"></div>
           <div id="tmKillClearBtn" style="display:none;margin-top:14px;background:rgba(0,208,132,0.08);border:1px solid rgba(0,208,132,0.2);border-radius:4px;padding:10px 14px;display:none;align-items:center;gap:8px;">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            <span style="font-size:11px;color:var(--green);font-weight:700;">All clear — cleared to trade.</span>
+            <span style="font-size:11px;color:var(--green);font-weight:700;">All clear — no kill-switch flags.</span>
           </div>
           <div id="tmKillBlockedMsg" style="display:none;margin-top:14px;background:rgba(229,57,53,0.08);border:1px solid rgba(229,57,53,0.25);border-radius:4px;padding:10px 14px;">
             <span style="font-size:11px;color:var(--red);font-weight:700;">Kill switch active. Do not enter.</span>
@@ -4636,11 +4668,11 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <div class="aplus-takeover-icon">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
-    <div class="tk-kicker tk-aplus">// CHECKLIST COMPLETE &mdash; ALL SYSTEMS GO</div>
-    <div class="aplus-takeover-title">A+ Setup.</div>
-    <div class="aplus-takeover-sub">You ran the full process. Every box checked for a reason. This is what discipline looks like before the trade even happens.</div>
-    <button class="aplus-takeover-btn" onclick="closeAPlusTakeover()"><span class="skfix">Take The Trade</span></button>
-    <div class="tk-note">Log it in the journal when you're out</div>
+    <div class="tk-kicker tk-aplus">// CHECKLIST COMPLETE &mdash; DISCIPLINE ON POINT</div>
+    <div class="aplus-takeover-title">A+ Discipline.</div>
+    <div class="aplus-takeover-sub">You ran your full process &mdash; that's the part you actually control. This scores your <b style="color:var(--white);">discipline, not the trade.</b> The market can still do anything, so size it right and respect your stop.</div>
+    <button class="aplus-takeover-btn" onclick="closeAPlusTakeover()"><span class="skfix">Execute My Plan</span></button>
+    <div class="tk-note">Log it in the journal when you're out &middot; Not financial advice &mdash; a clean process is never a guarantee.</div>
   </div>
 
   <!-- SHARE CARD MODAL -->
@@ -5944,7 +5976,7 @@ function updateScore() {
 
   let color, txt, cls = '';
   if (hasKill)    { color='var(--red)';    txt='DO NOT TRADE — Kill Switch Active';      cls='kill';  circle.style.stroke='var(--red)'; }
-  else if(pct>=85){ color='var(--green)';  txt='A+ SETUP — You Are Clear To Trade';     cls='ready'; circle.style.stroke='var(--green)'; }
+  else if(pct>=85){ color='var(--green)';  txt='A+ DISCIPLINE — You Followed Your Plan';     cls='ready'; circle.style.stroke='var(--green)'; }
   else if(pct>=70){ color='#4dcc6e';       txt='GOOD SETUP — Proceed With Discipline'; cls='good';    circle.style.stroke='#4dcc6e'; }
   else if(pct>=50){ color='var(--gold)';   txt='MARGINAL — Wait For A Better Setup'; cls='marginal'; circle.style.stroke='var(--gold)'; }
   else            { color='var(--warn)'; txt='WEAK SETUP — Protect Your Capital'; cls='weak';       circle.style.stroke='var(--warn)'; }
@@ -6520,6 +6552,15 @@ function renderSettings() {
   set('settingsTrades',  getTrades().length);
   set('settingsCheckins',getCheckins().length);
   set('settingsAccCount', String(accs.length).padStart(2,'0'));
+  // Show the Log Out button whenever there's a live cloud session (robust, not tied to login timing)
+  try {
+    var _lo = document.getElementById('logoutRow');
+    if (_lo) {
+      if (window.RTCsb && window.RTCsb.auth) {
+        window.RTCsb.auth.getSession().then(function(r){ _lo.style.display = (r && r.data && r.data.session) ? 'block' : 'none'; }).catch(function(){});
+      }
+    }
+  } catch(e){}
   const list = document.getElementById('accountList');
   if (list) {
     list.innerHTML = accs.map((a, i) => {
@@ -11970,6 +12011,31 @@ rtcOnReady(function(){
   var mode='in';
   var lastEmail='';
   var sealMode=false;
+  var _agreed=false;
+  window.rtcShowAgreement=function(){
+    var m=el('agreementModal'); if(!m) return;
+    m.style.display='flex';
+    var acc=el('agreeAcceptBtn'), sc=el('agreementScroll');
+    if(acc) acc.disabled=true;
+    if(sc){ sc.scrollTop=0; }
+    var hint=el('agreeScrollHint'); if(hint) hint.style.display='block';
+    setTimeout(function(){ if(sc && sc.scrollHeight <= sc.clientHeight + 12){ if(acc) acc.disabled=false; if(hint) hint.style.display='none'; } }, 60);
+  };
+  window.rtcAgreementScroll=function(el2){
+    if(el2.scrollTop + el2.clientHeight >= el2.scrollHeight - 12){
+      var acc=el('agreeAcceptBtn'); if(acc) acc.disabled=false;
+      var hint=el('agreeScrollHint'); if(hint) hint.style.display='none';
+    }
+  };
+  window.rtcAgreementAccept=function(){
+    _agreed=true;
+    var m=el('agreementModal'); if(m) m.style.display='none';
+    rtcAuthSubmit();   // re-run signup, now past the agreement gate
+  };
+  window.rtcAgreementDecline=function(){
+    _agreed=false;
+    var m=el('agreementModal'); if(m) m.style.display='none';
+  };
   function el(id){ return document.getElementById(id); }
   function showInlineResend(v){ var r=el('authInlineResend'); if(r) r.style.display=v?'block':'none'; }
   function show(){ var o=el('authOverlay'); if(o) o.style.display='flex'; }
@@ -12003,6 +12069,7 @@ rtcOnReady(function(){
       }); return;
     }
     if(pass.length<6){ msg('Password must be at least 6 characters.','err'); return; }
+    if(mode==='up' && !_agreed){ rtcShowAgreement(); return; }   // must accept the agreement before the account is created
     busy(true); msg(mode==='up'?'Creating account...':'Signing in...');
     if(mode==='up'){
       sb.auth.signUp({email:email,password:pass,options:{data:{display_name:name}}}).then(function(r){
