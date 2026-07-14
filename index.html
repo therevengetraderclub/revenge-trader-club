@@ -619,13 +619,25 @@ html,body{background:#000000;font-family:"Inter",sans-serif;color:var(--text);mi
 }
 .guide-callout-gold{background:rgba(201,168,76,0.08);border-left:3px solid var(--gold);color:var(--gold);}
 .guide-callout-orange{background:rgba(45,212,191,0.08);border-left:3px solid var(--orange);color:var(--orange);}
+.rk-step{display:flex;gap:14px;align-items:center;padding:14px 12px;border-bottom:1px solid rgba(201,168,76,0.08);}
+.rk-step:last-child{border-bottom:none;}
+.rk-badge{width:46px;height:46px;flex-shrink:0;border-radius:10px;background:rgba(201,168,76,0.1);border:1px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;color:var(--gold2);font-family:'Inter',sans-serif;font-size:19px;font-weight:700;letter-spacing:-.5px;}
+.rk-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;font-family:'Inter',sans-serif;}
+.rk-desc{font-size:12.5px;color:var(--text2);line-height:1.55;}
+.rk-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin:0 0 8px 2px;}
+.rk-example-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.rk-ex{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 8px;text-align:center;}
+.rk-ex-gold{background:rgba(201,168,76,0.06);border-color:var(--gold-dim);}
+.rk-ex-lbl{font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
+.rk-ex-val{font-size:18px;font-weight:800;color:var(--gold2);font-family:'Inter',sans-serif;}
+.rk-ex-val.white{color:#fff;}
 
 .risk-result{
   background:var(--bg3);border:1px solid var(--border2);
   border-radius:var(--r-sm);padding:20px;text-align:center;margin-bottom:14px;
 }
 .risk-lbl{font-size:9px;color:var(--muted);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;}
-.risk-amt{font-size:44px;font-weight:900;color:var(--gold);letter-spacing:-2px;line-height:1;}
+.risk-amt{font-size:44px;font-weight:900;color:var(--gold);letter-spacing:-1.5px;line-height:1;font-family:'Inter',sans-serif;}
 .risk-sub{font-size:12px;color:var(--muted);margin-top:6px;}
 .risk-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:14px;}
 .risk-field{flex:1;}
@@ -653,9 +665,12 @@ html,body{background:#000000;font-family:"Inter",sans-serif;color:var(--text);mi
   border:1px solid var(--border);
 }
 .d7-row.now{border-color:var(--gold-dim);background:var(--gold-glow);}
-.d7-day{font-size:11px;color:var(--muted);font-weight:600;}
-.d7-amt{font-size:14px;color:var(--text);font-weight:700;}
+.d7-day{font-size:12px;color:#fff;font-weight:700;font-family:'Inter',sans-serif;}
+.d7-day span{color:var(--muted);font-weight:500;}
+.d7-amt{font-size:15px;color:var(--gold2);font-weight:800;font-family:'Inter',sans-serif;text-align:right;line-height:1.1;}
+.d7-amt .rk-mini{display:block;font-size:8px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;font-weight:600;margin-bottom:2px;}
 .d7-row.now .d7-day{color:var(--gold);}
+.d7-row.now .d7-day span{color:var(--gold-dim);}
 .d7-row.now .d7-amt{color:var(--gold);}
 
 .rec-steps{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
@@ -3920,21 +3935,29 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
   <!-- RISK -->
   <div class="tab-body" id="tab-risk" style="display:none;">
-    <div class="guide-box guide-box-gold">
-      <div class="card-title" style="margin-bottom:14px;">How The Risk System Works</div>
-      <div class="guide-row">
-        <div class="guide-icon guide-icon-gold"><span style="font-size:13px;font-weight:900;font-family:'Inter',sans-serif;">÷7</span></div>
-        <div class="guide-text">Take your balance and divide by 7. That's your <strong>max loss for the entire day</strong>. Hit that number — stop trading. No exceptions.</div>
+    <div class="guide-box guide-box-gold" style="padding:6px;">
+      <div class="card-title" style="margin:12px 10px 3px;">How The Risk System Works</div>
+      <div style="font-size:12px;color:var(--muted);margin:0 10px 10px;">Three rules. Follow them and you never blow an account again.</div>
+      <div class="rk-step">
+        <div class="rk-badge">&divide;7</div>
+        <div><div class="rk-title">Your daily max loss</div><div class="rk-desc">Balance &divide; 7 is the most you can lose in a day. Hit it &mdash; you're done. No exceptions.</div></div>
       </div>
-      <div class="guide-row">
-        <div class="guide-icon guide-icon-gold"><span style="font-size:13px;font-weight:900;font-family:'Inter',sans-serif;">÷3</span></div>
-        <div class="guide-text">Split that daily max into 3. That's your <strong>max risk per trade</strong>. Never risk more than ⅓ of your daily limit on one position.</div>
+      <div class="rk-step">
+        <div class="rk-badge">&divide;3</div>
+        <div><div class="rk-title">Your per-trade risk</div><div class="rk-desc">Split the daily max into 3. Never risk more than a third of your day on one position.</div></div>
       </div>
-      <div class="guide-row" style="margin-bottom:0;">
-        <div class="guide-icon guide-icon-gold"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></div>
-        <div class="guide-text">After every loss, <strong>recalculate immediately</strong>. The number shrinks as you lose — that's the point.</div>
+      <div class="rk-step">
+        <div class="rk-badge"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></div>
+        <div><div class="rk-title">Recalculate after every loss</div><div class="rk-desc">The number shrinks as you lose. That's the point &mdash; it protects what's left.</div></div>
       </div>
-      <div class="guide-callout guide-callout-gold">Example: $5,000 balance → Max daily loss $714 → Max per trade $238</div>
+      <div style="padding:12px 10px 8px;">
+        <div class="rk-eyebrow">Example &mdash; $5,000 balance</div>
+        <div class="rk-example-grid">
+          <div class="rk-ex"><div class="rk-ex-lbl">Balance</div><div class="rk-ex-val white">$5,000</div></div>
+          <div class="rk-ex rk-ex-gold"><div class="rk-ex-lbl">Daily max</div><div class="rk-ex-val">$714</div></div>
+          <div class="rk-ex rk-ex-gold"><div class="rk-ex-lbl">Per trade</div><div class="rk-ex-val">$238</div></div>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -6205,7 +6228,7 @@ function calcD7() {
     let rowsHtml = '', b = bal;
     for (let i = 1; i <= 7; i++) {
       const r = b / 7;
-      rowsHtml += `<div class="d7-row${i===1?' now':''}" style="opacity:0;transform:translateX(-8px);transition:opacity .35s ease, transform .35s cubic-bezier(.2,.8,.3,1);"><div class="d7-day">Day ${i} — Balance: $${b.toFixed(2)}</div><div class="d7-amt">Max Risk: $${r.toFixed(2)}</div></div>`;
+      rowsHtml += `<div class="d7-row${i===1?' now':''}" style="opacity:0;transform:translateX(-8px);transition:opacity .35s ease, transform .35s cubic-bezier(.2,.8,.3,1);"><div class="d7-day">Day ${i} <span>&middot; $${b.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div><div class="d7-amt"><span class="rk-mini">Max Risk</span>$${r.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>`;
       b -= r;
     }
     rows.innerHTML = rowsHtml;
@@ -12096,7 +12119,15 @@ rtcOnReady(function(){
           if(em.indexOf('confirm')>-1){ msg('Email not confirmed yet — check your inbox, or resend below.','err'); showInlineResend(true); }
           else { msg(r.error.message,'err'); }
           return;
-        } /* applySession hides + loads cloud */
+        }
+        // success — applySession normally routes; this is a safety net if the auth listener is slow/misses
+        setTimeout(function(){
+          try{
+            var onIntake=['welcomeScreen','pledgeScreen'].some(function(id){ var e2=document.getElementById(id); return e2 && e2.classList.contains('active'); });
+            var ov=el('authOverlay'); var authUp=ov && ov.style.display!=='none';
+            if(authUp || onIntake){ hide(); rtcEnterApp(); }
+          }catch(_e){}
+        }, 1300);
       });
     }
   };
@@ -12259,6 +12290,7 @@ rtcOnReady(function(){
       console.error('[RTC] cloud hydrate failed — staying local',e);
       hide();  // don't lock the user out if the cloud call fails
       hideBootLoading();
+      try{ rtcEnterApp(); }catch(_e){}   // still route the user in on whatever data is cached — never strand them on home
     });
   }
 
