@@ -2435,7 +2435,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
 /* floating circles were the loudest misfit — square them */
 .sound-toggle{ border-radius:6px !important; }
-#tradingModeBtn{ border-radius:6px !important; }
+#tradingModeBtn, #shareStatsBtn{ border-radius:6px !important; }
 #companionWrap > *{ border-radius:6px !important; }
 
 /* account pill squares off too */
@@ -2992,24 +2992,26 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <button id="authTabIn" class="auth-tab active" onclick="rtcAuthMode('in')">LOG IN</button>
       <button id="authTabUp" class="auth-tab" onclick="rtcAuthMode('up')">CREATE ACCOUNT</button>
     </div>
+    <form id="authForm" onsubmit="event.preventDefault(); rtcAuthSubmit(); return false;">
     <div id="authNameWrap" class="auth-field" style="display:none;">
       <label>// NAME</label>
-      <input id="authName" type="text" autocomplete="name" placeholder="Your name">
+      <input id="authName" name="name" type="text" autocomplete="name" placeholder="Your name">
     </div>
     <div class="auth-field">
       <label>// EMAIL</label>
-      <input id="authEmail" type="email" autocomplete="email" placeholder="you@email.com">
+      <input id="authEmail" name="username" type="email" autocomplete="username" placeholder="you@email.com">
     </div>
     <div class="auth-field" id="authPassWrap">
       <label>// PASSWORD</label>
       <div class="auth-pass-row">
-        <input id="authPass" type="password" autocomplete="current-password" placeholder="password">
+        <input id="authPass" name="password" type="password" autocomplete="current-password" placeholder="password">
         <button type="button" id="authPassToggle" class="auth-pass-toggle" onclick="rtcTogglePass()">SHOW</button>
       </div>
     </div>
     <div id="authMsg" class="auth-msg"></div>
     <div id="authInlineResend" class="auth-inline-resend"><button id="authInlineResendBtn" type="button" onclick="rtcAuthResend()">Resend confirmation email</button></div>
-    <button id="authSubmit" class="auth-submit" onclick="rtcAuthSubmit()"><span class="skfix">LOG IN &rarr;</span></button>
+    <button id="authSubmit" type="submit" class="auth-submit"><span class="skfix">LOG IN &rarr;</span></button>
+    </form>
     <div class="auth-foot">
       <span id="authForgot" onclick="rtcAuthMode('reset')">Forgot password?</span>
       <span class="auth-legal">Your journal is private &middot; encrypted at rest</span>
@@ -3274,6 +3276,11 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   <!-- TRADING MODE BUTTON -->
   <button id="tradingModeBtn" onclick="openTradingMode()" title="Trading Mode" style="position:fixed;bottom:132px;right:max(18px, calc(50% - 604px));z-index:491;width:44px;height:44px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(201,168,76,0.35);transition:all .2s;" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#080808" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+  </button>
+
+  <!-- SHARE STATS BUTTON — quick access, sits directly above Trading Mode -->
+  <button id="shareStatsBtn" onclick="openShareCard()" title="Share My Stats" style="position:fixed;bottom:184px;right:max(18px, calc(50% - 604px));z-index:491;width:44px;height:44px;border-radius:12px;background:var(--bg2);border:1.5px solid var(--gold-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.35);transition:all .2s;" onmouseenter="this.style.transform='scale(1.08)';this.style.borderColor='var(--gold)'" onmouseleave="this.style.transform='scale(1)';this.style.borderColor='var(--gold-dim)'">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
   </button>
 
   <!-- ONBOARDING OVERLAY -->
@@ -4501,11 +4508,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div class="settings-since" id="settingsMember">Member since —</div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div class="perf-stat"><div class="perf-num" id="settingsTrades">0</div><div class="perf-lbl">Trades</div></div>
-        <div class="perf-stat"><div class="perf-num" id="settingsCheckins">0</div><div class="perf-lbl">Check-Ins</div></div>
-      </div>
-      <div id="logoutRow" style="display:none;margin-top:14px;">
+      <div id="logoutRow" style="display:none;margin-top:2px;">
         <button onclick="rtcSignOut()" style="width:100%;padding:12px;background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s ease,color .15s ease;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)';" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)';">Log Out</button>
       </div>
     </div>
@@ -4634,12 +4637,12 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   </div>
 
   <!-- SHARE CARD MODAL -->
-  <div id="shareCardModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9997;align-items:center;justify-content:center;padding:20px;flex-direction:column;overflow-y:auto;isolation:isolate;">
+  <div id="shareCardModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9997;align-items:center;justify-content:flex-start;padding:28px 20px 48px;flex-direction:column;overflow-y:auto;isolation:isolate;">
 
     <button onclick="closeShareCard()" style="position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;font-size:13px;font-weight:700;padding:8px 16px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;z-index:10000;">✕ Close</button>
 
     <!-- The actual card to screenshot -->
-    <div id="shareCardCanvas" style="width:360px;background:#080808;border-radius:4px;padding:28px 24px 22px;position:relative;overflow:hidden;margin:16px 0;box-shadow:0 20px 60px rgba(0,0,0,0.8);border:1px solid rgba(201,168,76,0.2);transform:none !important;transition:none !important;animation:none !important;will-change:auto;">
+    <div id="shareCardCanvas" style="width:400px;background:#080808;border-radius:6px;padding:26px 24px 20px;position:relative;overflow:hidden;margin:16px 0;box-shadow:0 20px 60px rgba(0,0,0,0.8);border:1px solid rgba(201,168,76,0.2);transform:none !important;transition:none !important;animation:none !important;will-change:auto;">
 
       <div style="position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:300px;height:200px;background:radial-gradient(ellipse,rgba(201,168,76,0.07) 0%,transparent 70%);pointer-events:none;"></div>
 
@@ -4651,10 +4654,16 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
         </div>
       </div>
 
-      <div style="text-align:center;margin-bottom:20px;padding:16px;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.12);border-radius:4px;">
-        <div style="font-size:9px;font-weight:700;letter-spacing:3px;color:#c09838;text-transform:uppercase;margin-bottom:6px;">Discipline Score</div>
-        <div id="scAvgScore" style="font-family:'Bebas Neue',sans-serif;font-size:64px;color:#c9a84c;letter-spacing:2px;line-height:1;">—</div>
-        <div id="scScoreLabel" style="font-size:11px;color:#909090;margin-top:2px;letter-spacing:1px;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.12);border-radius:4px;padding:8px 12px;margin-bottom:12px;position:relative;">
+        <span style="font-size:12px;font-weight:800;color:#fff;letter-spacing:1px;"><span id="scName">—</span> <span id="scStyle" style="color:#7a756a;font-weight:600;"></span></span>
+        <span id="scWeek" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#8a7a5a;letter-spacing:1px;"></span>
+      </div>
+
+      <div style="text-align:center;margin-bottom:14px;padding:16px 14px 14px;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.12);border-radius:4px;position:relative;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:3px;color:#c09838;text-transform:uppercase;margin-bottom:5px;">Discipline Score</div>
+        <div id="scAvgScore" style="font-family:'Bebas Neue',sans-serif;font-size:66px;color:#c9a84c;letter-spacing:2px;line-height:.9;">—</div>
+        <div id="scScoreLabel" style="display:inline-block;margin-top:8px;font-size:9px;font-weight:800;letter-spacing:2px;color:#080808;background:#c9a84c;padding:3px 12px;border-radius:3px;text-transform:uppercase;"></div>
+        <div style="height:4px;background:#1a1712;border-radius:2px;margin-top:12px;overflow:hidden;"><div id="scProgressBar" style="width:0%;height:100%;background:linear-gradient(90deg,#b8922e,#e8c97a);"></div></div>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
@@ -6499,7 +6508,7 @@ function renderSettings() {
   if (!acc) return;
   const set = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
   set('settingsName',    acc.name);
-  set('settingsStyle',   acc.style + ' Trader');
+  set('settingsStyle',   acc.style);
   set('settingsMember',  'Member since ' + (acc.createdAt||'—'));
   set('settingsTrades',  getTrades().length);
   set('settingsCheckins',getCheckins().length);
@@ -7815,13 +7824,15 @@ function renderMoodPerf() {
   const trades = getTrades();
   if (!el) return;
 
-  const moods = ['Locked In','Good','Neutral','Frustrated','Anxious'];
+  const moods = ['Locked In','Good','Neutral','Overconfident','Frustrated','Anxious','Defeated'];
   const moodColors = {
-    'Locked In':  'var(--green)',
-    'Good':       '#4dcc6e',
-    'Neutral':    'var(--gold)',
-    'Frustrated': 'var(--orange)',
-    'Anxious':    'var(--red)'
+    'Locked In':     'var(--green)',
+    'Good':          '#4dcc6e',
+    'Neutral':       'var(--gold)',
+    'Overconfident': '#e0a54a',
+    'Frustrated':    'var(--orange)',
+    'Anxious':       'var(--red)',
+    'Defeated':      '#8a6a6a'
   };
 
   // Group trades by mood
@@ -8280,8 +8291,15 @@ function renderTagPerf() {
 function openShareCard() {
   const trades = getTrades();
   const set = function(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const setW = function(id, w) { const el = document.getElementById(id); if (el) el.style.width = w; };
+  const tierFor = function(s) { return s>=90?'ELITE':s>=75?'DIALED IN':s>=60?'LOCKED IN':s>=40?'BUILDING':'REBUILDING'; };
+  const acc = getActiveAcc();
+  set('scName', acc ? acc.name : '—');
+  set('scStyle', acc ? '· ' + acc.style : '');
+  set('scWeek', 'WEEK OF ' + new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase());
 
   if (!trades.length) {
+    set('scScoreLabel', 'REBUILDING'); setW('scProgressBar', '0%');
     set('scAvgScore', '0%'); set('scTrades', '0'); set('scWinRate', '0%');
     set('scStreak', '0'); set('scBestTrade', '—'); set('scWorstTrade', '—');
     set('scAvgWin', '—'); set('scAvgLoss', '—');
@@ -8293,9 +8311,9 @@ function openShareCard() {
 
   // Overall avg discipline score
   const avgScore = Math.round(trades.reduce(function(a,t){return a+(t.pct||0);},0)/trades.length);
-  const scoreGrade = avgScore>=85?'A+ TRADER':avgScore>=70?'A-LEVEL TRADER':avgScore>=50?'B-LEVEL TRADER':'DEVELOPING';
   set('scAvgScore', avgScore + '%');
-  set('scScoreLabel', scoreGrade);
+  set('scScoreLabel', tierFor(avgScore));
+  setW('scProgressBar', avgScore + '%');
 
   // Trade count
   set('scTrades', trades.length);
@@ -8307,7 +8325,6 @@ function openShareCard() {
   set('scWinRate', winRate !== null ? winRate + '%' : '—');
 
   // Current streak (consecutive days with a trade logged)
-  const acc = getActiveAcc();
   const streakKey = 'rtc_streak_' + getActiveIdx();
   const streakData = JSON.parse(RTCStore.get(streakKey) || '{}');
   set('scStreak', (streakData.current || 0) + 'd');
@@ -11955,6 +11972,7 @@ rtcOnReady(function(){
   window.rtcAuthMode=function(m){
     mode=m; msg(''); showInlineResend(false);
     var seal=el('authSealNote'); if(seal) seal.style.display=(sealMode && m==='up')?'block':'none';
+    var _pw=el('authPass'); if(_pw) _pw.setAttribute('autocomplete', m==='up' ? 'new-password' : 'current-password');
     el('authTabIn').classList.toggle('active', m==='in');
     el('authTabUp').classList.toggle('active', m==='up');
     el('authNameWrap').style.display = (m==='up')?'block':'none';
@@ -12032,9 +12050,11 @@ rtcOnReady(function(){
         window._rtcPostAuth=null; loadDash();
       } else if (window._rtcPostAuth){
         var cb=window._rtcPostAuth; window._rtcPostAuth=null; cb();
-      } else if (rtcNeedsSetup()){
+      } else {
+        // Logged in but no account yet -> always resume setup. Authoritative routing: works even
+        // when the email-confirm link lands in a fresh tab/browser with no local breadcrumbs.
         if(typeof window.rtcResumeSetup==='function') window.rtcResumeSetup(); else showScreen('styleScreen');
-      } else { showScreen('welcomeScreen'); }
+      }
     }catch(e){ console.error('[RTC] enter app',e); }
   }
   window.rtcAuthClose=function(){ var o=document.getElementById('authOverlay'); if(o) o.style.display='none'; };
@@ -12108,13 +12128,15 @@ rtcOnReady(function(){
     if(!sb){ showScreen('pledgeScreen'); return; }          // offline -> pledge first
     sb.auth.getSession().then(function(res){
       if(res.data && res.data.session){ rtcEnterApp(); }     // logged in -> dashboard or resume setup
-      else { showScreen('pledgeScreen'); }                   // logged out -> PLEDGE FIRST, seal after
+      else if(rtcAlreadyPledged()){ show(); rtcAuthMode('up'); } // already signed the pledge on this device -> go to account, don't re-pledge
+      else { showScreen('pledgeScreen'); }                   // brand-new visitor -> PLEDGE FIRST
     }).catch(function(){ showScreen('pledgeScreen'); });
   };
   function rtcNeedsSetup(){ try{ return localStorage.getItem('rtc_seal_setup')==='1'; }catch(e){ return false; } }
+  function rtcAlreadyPledged(){ try{ return localStorage.getItem('rtc_pledged')==='1'; }catch(e){ return false; } }
   // After signing the pledge, a logged-out user seals it by creating an account
   window.rtcSealPledge=function(name){
-    try{ localStorage.setItem('rtc_seal_setup','1'); if(name) localStorage.setItem('rtc_seal_name',name); }catch(e){}
+    try{ localStorage.setItem('rtc_pledged','1'); localStorage.setItem('rtc_seal_setup','1'); if(name) localStorage.setItem('rtc_seal_name',name); }catch(e){}
     window._rtcPostAuth=function(){ if(typeof window.rtcResumeSetup==='function') window.rtcResumeSetup(); else showScreen('styleScreen'); };
     sealMode=true; show(); rtcAuthMode('up');                // create-account tab, seal framing
     var n=el('authName'); if(n){ n.value=name||''; }         // carry the signed name in
@@ -12126,6 +12148,12 @@ rtcOnReady(function(){
   function applySession(session){
     if(applied) return; applied=true;
     var userId=session.user.id;
+    // Recover the pledge/display name from the account itself, so setup can resume with the right
+    // name even if the email-confirm link opened a fresh tab with no local breadcrumbs.
+    try{
+      var _dn = session.user && session.user.user_metadata && session.user.user_metadata.display_name;
+      if(_dn && !localStorage.getItem('rtc_seal_name')) localStorage.setItem('rtc_seal_name', _dn);
+    }catch(e){}
     var backend=makeSupaBackend(userId);
     backend.hydrate().then(function(cloud){
       var cloudEmpty = Object.keys(cloud).length===0;
