@@ -3655,7 +3655,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
   <!-- RTC COMPANION -->
   <div id="companionWrap" style="position:fixed;bottom:76px;right:max(18px, calc(50% - 604px));z-index:490;display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
-    <div id="companionBubble" style="display:none;max-width:220px;background:#141414;border:1px solid var(--gold-dim);border-radius:4px 12px 0 12px;padding:12px 14px;font-size:12px;color:var(--text2);line-height:1.6;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:companionBubbleIn .3s cubic-bezier(.2,.8,.3,1);">
+    <div id="companionBubble" style="display:none;position:absolute;right:56px;bottom:0;max-width:220px;background:#141414;border:1px solid var(--gold-dim);border-radius:12px 12px 4px 12px;padding:12px 14px;font-size:12px;color:var(--text2);line-height:1.6;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:companionBubbleIn .3s cubic-bezier(.2,.8,.3,1);">
       <div style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;">RTC</div>
       <div id="companionText"></div>
       <button onclick="dismissCompanion()" style="margin-top:8px;background:transparent;border:none;color:var(--faint);font-size:10px;cursor:pointer;font-family:Inter,sans-serif;padding:0;letter-spacing:.5px;">Dismiss</button>
@@ -3803,7 +3803,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       </div>
       <div class="ci-sublabel">Hours Slept</div>
       <div class="hours-row">
-        <div class="hours-btn" onclick="selectHours(this,4)">&le;4</div>
+        <div class="hours-btn" onclick="selectHours(this,4)">4</div>
         <div class="hours-btn" onclick="selectHours(this,5)">5</div>
         <div class="hours-btn" onclick="selectHours(this,6)">6</div>
         <div class="hours-btn" onclick="selectHours(this,7)">7</div>
@@ -4464,11 +4464,6 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       </button>
     </div>
     <div class="card">
-      <div class="card-title">Most Skipped Rules</div>
-      <div class="card-sub">These are the items you skip most. This is where your losses come from.</div>
-      <div class="skip-bars" id="skipBars"><div style="font-size:13px;color:var(--muted);text-align:center;padding:16px 0;">Log trades to see your patterns.</div></div>
-    </div>
-    <div class="card">
       <div class="card-title">Discipline Streak</div>
       <div class="card-sub">Days in a row you followed all your rules.</div>
       <div class="streak-box">
@@ -4520,15 +4515,6 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div class="card-sub" style="margin-bottom:14px;">Your average score by hour. Find your peak window — and avoid the hours that cost you money.</div>
       <div id="timeOfDayChart" style="display:flex;flex-direction:column;gap:6px;">
         <div style="font-size:12px;color:var(--muted);text-align:center;padding:12px 0;">Log trades with entry time to see your best hours.</div>
-      </div>
-    </div>
-
-    <!-- PATTERN ALERTS -->
-    <div class="card" style="margin-top:4px;">
-      <div class="card-title">Pattern Alerts</div>
-      <div class="card-sub" style="margin-bottom:14px;">Things your data is telling you that you might not have noticed yet.</div>
-      <div id="patternAlerts" style="display:flex;flex-direction:column;gap:8px;">
-        <div style="font-size:12px;color:var(--muted);text-align:center;padding:12px 0;">Log more trades to unlock pattern detection.</div>
       </div>
     </div>
 
@@ -6658,7 +6644,6 @@ function renderPerf() {
   try { renderMirror(); }         catch(e) {}
   try { renderMoodPerf(); }       catch(e) {}
   try { renderTimeOfDay(); }      catch(e) {}
-  try { renderPatternAlerts(); }  catch(e) {}
   try { renderTagPerf(); }        catch(e) {}
   try { renderDisciplineNetWorth(); } catch(e) {}
   try { renderTrendArrows(); }        catch(e) {}
@@ -10308,6 +10293,8 @@ function closeFeatureModal() {
 
 let companionVisible = false;
 let companionDismissed = false;
+let _companionRot = 0;
+function _stripTags(s){ return (s||'').replace(/<[^>]+>/g,''); }
 
 function toggleCompanion() {
   const bubble = document.getElementById('companionBubble');
@@ -10357,8 +10344,11 @@ function triggerCompanion() {
     showCompanionMessage('Everything looks good. Run the checklist before your next trade.', 'default');
     return;
   }
-  // Pick highest priority message
-  const pick = msgs[0];
+  // Among the most important messages, rotate so repeated taps show variety
+  const topP = msgs[0].priority;
+  const top  = msgs.filter(function(m){ return m.priority === topP; });
+  const pick = top[_companionRot % top.length];
+  _companionRot++;
   showCompanionMessage(pick.msg, pick.state);
 }
 
@@ -10421,40 +10411,66 @@ function getCompanionMessages(trades, acc) {
     });
   }
 
-  // LOW SCORE STREAK — last 3 trades all under 70%
-  if (trades.length >= 3) {
-    const recent3 = trades.slice(0, 3);
-    if (recent3.every(function(t) { return (t.pct||0) < 70; })) {
-      messages.push({
-        priority: 2,
-        state: 'alert',
-        msg: 'Your last 3 trades all scored under 70%. Your process might be slipping. Run the full checklist before going in again.'
-      });
+  // ── THE MIRROR — personal patterns from your own data ──
+  let mir = null;
+  try { mir = computeMirror(trades); } catch (e) { mir = null; }
+  const mirrorReady = trades.length >= 5 && mir;
+
+  // Today's check-in (most recent one dated today)
+  const checkins = getCheckins();
+  let todayCheckin = null;
+  for (let i = 0; i < checkins.length; i++) {
+    if (checkins[i].date && new Date(checkins[i].date).toDateString() === todayStr) { todayCheckin = checkins[i]; break; }
+  }
+
+  // KRYPTONITE ACTIVE TODAY — awareness in the moment (never a block)
+  if (todayCheckin) {
+    if (typeof todayCheckin.sleepHours === 'number' && todayCheckin.sleepHours < 6) {
+      if (mirrorReady && mir.kryptonite && /hour|sleep|rested/i.test(mir.kryptonite.label)) {
+        messages.push({ priority: 1, state: 'alert', msg: 'Heads up — you logged ' + todayCheckin.sleepHours + ' hours of sleep, and that is your kryptonite. ' + _stripTags(mir.kryptonite.detail) + ' Not telling you to sit out. Just trade knowing the pattern.' });
+      } else {
+        messages.push({ priority: 2, state: 'alert', msg: 'You logged ' + todayCheckin.sleepHours + ' hours of sleep today. Tired traders skip steps — run the full checklist before you click buy.' });
+      }
+    }
+    if (todayCheckin.stress === 'High') {
+      if (mirrorReady && mir.kryptonite && /stress/i.test(mir.kryptonite.label)) {
+        messages.push({ priority: 1, state: 'alert', msg: 'You marked stress High today, and high-stress days are your kryptonite. ' + _stripTags(mir.kryptonite.detail) + ' Awareness is the edge.' });
+      } else {
+        messages.push({ priority: 2, state: 'alert', msg: 'You marked your stress High today. Life outside the charts bleeds into trades — stay deliberate.' });
+      }
     }
   }
 
-  // A+ STREAK — last 3 all 85%+
-  if (trades.length >= 3) {
-    const recent3 = trades.slice(0, 3);
-    if (recent3.every(function(t) { return (t.pct||0) >= 85; })) {
-      messages.push({
-        priority: 3,
-        state: 'celebrate',
-        msg: 'Three A+ setups in a row. That is elite-level discipline. Keep the process exactly as it is.'
-      });
+  // MIRROR REVELATIONS — your personal patterns (rotating voice)
+  if (mirrorReady) {
+    if (mir.kryptonite) {
+      messages.push({ priority: 3, state: 'default', msg: 'Your mirror: discipline is lowest when ' + String(mir.kryptonite.label).toLowerCase() + '. ' + _stripTags(mir.kryptonite.detail) });
     }
+    if (mir.edge) {
+      messages.push({ priority: 3, state: 'celebrate', msg: 'Your edge: you are sharpest when ' + String(mir.edge.label).toLowerCase() + '. ' + _stripTags(mir.edge.detail) });
+    }
+    (mir.feed || []).slice(0, 3).forEach(function(f) {
+      messages.push({ priority: 3, state: f.sentiment === 'growth' ? 'celebrate' : 'default', msg: _stripTags(f.text) });
+    });
   }
 
   // NO CHECK-IN TODAY
-  const checkins = getCheckins();
-  const checkedInToday = checkins.some(function(c) {
-    return c.date && new Date(c.date).toDateString() === todayStr;
-  });
+  const checkedInToday = !!todayCheckin;
   if (!checkedInToday && trades.length > 0) {
     messages.push({
       priority: 3,
       state: 'default',
       msg: "You haven't done your check-in today. Take 30 seconds before you look at a single chart."
+    });
+  }
+
+  // COLD START — logging but the mirror hasn't unlocked yet
+  if (trades.length > 0 && trades.length < 5) {
+    const left = 5 - trades.length;
+    messages.push({
+      priority: 4,
+      state: 'default',
+      msg: 'Keep logging. In ' + left + ' more trade' + (left === 1 ? '' : 's') + ', your mirror unlocks and I can start showing you your personal patterns.'
     });
   }
 
