@@ -3029,6 +3029,13 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   </div>
 </div>
 
+<style>@keyframes rtcSpin{to{transform:rotate(360deg);}}</style>
+<div id="bootLoading" style="position:fixed;inset:0;z-index:100002;background:#080808;display:flex;align-items:center;justify-content:center;transition:opacity .22s ease;">
+  <div style="text-align:center;">
+    <div style="font-family:'Inter',sans-serif;font-weight:900;font-size:22px;letter-spacing:-.5px;color:#fff;">THE REVENGE <span style="color:var(--gold);">TRADER CLUB</span></div>
+    <div style="margin:20px auto 0;width:22px;height:22px;border:2px solid var(--gold-dim);border-top-color:var(--gold);border-radius:50%;animation:rtcSpin .7s linear infinite;"></div>
+  </div>
+</div>
 <div id="welcomeScreen" class="screen active">
   <div class="welcome-bg"></div>
   <div class="welcome-inner">
@@ -4642,7 +4649,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <button onclick="closeShareCard()" style="position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;font-size:13px;font-weight:700;padding:8px 16px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;z-index:10000;">✕ Close</button>
 
     <!-- The actual card to screenshot -->
-    <div id="shareCardCanvas" style="width:400px;background:#080808;border-radius:6px;padding:26px 24px 20px;position:relative;overflow:hidden;margin:16px 0;box-shadow:0 20px 60px rgba(0,0,0,0.8);border:1px solid rgba(201,168,76,0.2);transform:none !important;transition:none !important;animation:none !important;will-change:auto;">
+    <div id="shareCardCanvas" style="width:min(440px,92vw);background:#080808;border-radius:6px;padding:28px 26px 22px;position:relative;overflow:hidden;margin:16px 0;box-shadow:0 20px 60px rgba(0,0,0,0.8);border:1px solid rgba(201,168,76,0.2);transform:none !important;transition:none !important;animation:none !important;will-change:auto;">
 
       <div style="position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:300px;height:200px;background:radial-gradient(ellipse,rgba(201,168,76,0.07) 0%,transparent 70%);pointer-events:none;"></div>
 
@@ -12000,7 +12007,17 @@ rtcOnReady(function(){
     if(mode==='up'){
       sb.auth.signUp({email:email,password:pass,options:{data:{display_name:name}}}).then(function(r){
         busy(false);
-        if(r.error){ msg(r.error.message,'err'); return; }
+        if(r.error){
+          var em=(r.error.message||'').toLowerCase();
+          if(em.indexOf('already')>-1 || em.indexOf('registered')>-1 || em.indexOf('exists')>-1){
+            rtcAuthMode('in'); el('authEmail').value=email; msg('You already have an account — just log in below.','ok');
+          } else { msg(r.error.message,'err'); }
+          return;
+        }
+        // Supabase returns a user with empty identities (no error, no session) when the email is already registered
+        if(r.data && r.data.user && Array.isArray(r.data.user.identities) && r.data.user.identities.length===0){
+          rtcAuthMode('in'); el('authEmail').value=email; msg('You already have an account — just log in below.','ok'); return;
+        }
         if(r.data && r.data.session){ /* auto-confirm on -> applySession hides + loads cloud */ }
         else { rtcAuthConfirmSent(email); }
       });
@@ -12170,21 +12187,25 @@ rtcOnReady(function(){
       var lo=document.getElementById('logoutRow'); if(lo) lo.style.display='block';   // signed in -> show Log Out
       hide();
       rtcEnterApp();
+      hideBootLoading();
     }).catch(function(e){
       console.error('[RTC] cloud hydrate failed — staying local',e);
       hide();  // don't lock the user out if the cloud call fails
+      hideBootLoading();
     });
   }
 
+  function hideBootLoading(){ var b=document.getElementById('bootLoading'); if(b && b.style.display!=='none'){ b.style.opacity='0'; setTimeout(function(){ b.style.display='none'; },220); } }
   function boot(){
-    if(!sb){ hide(); return; }   // offline: run local-only, home is public
+    setTimeout(hideBootLoading, 3500);      // safety: never hang the loading gate
+    if(!sb){ hideBootLoading(); return; }   // offline: run local-only, home is public
     sb.auth.getSession().then(function(res){
       if(res.data && res.data.session){ applySession(res.data.session); }
-      // no session -> leave the public home page showing; user signs up via "Enter The Club"
-    }).catch(function(){});
+      else { hideBootLoading(); }           // no session -> reveal the public home page
+    }).catch(function(){ hideBootLoading(); });
     sb.auth.onAuthStateChange(function(evt,session){
       if(session){ applied=false; applySession(session); }
-      else { applied=false; }   // signed out -> home is public, no forced gate
+      else { applied=false; hideBootLoading(); }   // signed out -> home is public, no forced gate
     });
   }
   if(document.readyState!=='loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
