@@ -1752,12 +1752,19 @@ button, .mood-btn, .sleep-btn, .wu-step, .cl-item, .kill-item,
   }
 }
 
-/* Trading Mode — crisp anti-aliased text, larger readout on desktop */
+/* Trading Mode — crisp, readable, no blur */
 #tradingModeOverlay{ -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility; }
+/* Numbers render crisp in Inter, not the soft condensed face */
+#tmRisk, #tmTradesLeft, #tmDrawdown, #tmPnl, #tmScore{ font-family:'Inter',sans-serif !important; font-weight:800 !important; letter-spacing:0 !important; }
+/* Readable labels + sublabels on every stat card */
+#tradingModeOverlay .tm-stats-row > div > div:first-child{ font-size:12px !important; letter-spacing:1.5px !important; margin-bottom:8px !important; }
+#tradingModeOverlay .tm-stats-row > div > div:last-child{ font-size:11px !important; }
 @media (min-width: 769px){
-  #tmTitle{ font-size:54px !important; }
-  #tmRiskCard, #tmTradesCard, #tmDrawdownCard, #tmPnlCard, #tmScoreCard{ padding:18px 12px !important; }
-  #tmRisk, #tmTradesLeft, #tmDrawdown, #tmPnl, #tmScore{ font-size:34px !important; }
+  #tmTitle{ font-size:58px !important; }
+  #tmRiskCard, #tmTradesCard, #tmDrawdownCard, #tmPnlCard, #tmScoreCard{ padding:24px 14px !important; }
+  #tmRisk, #tmTradesLeft, #tmDrawdown, #tmPnl, #tmScore{ font-size:46px !important; }
+  #tradingModeOverlay .tm-stats-row > div > div:first-child{ font-size:13px !important; }
+  #tradingModeOverlay .tm-stats-row > div > div:last-child{ font-size:12px !important; }
 }
 
 @media (max-width: 400px) {
@@ -2857,20 +2864,20 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   display:flex; flex-direction:column; gap:13px;
   font-family:'IBM Plex Mono',monospace; text-transform:uppercase;
 }
-#hudFrame .hud-data .hd-row{ display:flex; flex-direction:column; gap:2px; }
-#hudFrame .hud-data .hd-k{ font-size:8px; letter-spacing:2px; color:rgba(201,168,76,0.42); }
-#hudFrame .hud-data .hd-v{ font-size:11px; letter-spacing:1px; color:rgba(201,168,76,0.7); }
-#hudFrame .hud-data .hd-v.pos{ color:rgba(0,208,132,0.55); }
-#hudFrame .hud-data .hd-v.neg{ color:rgba(240,138,138,0.6); }
+#hudFrame .hud-data .hd-row{ display:flex; flex-direction:column; gap:3px; }
+#hudFrame .hud-data .hd-k{ font-size:10px; letter-spacing:2px; color:rgba(201,168,76,0.72); }
+#hudFrame .hud-data .hd-v{ font-size:14px; letter-spacing:1px; color:rgba(201,168,76,0.98); }
+#hudFrame .hud-data .hd-v.pos{ color:rgba(0,208,132,0.92); }
+#hudFrame .hud-data .hd-v.neg{ color:rgba(240,138,138,0.95); }
 
 /* right: creed, ascending from the bottom */
 #hudFrame .hud-mantra{
   position:absolute; right:64px; bottom:96px;
   display:flex; flex-direction:column-reverse; gap:26px; align-items:flex-end;
-  font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:2px;
-  text-transform:uppercase; color:rgba(201,168,76,0.42); text-align:right;
+  font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:2px;
+  text-transform:uppercase; color:rgba(201,168,76,0.72); text-align:right;
 }
-#hudFrame .hud-mantra span:first-child{ color:rgba(201,168,76,0.68); }
+#hudFrame .hud-mantra span:first-child{ color:rgba(201,168,76,0.95); }
 
 /* live New York clock, bottom-right */
 #hudFrame .hud-clock{
@@ -2879,8 +2886,8 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 }
 #hudFrame .hud-clock .wc{ display:flex; align-items:baseline; gap:10px; margin-bottom:5px; }
 #hudFrame .hud-clock .wc:last-child{ margin-bottom:0; }
-#hudFrame .hud-clock .wc-k{ font-size:8px; letter-spacing:2px; color:rgba(201,168,76,0.42); text-transform:uppercase; width:58px; }
-#hudFrame .hud-clock .wc-v{ font-size:12px; letter-spacing:1.5px; color:rgba(201,168,76,0.7); }
+#hudFrame .hud-clock .wc-k{ font-size:10px; letter-spacing:2px; color:rgba(201,168,76,0.72); text-transform:uppercase; width:64px; }
+#hudFrame .hud-clock .wc-v{ font-size:14px; letter-spacing:1.5px; color:rgba(201,168,76,0.95); }
 #hudFrame .hud-clock .wc-s{ font-size:8px; letter-spacing:2px; margin-left:2px; color:rgba(0,208,132,0.9); }
 #hudFrame .hud-clock .wc.open .wc-k{ color:rgba(0,208,132,0.85); }
 #hudFrame .hud-clock .wc.open .wc-v{ color:rgba(0,208,132,0.95); }
@@ -3410,7 +3417,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   </button>
 
   <!-- ONBOARDING OVERLAY -->
-  <div id="onboardingOverlay" style="display:none;position:fixed;inset:0;background:rgba(4,4,4,0.98);z-index:10003;align-items:center;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(8px);">
+  <div id="onboardingOverlay" style="display:none;position:fixed;inset:0;background:#060606;z-index:10003;align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
     <div onclick="event.stopPropagation()" class="ob-panel" style="width:100%;max-width:480px;">
 
       <div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-path">rtc://onboarding — getting started</span><span class="term-stat"><i></i>LIVE</span></div>
@@ -3439,7 +3446,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   </div>
 
   <!-- TRADING MODE FIRST-TIME INTRO -->
-  <div id="tradingModeIntro" onclick="event.stopPropagation()" style="display:none;position:fixed;inset:0;background:rgba(4,4,4,0.98);z-index:10001;align-items:center;justify-content:center;padding:28px;backdrop-filter:blur(8px);">
+  <div id="tradingModeIntro" onclick="event.stopPropagation()" style="display:none;position:fixed;inset:0;background:#060606;z-index:10001;align-items:center;justify-content:center;padding:28px;">
     <div style="width:100%;max-width:480px;text-align:center;">
 
       <!-- Icon -->
@@ -3480,8 +3487,8 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   </div>
 
 <!-- TRADING MODE OVERLAY -->
-  <div id="tradingModeOverlay" onclick="closeTradingMode()" style="display:none;position:fixed;inset:0;background:rgba(4,4,4,0.97);z-index:9999;align-items:flex-start;justify-content:center;padding:16px 20px 24px;overflow-y:auto;backdrop-filter:blur(8px);">
-    <div onclick="event.stopPropagation()" style="width:100%;max-width:960px;">
+  <div id="tradingModeOverlay" onclick="closeTradingMode()" style="display:none;position:fixed;inset:0;background:#050505;z-index:9999;align-items:flex-start;justify-content:center;padding:20px 24px 28px;overflow-y:auto;">
+    <div onclick="event.stopPropagation()" style="width:100%;max-width:1240px;">
 
       <!-- ── HEADER ── -->
       <div style="text-align:center;padding:16px 0 18px;">
