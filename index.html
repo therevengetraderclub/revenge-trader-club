@@ -662,6 +662,15 @@ html,body{background:#000000;font-family:"Inter",sans-serif;color:var(--text);mi
 .mir-row-gold{border-left:3px solid var(--gold);}
 .mir-row-green{border-left:3px solid var(--green);background:rgba(0,208,132,0.05);border-color:rgba(0,208,132,0.2);}
 .mir-foot{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--faint);text-transform:uppercase;margin-top:16px;}
+.mir-forming{border:1px solid var(--border2);border-radius:8px;padding:16px;}
+.mir-prog-top{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.mir-prog{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:16px;}
+.mir-prog-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:3px;transition:width .6s ease;}
+.mir-lock-list{display:flex;flex-direction:column;gap:8px;}
+.mir-lock-row{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;opacity:.72;}
+.mir-lock-ico{color:var(--gold);font-size:13px;line-height:1.35;}
+.mir-lock-title{font-size:13px;font-weight:700;color:var(--text);font-family:'Inter',sans-serif;margin-bottom:2px;}
+.mir-lock-sub{font-size:11px;color:var(--muted);line-height:1.5;}
 @media(max-width:560px){ .mir-heroes{grid-template-columns:1fr;} }
 
 .risk-result{
@@ -3655,8 +3664,8 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
   <!-- RTC COMPANION -->
   <div id="companionWrap" style="position:fixed;bottom:76px;right:max(18px, calc(50% - 604px));z-index:490;display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
-    <div id="companionBubble" style="display:none;position:absolute;right:56px;bottom:0;max-width:220px;background:#141414;border:1px solid var(--gold-dim);border-radius:12px 12px 4px 12px;padding:12px 14px;font-size:12px;color:var(--text2);line-height:1.6;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:companionBubbleIn .3s cubic-bezier(.2,.8,.3,1);">
-      <div style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;">RTC</div>
+    <div id="companionBubble" style="display:none;position:absolute;right:56px;bottom:0;width:290px;max-height:74vh;overflow-y:auto;background:#0c0c0c;border:1px solid var(--gold-dim);border-radius:12px 12px 4px 12px;padding:14px 16px;font-size:12px;color:var(--text2);line-height:1.6;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:companionBubbleIn .3s cubic-bezier(.2,.8,.3,1);">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;border-bottom:1px solid #2a2413;padding-bottom:8px;">RTC:// DAILY BRIEF</div>
       <div id="companionText"></div>
       <button onclick="dismissCompanion()" style="margin-top:8px;background:transparent;border:none;color:var(--faint);font-size:10px;cursor:pointer;font-family:Inter,sans-serif;padding:0;letter-spacing:.5px;">Dismiss</button>
     </div>
@@ -5008,6 +5017,16 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
             <div style="font-size:12px;font-weight:700;color:var(--white);">Breakeven</div>
           </div>
         </div>
+      </div>
+
+      <!-- P&L on this trade — appears once win/loss is picked -->
+      <div id="reviewPnlWrap" style="display:none;margin-bottom:18px;">
+        <div class="risk-lbl2" style="margin-bottom:8px;" id="reviewPnlLabel">Profit on this trade ($)</div>
+        <div style="position:relative;">
+          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;">$</span>
+          <input id="reviewPnlInput" type="number" inputmode="decimal" min="0" step="1" placeholder="0" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:12px 12px 12px 26px;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none;">
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">Optional — enter the dollar amount and we track it toward your goal automatically.</div>
       </div>
 
       <!-- Process Questions -->
@@ -6609,9 +6628,34 @@ function computeMirror(trades){
 function renderMirror(){
   var host=document.getElementById('mirrorSection'); if(!host) return;
   var trades=getTrades();
-  if(trades.length<5){ host.style.display='none'; host.innerHTML=''; return; }
-  var m=computeMirror(trades);
-  if(!m.feed.length && !m.kryptonite && !m.edge){ host.style.display='none'; host.innerHTML=''; return; }
+  var m = trades.length ? computeMirror(trades) : {feed:[],kryptonite:null,edge:null};
+  var hasInsight = m && (m.feed.length || m.kryptonite || m.edge);
+
+  // FORMING STATE — visible from the very first trade so the Mirror is never "missing"
+  if(trades.length < 5 || !hasInsight){
+    var n = Math.min(trades.length, 5);
+    var left = Math.max(5 - trades.length, 0);
+    var pctf = Math.round((n/5)*100);
+    var foot = left > 0
+      ? ('Log <b style="color:var(--gold)">'+left+'</b> more trade'+(left===1?'':'s')+' to unlock your mirror')
+      : 'A few more reps per condition and your mirror sharpens';
+    var teasers = [
+      ['Your Kryptonite','The single condition that quietly wrecks your discipline'],
+      ['Your Edge','The state where you trade at your sharpest'],
+      ['Sleep, mood &amp; stress','How your body and headspace move your scores'],
+      ['Time &amp; tilt','Your peak hours — and what a loss does to your next trade']
+    ];
+    var hf='<div class="mir-eyebrow">// The Mirror</div><div class="mir-sub">What your data knows about you — the market was never the problem.</div>';
+    hf+='<div class="mir-forming">';
+    hf+='<div class="mir-prog-top"><span>Forming</span><span>'+n+' / 5 trades</span></div>';
+    hf+='<div class="mir-prog"><div class="mir-prog-fill" style="width:'+pctf+'%;"></div></div>';
+    hf+='<div class="mir-lock-list">';
+    teasers.forEach(function(t){ hf+='<div class="mir-lock-row"><span class="mir-lock-ico">&#9671;</span><div><div class="mir-lock-title">'+t[0]+'</div><div class="mir-lock-sub">'+t[1]+'</div></div></div>'; });
+    hf+='</div>';
+    hf+='<div class="mir-foot">'+foot+'</div></div>';
+    host.innerHTML=hf; host.style.display='block';
+    return;
+  }
   var h='<div class="mir-eyebrow">// The Mirror</div><div class="mir-sub">What your data knows about you — the market was never the problem.</div>';
   if(m.kryptonite || m.edge){
     h+='<div class="mir-heroes">';
@@ -8403,6 +8447,31 @@ function openReviewModal(tradeId) {
   });
   const notesInput = document.getElementById('reviewNotesInput');
   if (notesInput) notesInput.value = '';
+  const pnlInput = document.getElementById('reviewPnlInput');
+  if (pnlInput) pnlInput.value = '';
+  const pnlWrap = document.getElementById('reviewPnlWrap');
+  if (pnlWrap) pnlWrap.style.display = 'none';
+
+  // Restore an existing review so revisiting/editing a trade works
+  if (trade && trade.review && trade.review.outcome) {
+    reviewState.outcome      = trade.review.outcome;
+    reviewState.followedPlan = !!trade.review.followedPlan;
+    reviewState.setupValid   = !!trade.review.setupValid;
+    const oBtn = document.querySelector('.review-outcome-btn[data-val="' + trade.review.outcome + '"]');
+    if (oBtn){ oBtn.style.borderColor='var(--gold)'; oBtn.style.background='rgba(201,168,76,0.08)'; }
+    ['followedPlan','setupValid'].forEach(function(k){
+      if (!reviewState[k]) return;
+      const row = document.querySelector('.review-bool-row[data-val="' + k + '"]');
+      if (!row) return;
+      row.style.borderColor='var(--gold)';
+      const cb=row.querySelector('.review-cb'), ck=row.querySelector('.review-ck');
+      if (cb){ cb.style.background='rgba(201,168,76,0.08)'; cb.style.borderColor='var(--gold)'; }
+      if (ck) ck.style.display='block';
+    });
+    if (notesInput) notesInput.value = trade.review.notes || '';
+    if (pnlInput && typeof trade.tradePnl === 'number') pnlInput.value = Math.abs(trade.tradePnl);
+    updateReviewPnlField();
+  }
 
   const modal = document.getElementById('reviewModal');
   if (modal) modal.style.display = 'flex';
@@ -8422,6 +8491,18 @@ function selectReviewOutcome(el) {
   el.style.borderColor = 'var(--gold)';
   el.style.background  = 'rgba(201,168,76,0.08)';
   reviewState.outcome = el.dataset.val;
+  updateReviewPnlField();
+}
+
+function updateReviewPnlField(){
+  var wrap=document.getElementById('reviewPnlWrap');
+  var label=document.getElementById('reviewPnlLabel');
+  var input=document.getElementById('reviewPnlInput');
+  if(!wrap) return;
+  var o=reviewState.outcome;
+  if(o==='win'){ wrap.style.display='block'; if(label) label.textContent='Profit on this trade ($)'; }
+  else if(o==='loss'){ wrap.style.display='block'; if(label) label.textContent='Loss on this trade ($)'; }
+  else { wrap.style.display='none'; if(input) input.value=''; }
 }
 
 function toggleReviewBool(el, key) {
@@ -8440,6 +8521,20 @@ function toggleReviewBool(el, key) {
   }
 }
 
+// Roll a trade's P&L into the active goal's daily log.
+// delta = change since last time this trade posted (edit-safe); isNew = first time posting.
+function applyTradePnlToGoal(delta, isNew){
+  if (typeof goalData === 'undefined' || !goalData || !delta) return;
+  var today = new Date().toLocaleDateString('en-US',{ month:'short', day:'numeric' });
+  var i = pnlLog.findIndex(function(e){ return e && e.date === today; });
+  if (i >= 0)            { pnlLog[i].pnl += delta; }
+  else if (isNew)        { pnlLog.push({ pnl: delta, date: today, ts: Date.now() }); }
+  else if (pnlLog.length){ pnlLog[pnlLog.length-1].pnl += delta; }
+  else                   { pnlLog.push({ pnl: delta, date: today, ts: Date.now() }); }
+  savePnl(pnlLog);
+  try { renderGoals(); } catch(e) {}
+}
+
 function saveTradeReview() {
   if (!currentReviewTradeId) return;
   if (!reviewState.outcome) { alert('Please select the outcome of this trade.'); return; }
@@ -8455,7 +8550,23 @@ function saveTradeReview() {
     setupValid:   reviewState.setupValid,
     notes:        notes.trim()
   };
+
+  // P&L — one entry here flows to the journal and (if set) the goal
+  var pnlRaw = parseFloat((document.getElementById('reviewPnlInput') || {}).value);
+  var signedPnl;
+  if (reviewState.outcome === 'breakeven') signedPnl = 0;
+  else if (!isNaN(pnlRaw)) signedPnl = reviewState.outcome === 'loss' ? -Math.abs(pnlRaw) : Math.abs(pnlRaw);
+  else signedPnl = null;
+  if (signedPnl !== null) {
+    var prevPosted = (typeof trades[idx].pnlPosted === 'number') ? trades[idx].pnlPosted : 0;
+    trades[idx].tradePnl = signedPnl;
+    var delta = signedPnl - prevPosted;
+    if (delta !== 0) { try { applyTradePnlToGoal(delta, prevPosted === 0); } catch(e){} }
+    trades[idx].pnlPosted = signedPnl;
+  }
   saveTrades(trades);
+  try { renderHudData(); } catch(e) {}
+  try { renderSessionStrip(); } catch(e) {}
   closeReviewModal();
   renderJournal();
   try { renderNavDots(); } catch(e) {}
@@ -10296,6 +10407,183 @@ let companionDismissed = false;
 let _companionRot = 0;
 function _stripTags(s){ return (s||'').replace(/<[^>]+>/g,''); }
 
+// ═══════════════════════════════════════════════════════
+// RTC REACTIONS — the Corner Man's living reaction library
+// Reads your situation (streaks + combos) and picks a line.
+// Three voices: straight (s), corner man (c), roast (r).
+// Poses: idle · hype · warn · shake · coach  (map to sprites later)
+// ═══════════════════════════════════════════════════════
+function getVoice(){ return RTCStore.get('rtc_voice') || 'corner'; }
+function setVoice(v){ rtcSet('rtc_voice', v); }
+function _poseToState(pose){ return pose==='hype'?'celebrate':(pose==='warn'||pose==='shake')?'alert':'default'; }
+
+function _rxDay(d){ return d ? new Date(d).toDateString() : ''; }
+function buildReactionCtx(){
+  var trades = getTrades(), checkins = getCheckins();
+  var reviewed = trades.filter(function(t){ return t.review && t.review.outcome; });
+  function lead(arr, pred){ var n=0; for(var i=0;i<arr.length;i++){ if(pred(arr[i])) n++; else break; } return n; }
+  var POS={'Good':1,'Locked In':1}, NEG={'Anxious':1,'Defeated':1,'Frustrated':1};
+  function lowSleep(c){ return (typeof c.sleepHours==='number'&&c.sleepHours<6) || c.sleep==='Poor'; }
+  function goodSleep(c){ return (typeof c.sleepHours==='number'&&c.sleepHours>=7) || c.sleep==='Well Rested'; }
+  function isRev(t){ return t && (t.tags||[]).some(function(x){ return /revenge/i.test(x); }); }
+  var today = new Date().toDateString();
+  var todayTrades = trades.filter(function(t){ return _rxDay(t.date)===today; });
+  var lastTrade = trades[0]||null, lastReviewed = reviewed[0]||null;
+  var todayCheckin=null; for(var i=0;i<checkins.length;i++){ if(_rxDay(checkins[i].date)===today){ todayCheckin=checkins[i]; break; } }
+  var mir=null; try{ mir=computeMirror(trades); }catch(e){}
+  return {
+    trades:trades, checkins:checkins, n:trades.length,
+    winStreak: lead(reviewed,function(t){return t.review.outcome==='win';}),
+    lossStreak: lead(reviewed,function(t){return t.review.outcome==='loss';}),
+    lastOutcome: lastReviewed?lastReviewed.review.outcome:null,
+    goodMoodStreak: lead(checkins,function(c){return POS[c.mood];}),
+    badMoodStreak: lead(checkins,function(c){return NEG[c.mood];}),
+    lowSleepStreak: lead(checkins,lowSleep),
+    goodSleepStreak: lead(checkins,goodSleep),
+    cleanStreak: lead(trades,function(t){return (t.pct||0)>=80;}),
+    todayCount: todayTrades.length,
+    todayCheckin: todayCheckin,
+    lastTrade:lastTrade, lastReviewed:lastReviewed,
+    revengeToday: todayTrades.some(isRev),
+    lastMood: todayCheckin?todayCheckin.mood:(lastTrade?lastTrade.mood:null),
+    lastStress: todayCheckin?todayCheckin.stress:null,
+    lastSleepHours: (todayCheckin&&typeof todayCheckin.sleepHours==='number')?todayCheckin.sleepHours:((lastTrade&&typeof lastTrade.sleepHours==='number')?lastTrade.sleepHours:null),
+    sleptWellButLost: !!(lastReviewed&&lastReviewed.review.outcome==='loss'&&typeof lastReviewed.sleepHours==='number'&&lastReviewed.sleepHours>=7),
+    sleptBadButWon: !!(lastReviewed&&lastReviewed.review.outcome==='win'&&typeof lastReviewed.sleepHours==='number'&&lastReviewed.sleepHours<6),
+    goodSleepLowScore: !!(lastTrade&&typeof lastTrade.sleepHours==='number'&&lastTrade.sleepHours>=7&&(lastTrade.pct||0)<60),
+    overconfident: (todayCheckin&&todayCheckin.mood==='Overconfident')||(lastTrade&&lastTrade.mood==='Overconfident'),
+    isPosMood: !!(POS[(todayCheckin?todayCheckin.mood:'')]),
+    mir:mir
+  };
+}
+
+var RTC_REACTIONS = [
+  { id:'win10', p:3, pose:'hype', when:function(c){return c.winStreak>=10;},
+    s:["Ten wins in a row. The process is working — keep it identical.","A 10-trade win streak. This is what consistency looks like."],
+    c:["Ten straight. You are not gambling anymore, you are executing. Do not get cute now.","Ten in a row. THIS is the fighter I knew was in there. Stay humble, stay sharp."],
+    r:["10-0? Acting like you knew what you were doing this whole time. Do not blow it on trade eleven."] },
+  { id:'win5', p:3, pose:'hype', when:function(c){return c.winStreak>=5&&c.winStreak<10;},
+    s:["Five wins straight. Momentum is real — protect it.","Five in a row. Discipline is compounding."],
+    c:["Five straight. You are in a groove. Do not let the wins make you sloppy.","Five in a row and still following the plan. That is the whole game."],
+    r:["Five wins and I can already see it in your face. Do not start feeling like a genius on me."] },
+  { id:'win3', p:3, pose:'hype', when:function(c){return c.winStreak===3||c.winStreak===4;},
+    s:["Three-plus wins in a row. Clean work.","On a run. The plan is paying you."],
+    c:["A run going. Now do the boring thing and run it back exactly the same.","Hat trick. Keep your feet on the ground."] },
+  { id:'win2', p:3, pose:'hype', when:function(c){return c.winStreak===2;},
+    s:["Two in a row. Nice and steady.","Back to back wins. Keep the rhythm."],
+    c:["Two straight. Do not get excited, get consistent.","Two in a row. That is a rhythm, not a reason to size up."] },
+  { id:'loss1', p:2, pose:'idle', when:function(c){return c.lossStreak===1;},
+    s:["One loss. That is part of the job.","A single loss. Nothing to fix. Reset."],
+    c:["One loss. That is the job, not a crisis. Breathe and move on.","One red trade. I have seen you turn one into five — do not. You are fine."] },
+  { id:'loss2', p:2, pose:'warn', when:function(c){return c.lossStreak===2;},
+    s:["Two losses in a row. Slow down before the next one.","Back to back losses. Check your process, not your feelings."],
+    c:["Two in a row. This is exactly where guys go tilt. Not you, not today. Walk the checklist.","Two losses. Here is the fork — pros slow down, gamblers speed up. Which one are you."],
+    r:["Two down. Usually the part where you do something stupid to get it back. Prove me wrong."] },
+  { id:'loss3', p:1, pose:'warn', when:function(c){return c.lossStreak>=3&&c.lossStreak<5;},
+    s:["Three losses in a row. Consider stepping away for the session.","Three straight red. The market is not the problem right now — your state is."],
+    c:["Three in a row. The setup will be there tomorrow. You might not be if you force this.","Three losses. Close the laptop. That is not quitting, that is discipline. Come back tomorrow."],
+    r:["Three straight. At this point you are just donating. The exit button works too, you know."] },
+  { id:'loss5', p:1, pose:'shake', when:function(c){return c.lossStreak>=5;},
+    s:["Five losses in a row. Stop trading today. Full stop.","Five straight red. Nothing good happens from here. Step away."],
+    c:["Five in a row. I am pulling you out of the ring. This is me protecting you from you. Done for the day.","Five losses. We are done today. Go for a walk — the charts will survive without you."],
+    r:["Five in a row and still clicking? What are we doing here. Log off before you have to explain this to somebody."] },
+  { id:'nosleep2', p:2, pose:'shake', when:function(c){return c.lowSleepStreak>=2;},
+    s:["Two nights of short sleep. Your edge is dull whether you feel it or not.","Back to back low-sleep nights. Trade smaller or not at all."],
+    c:["Two nights running on empty. You are not sharp, champ, no matter what your brain says.","Second night of no sleep. You are bringing a butter knife to a gunfight. Know that going in."],
+    r:["Two nights of garbage sleep and you want A+ setups? The setups are A+. You are running at a C-minus.","Back to back no sleep. You look like the before picture in a coffee commercial. Maybe sit today out."] },
+  { id:'nosleep1', p:2, pose:'warn', when:function(c){return c.lowSleepStreak===1&&c.todayCheckin;},
+    s:["You logged short sleep today. Watch your discipline.","Low sleep today. Tired traders skip steps."],
+    c:["Short sleep last night. Not benching you — just know your reflexes are a half-step slow today.","Running light on sleep. Run the full checklist. No shortcuts today."],
+    r:["Four hours of sleep and here you are ready to conquer the market. Bold. The under-eye bags are doing numbers though."] },
+  { id:'goodsleep3', p:3, pose:'hype', when:function(c){return c.goodSleepStreak>=3;},
+    s:["Three straight nights of good sleep. This is when you do your best work.","Rested three days running. Your brain is actually online."],
+    c:["Three nights of real sleep. THIS is your window. Do not waste a sharp mind on lazy setups.","Rested and ready three days straight. No excuses today — go be great."] },
+  { id:'goodmood3', p:3, pose:'hype', when:function(c){return c.goodMoodStreak>=3;},
+    s:["Three days in a good headspace. Stability is an edge.","Three straight positive check-ins. Steady mind, steady hands."],
+    c:["Three good days in a row. This is the version of you that wins. Remember this feeling.","Three days steady. You are building something bigger than one trade right now."] },
+  { id:'goodmood2', p:3, pose:'hype', when:function(c){return c.goodMoodStreak===2;},
+    s:["Two good days back to back. Keep the routine.","Two positive check-ins in a row. Momentum off the charts too."],
+    c:["Two solid days. Whatever you are doing outside the charts, keep doing it.","Two good days running. Consistency of mind before consistency of results."] },
+  { id:'goodmood1', p:3, pose:'idle', when:function(c){return c.isPosMood&&c.goodMoodStreak<2;},
+    s:["Good to see you in a solid headspace today. That matters.","You are feeling good today. Protect that."],
+    c:["That is good — you are feeling good, and that is important. A calm mind is your real edge. Now trade like it.","Good headspace today. Do not let it turn into cocky. Feeling good and staying disciplined is the combo."] },
+  { id:'frustrated', p:1, pose:'warn', action:'reset', when:function(c){return c.lastMood==='Frustrated';},
+    s:["You are frustrated. Do not trade it out. Take a beat first.","Frustration logged. The worst trades come from this exact feeling."],
+    c:["Frustrated? Good, you are being honest. But do not put it in a position. Give me sixty seconds first.","I can see it — you are hot right now. Do not you dare force a trade to feel better. Breathe with me."],
+    r:["Frustrated and reaching for the mouse? That is how the horror stories start. Sit. Down."] },
+  { id:'anxious', p:2, pose:'warn', when:function(c){return c.lastMood==='Anxious';},
+    s:["Anxious today. Size down and slow down.","Anxiety logged. Trade smaller until it passes."],
+    c:["Anxious. That is okay. Do not fight it — just trade smaller while it is loud. Nothing to prove today.","Nerves are up. That is your body asking you to slow down. Listen to it."] },
+  { id:'defeated', p:2, pose:'idle', when:function(c){return c.lastMood==='Defeated';},
+    s:["Feeling defeated today. Be gentle — maybe just journal, no trades.","Defeated logged. There is no shame in sitting a day out."],
+    c:["Defeated. I hear you. Some days the bravest move is to not trade at all. This might be one.","You are down today, and that is human. You do not have to trade through it to prove anything."] },
+  { id:'overconf', p:2, pose:'warn', when:function(c){return c.overconfident;},
+    s:["Overconfident logged. That is historically a warning sign.","Feeling invincible. Markets love that feeling — right before they punish it."],
+    c:["Overconfident, huh. That is the exact feeling right before guys give it all back. Tighten up.","I love confidence. I do not love overconfidence. Trade the plan, not the ego."],
+    r:["Feeling like the chosen one today? The market has humbled everyone who felt that way. Buckle up."] },
+  { id:'wellLost', p:2, pose:'idle', when:function(c){return c.sleptWellButLost;},
+    s:["Rested and still took a loss. That is just the market — you did your part.","Good sleep, clean process, red result. That happens. Do not overcorrect."],
+    c:["You slept fine and still lost. That one is on the market, not you. Do not go fixing what is not broken.","Rested and disciplined and it still lost. THAT is trading. Good process, bad luck. Move on clean."] },
+  { id:'badWon', p:2, pose:'warn', when:function(c){return c.sleptBadButWon;},
+    s:["Won on short sleep. Enjoy it, but do not learn the wrong lesson.","A win on no sleep. Do not let a good result excuse a bad habit."],
+    c:["You won on four hours of sleep. Cool. Do not decide sleep does not matter now — that was luck, not skill.","Green on empty. Take the win, but we both know that is not repeatable. Sleep tonight."],
+    r:["Won on no sleep and now you think you are Superman? That was the market being nice. It will not be twice."] },
+  { id:'restedSloppy', p:2, pose:'warn', when:function(c){return c.goodSleepLowScore;},
+    s:["Rested but the discipline slipped. No excuse for that one.","Good sleep, sloppy process. That is the fixable kind of bad."],
+    c:["You were rested and still cut corners? That one is all you — and that is good news, it means you can fix it.","No sleep excuse today. The score slipped because focus slipped. Tighten the checklist."],
+    r:["Eight hours of sleep and you STILL rushed the checklist? What is your excuse now, champ?"] },
+  { id:'overtrade', p:1, pose:'warn', when:function(c){return c.todayCount>=3;},
+    s:["That is three-plus trades today. Your max is three. Consider stepping away.","Over your trade limit. Every trade past the plan is ego, not edge."],
+    c:["That is enough for today. Three was the line and you are at it. Walking away now is the disciplined move.","You are past your limit. I will not stop you — but you already know the right call."],
+    r:["How many is that now? You blew past your own rule like it was a suggestion. The rules were YOUR idea."] },
+  { id:'two_today', p:2, pose:'idle', when:function(c){return c.todayCount===2;},
+    s:["Two trades in today. One left under your plan. Make it count.","Two down. Your last one — treat it like it matters."],
+    c:["Two in. You have got one bullet left today. Do not waste it out of boredom.","Two trades. One to go. Make the last one your best decision, not your fastest."] },
+  { id:'revenge', p:1, pose:'shake', when:function(c){return c.revengeToday;},
+    s:["That looked like a revenge trade. Name it for what it is.","Revenge trade logged. This is where accounts go to die."],
+    c:["Look at me. That was not a setup, that was a tantrum with size on it. We both know it.","Revenge. I called it. You tried to get even with the market — and the market does not care."],
+    r:["Ah, the revenge trade. Nothing says strategy like trying to fistfight a candlestick. How is that going?"] },
+  { id:'clean5', p:3, pose:'hype', when:function(c){return c.cleanStreak>=5;},
+    s:["Five clean checklists in a row. Elite consistency.","Five straight disciplined entries. This is the standard now."],
+    c:["Five clean setups in a row. Not luck — a habit forming. Proud of that one.","Five straight by the book. THIS is who you are becoming. Keep feeding it."] },
+  { id:'kryptonite', p:1, pose:'warn', when:function(c){ if(!c.mir||!c.mir.kryptonite) return false; var k=c.mir.kryptonite.label||''; if(c.lastSleepHours!=null&&c.lastSleepHours<6&&/hour|sleep|rested/i.test(k)) return true; if(c.lastStress==='High'&&/stress/i.test(k)) return true; return false; },
+    c:[ function(c){ return "Today lines up with your kryptonite. "+_stripTags(c.mir.kryptonite.detail)+" Not telling you to sit out — just go in with your eyes open."; } ] },
+  { id:'coldstart', p:4, pose:'idle', when:function(c){return c.n>0&&c.n<5;},
+    s:[ function(c){ var l=5-c.n; return "Keep logging. "+l+" more trade"+(l===1?"":"s")+" and your mirror unlocks."; } ],
+    c:[ function(c){ var l=5-c.n; return "Keep feeding me. "+l+" more trade"+(l===1?"":"s")+" and I can start reading your patterns."; } ] },
+  { id:'welcome', p:4, pose:'idle', when:function(c){return c.n===0;},
+    s:["Welcome. Log your first trade after the checklist. Your data starts today.","New here? Run the checklist, log the trade, and I start learning your patterns."],
+    c:["Welcome to the corner. Log your first trade and I start watching your patterns like a hawk.","First day. Log a trade off the checklist and I get to work. Let us build something."] },
+  { id:'idle', p:5, pose:'idle', when:function(c){return true;},
+    s:["Checklist first, charts second. That is the order.","No trade is also a position. Patience is the play.","Green days are built on boring decisions.","The plan does not care how you feel. Follow it anyway."],
+    c:["I am right here in your corner. Run the checklist before you touch a button.","Slow is smooth. Smooth is green. Do not rush.","You do not have to trade today. You just have to not do anything dumb.","Best traders I know are boring. Be boring today."],
+    r:["Standing here watching you hover over that buy button. We both know you have not run the checklist."] }
+];
+
+var _rxRot = 0, _rxLineRot = {};
+function _rxPack(rx, voice){
+  var order = voice==='roast'?['r','c','s']:(voice==='straight'?['s','c','r']:['c','s','r']);
+  for(var i=0;i<order.length;i++){ if(rx[order[i]]&&rx[order[i]].length) return rx[order[i]]; }
+  return null;
+}
+function pickReaction(){
+  var ctx = buildReactionCtx();
+  var matches = RTC_REACTIONS.filter(function(rx){ try{ return rx.when(ctx); }catch(e){ return false; } });
+  if(!matches.length) return null;
+  var minP = Math.min.apply(null, matches.map(function(m){ return m.p; }));
+  var top = matches.filter(function(m){ return m.p===minP; });
+  var rx = top[_rxRot % top.length]; _rxRot++;
+  var pack = _rxPack(rx, getVoice()); if(!pack) return null;
+  _rxLineRot[rx.id] = (_rxLineRot[rx.id]||0);
+  var line = pack[_rxLineRot[rx.id] % pack.length]; _rxLineRot[rx.id]++;
+  if(typeof line==='function'){ try{ line = line(ctx); }catch(e){ line=''; } }
+  return { msg:_stripTags(line), pose:rx.pose||'idle', priority:rx.p, action:rx.action||null };
+}
+function hasUrgentReaction(){
+  var ctx = buildReactionCtx();
+  return RTC_REACTIONS.some(function(rx){ try{ return rx.p<=1 && rx.when(ctx); }catch(e){ return false; } });
+}
+
 function toggleCompanion() {
   const bubble = document.getElementById('companionBubble');
   if (!bubble) return;
@@ -10303,7 +10591,7 @@ function toggleCompanion() {
     bubble.style.display = 'none';
     companionVisible = false;
   } else {
-    triggerCompanion();
+    showDailyBrief();
   }
 }
 
@@ -10335,8 +10623,65 @@ function showCompanionMessage(msg, state) {
   companionDismissed = false;
 }
 
+// ── DAILY BRIEF — tap the button, the system reads you your day ──
+function _esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function _briefWeekAvg(trades, back){
+  var start=new Date(); start.setHours(0,0,0,0);
+  start.setDate(start.getDate() - start.getDay() - back*7);
+  var end=new Date(start); end.setDate(start.getDate()+7);
+  var arr=trades.filter(function(t){ var d=new Date(t.date); return d>=start && d<end; });
+  return arr.length ? Math.round(arr.reduce(function(s,t){return s+(t.pct||0);},0)/arr.length) : null;
+}
+function buildDailyBriefHTML(){
+  function sec(t){ return '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin:13px 0 5px;">// '+t+'</div>'; }
+  function row(l,v){ return '<div style="display:flex;justify-content:space-between;align-items:baseline;font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#9a8a55;padding:3px 0;"><span>'+l+'</span><b style="color:#e8dcc0;font-weight:700;">'+v+'</b></div>'; }
+  var trades=getTrades();
+  var ctx; try{ ctx=buildReactionCtx(); }catch(e){ ctx={todayCount:0,todayCheckin:null,mir:null}; }
+  var avg = trades.length ? Math.round(trades.reduce(function(s,t){return s+(t.pct||0);},0)/trades.length) : 0;
+  var tw=_briefWeekAvg(trades,0), lw=_briefWeekAvg(trades,1);
+  var trend = (tw!=null&&lw!=null) ? tw-lw : null;
+  var trendStr = trend==null ? '' : (trend>0 ? ' <span style="color:var(--green);">&#9650; +'+trend+'</span>' : (trend<0 ? ' <span style="color:var(--red);">&#9660; '+trend+'</span>' : ' <span style="color:var(--muted);">&mdash; 0</span>'));
+  var focus=''; try{ var rx=pickReaction(); focus = rx ? rx.msg : ''; }catch(e){}
+  var h='';
+  h+=sec("How you're doing");
+  h+=row('DISCIPLINE', (trades.length ? avg+'%' : '&mdash;')+trendStr);
+  h+=sec('Today');
+  h+=row('TRADES TAKEN', ctx.todayCount+' / 3');
+  h+=row('CHECK-IN', ctx.todayCheckin ? '<b style="color:var(--green);font-weight:700;">done</b>' : '<b style="color:#e0a04a;font-weight:700;">not done</b>');
+  if(typeof goalData!=='undefined' && goalData){
+    var earned=0; try{ earned=(pnlLog||[]).reduce(function(s,e){return s+(e?e.pnl:0);},0); }catch(e){}
+    var gp=Math.min(100,Math.max(0,Math.round((earned/goalData.amt)*100)));
+    var dleft=Math.max(0, goalData.days - ((typeof pnlLog!=='undefined'&&pnlLog?pnlLog.length:0)));
+    h+=sec('Your goal');
+    h+='<div style="font-size:11px;color:var(--muted);margin-bottom:5px;">'+_esc(goalData.name)+'</div>';
+    h+='<div style="height:6px;background:#241f10;border-radius:3px;overflow:hidden;"><div style="width:'+gp+'%;height:100%;background:var(--gold);"></div></div>';
+    h+='<div style="font-size:10px;color:#8a7a45;margin-top:4px;font-family:\'IBM Plex Mono\',monospace;">$'+Math.max(0,Math.round(earned))+' / $'+Math.round(goalData.amt)+' &middot; '+gp+'% &middot; '+dleft+' days left</div>';
+  }
+  if(ctx.mir && ctx.mir.kryptonite){
+    h+=sec('The Mirror');
+    h+='<div style="font-size:12px;line-height:1.5;color:#c9b877;"><span style="color:#c0705a;">Kryptonite:</span> '+_stripTags(ctx.mir.kryptonite.detail)+'</div>';
+  }
+  if(focus){
+    h+=sec("Today's focus");
+    h+='<div style="font-size:12px;line-height:1.5;color:#c9b877;">'+_esc(focus)+'</div>';
+  }
+  return h;
+}
+function showDailyBrief(){
+  var bubble=document.getElementById('companionBubble');
+  var textEl=document.getElementById('companionText');
+  var dot=document.getElementById('companionDot');
+  if(!bubble||!textEl) return;
+  textEl.innerHTML = buildDailyBriefHTML();
+  bubble.style.display='block';
+  if(dot) dot.style.display='none';
+  companionVisible=true; companionDismissed=false;
+}
+
 // ── COMPANION INTELLIGENCE — picks the most relevant message ──
 function triggerCompanion() {
+  var rx = null; try { rx = pickReaction(); } catch(e) { rx = null; }
+  if (rx) { showCompanionMessage(rx.msg, _poseToState(rx.pose)); return; }
   const trades  = getTrades();
   const acc     = getActiveAcc();
   const msgs    = getCompanionMessages(trades, acc);
@@ -10497,7 +10842,8 @@ function runCompanionCheck() {
 
   // Only auto-show for priority 1 alerts (overtrading, correlation)
   const urgent = msgs.filter(function(m) { return m.priority === 1; });
-  if (urgent.length && !companionVisible) {
+  var rxUrgent = false; try { rxUrgent = hasUrgentReaction(); } catch(e) {}
+  if ((urgent.length || rxUrgent) && !companionVisible) {
     if (dot) dot.style.display = 'block';
     // Don't auto-open, just light the dot so they tap to see
   }
@@ -12259,6 +12605,14 @@ function renderHudData() {
     if (acc && acc.name) rows.push(['ACCOUNT', acc.name.toUpperCase(), '']);
     rows.push(['BALANCE', bal > 0 ? '$' + bal.toLocaleString() : '—', bal>0?'pos':'']);
     rows.push(['MAX LOSS', maxLoss > 0 ? '-$' + maxLoss.toFixed(0) : '—', maxLoss>0?'neg':'']);
+    if (typeof goalData !== 'undefined' && goalData) {
+      var tKey = now.toLocaleDateString('en-US',{ month:'short', day:'numeric' });
+      var todayPnl = (typeof pnlLog!=='undefined' && pnlLog ? pnlLog : [])
+        .filter(function(e){ return e && e.date === tKey; })
+        .reduce(function(s,e){ return s + (e.pnl||0); }, 0);
+      if (goalData.daily) rows.push(['DAILY TARGET', '$' + Math.round(goalData.daily), '']);
+      rows.push(["TODAY P&L", (todayPnl>=0?'+$':'-$') + Math.abs(Math.round(todayPnl)), todayPnl>=0?'pos':'neg']);
+    }
     rows.push(['STATUS', (rec && rec.active) ? 'RECOVERY' : 'SYSTEM READY', (rec&&rec.active)?'':'pos']);
     el.innerHTML = rows.map(function(r){
       return '<div class="hd-row"><div class="hd-k">' + r[0] + '</div><div class="hd-v ' + r[2] + '">' + r[1] + '</div></div>';
