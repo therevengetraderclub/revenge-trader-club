@@ -4200,21 +4200,21 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg3);border-radius:var(--r-sm);border:1px solid var(--border);">
             <div>
               <div style="font-size:13px;font-weight:700;color:var(--white);">Daily Max Loss</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px;">Balance ÷ 7 — stop trading if you hit this</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:3px;">Balance ÷ 7 — stop trading if you hit this</div>
             </div>
             <div style="font-size:20px;font-weight:900;color:var(--white);font-family:'Inter',sans-serif;" id="psDailyMax">$0</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg3);border-radius:var(--r-sm);border:1px solid var(--border);">
             <div>
               <div style="font-size:13px;font-weight:700;color:var(--white);">Max Trades Per Day</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px;">3 trades maximum — then you are done</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:3px;">3 trades maximum — then you are done</div>
             </div>
             <div style="font-size:20px;font-weight:900;color:var(--white);font-family:'Inter',sans-serif;">3</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(229,57,53,0.06);border-radius:var(--r-sm);border:1px solid #2a1212;">
             <div>
               <div style="font-size:13px;font-weight:700;color:var(--white);">If You Lose All 3 Trades</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px;">Close the platform. Walk away. Done for the day.</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:3px;">Close the platform. Walk away. Done for the day.</div>
             </div>
             <div style="font-size:14px;font-weight:900;color:var(--red);">DONE</div>
           </div>
@@ -4266,14 +4266,14 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div class="cd-check" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
           <div style="flex:1;">
             <div style="font-size:13px;font-weight:700;color:var(--white);">Step away from the charts</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">15 minutes minimum. Phone down. Walk.</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:3px;">15 minutes minimum. Phone down. Walk.</div>
           </div>
         </div>
         <div class="cooldown-step" data-step="1" onclick="toggleCooldownStep(1)" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all .2s;">
           <div class="cd-check" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
           <div style="flex:1;">
             <div style="font-size:13px;font-weight:700;color:var(--white);">Name the mistake</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">Pick what actually happened below.</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:3px;">Pick what actually happened below.</div>
           </div>
         </div>
         <div id="mistakeChips" style="display:none;flex-wrap:wrap;gap:8px;padding:4px 2px 4px 52px;">
@@ -4288,7 +4288,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div class="cd-check" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
           <div style="flex:1;">
             <div style="font-size:13px;font-weight:700;color:var(--white);">Decide: am I done for today?</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">If you hit your daily max loss, the answer is yes.</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:3px;">If you hit your daily max loss, the answer is yes.</div>
           </div>
         </div>
       </div>
@@ -4296,7 +4296,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div class="cd-check" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
           <div style="flex:1;">
             <div style="font-size:13px;font-weight:700;color:var(--white);">Journal the trade</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">Log it while it's fresh — the lesson is in the details.</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:3px;">Log it while it's fresh — the lesson is in the details.</div>
           </div>
           <button onclick="event.stopPropagation();switchTab('checklist',document.querySelector('[onclick*=checklist]'))" style="padding:8px 14px;background:transparent;border:1px solid rgba(45,212,191,0.4);border-radius:4px;color:var(--orange);font-size:10px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;flex-shrink:0;">LOG IT</button>
         </div>
@@ -6895,7 +6895,7 @@ function renderSettings() {
       return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${isActive?'rgba(201,168,76,0.08)':'var(--bg3)'};border:1.5px solid ${isActive?'var(--gold)':'var(--border)'};border-radius:4px;">
         <div style="flex:1;">
           <div style="font-size:13px;font-weight:700;color:${isActive?'var(--gold)':'var(--white)'};">${a.name}${isActive?' <span style="font-size:10px;background:var(--gold);color:#000;padding:2px 7px;border-radius:4px;font-weight:800;margin-left:6px;">ACTIVE</span>':''}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px;">${a.style} · $${Number(a.balance).toLocaleString()}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;">${a.style} · $${Number(a.balance).toLocaleString()}</div>
         </div>
         ${!isActive ? `<button onclick="switchAccount(${i})" style="padding:8px 14px;background:var(--gold);border:none;border-radius:4px;color:#000;font-size:11px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;">Switch</button>` : ''}
         ${accs.length>1 ? `<button onclick="deleteAccount(${i})" style="padding:8px 12px;background:transparent;border:1px solid #3a1212;border-radius:4px;color:var(--red);font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">✕</button>` : ''}
@@ -7511,25 +7511,25 @@ function renderNewsCalendar() {
         + '<div style="flex:1;font-size:12px;font-weight:700;color:var(--white);">FOMC in ' + daysTo + (daysTo===1?' day':' days') + ' <span style="color:var(--muted);font-weight:400;">(' + fmt(nextMeeting[0]) + '\u2013' + fmt(nextMeeting[1]) + ')</span></div>'
         + '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:1px;">FED WEEK</div></div>';
     } else {
-      fedBanner = '<div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Next FOMC: ' + fmt(nextMeeting[0]) + '\u2013' + fmt(nextMeeting[1]) + ' \u00b7 in ' + daysTo + ' days</div>';
+      fedBanner = '<div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Next FOMC: ' + fmt(nextMeeting[0]) + '\u2013' + fmt(nextMeeting[1]) + ' \u00b7 in ' + daysTo + ' days</div>';
     }
   }
 
-  let inner = '<div style="font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:1px;">'+todayStr+'</div>' + fedBanner;
+  let inner = '<div style="font-size:12px;color:var(--text2);margin-bottom:8px;letter-spacing:1px;">'+todayStr+'</div>' + fedBanner;
   events.forEach(ev => {
     const c = colors[ev.impact] || colors.low;
     inner += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+c.bg+';border:1px solid '+c.border+';border-radius:4px;margin-bottom:5px;">'
       +'<div style="width:7px;height:7px;border-radius:50%;background:'+c.dot+';flex-shrink:0;"></div>'
       +'<div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--white);">'+ev.event+'</div>'
-      +'<div style="font-size:11px;color:var(--muted);margin-top:2px;">'+ev.time+'</div></div>'
+      +'<div style="font-size:12px;color:var(--text2);margin-top:3px;">'+ev.time+'</div></div>'
       +(c.lbl?'<div style="font-size:11px;font-weight:800;color:'+c.dot+';letter-spacing:1px;">'+c.lbl+'</div>':'')
       +'</div>';
   });
   inner += '<div style="display:flex;gap:8px;margin-top:10px;">'
-    + '<a href="https://www.federalreserve.gov/newsevents/calendar.htm" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:10px;font-weight:700;color:var(--muted);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Fed Speeches</a>'
-    + '<a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:10px;font-weight:700;color:var(--muted);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Full Calendar</a>'
+    + '<a href="https://www.federalreserve.gov/newsevents/calendar.htm" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Fed Speeches</a>'
+    + '<a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Full Calendar</a>'
     + '</div>'
-    + '<div style="margin-top:8px;font-size:10px;color:var(--faint);line-height:1.6;">Presidential remarks and surprise pressers are unscheduled \u2014 keep news alerts on and never hold size through breaking headlines.</div>';
+    + '<div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.6;">Presidential remarks and surprise pressers are unscheduled \u2014 keep news alerts on and never hold size through breaking headlines.</div>';
   calEl.innerHTML = inner;
 
   // ── LIVE CALENDAR UPGRADE ──
@@ -7574,15 +7574,15 @@ function renderNewsCalendar() {
           liveHtml += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+c.bg+';border:1px solid '+c.border+';border-radius:4px;margin-bottom:5px;">'
             + '<div style="width:7px;height:7px;border-radius:50%;background:'+c.dot+';flex-shrink:0;"></div>'
             + '<div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--white);">' + String(ev.title||'').replace(/</g,'&lt;') + '</div>'
-            + '<div style="font-size:11px;color:var(--muted);margin-top:2px;">' + timeStr + (ev.forecast ? ' \u00b7 Forecast: ' + ev.forecast : '') + (ev.previous ? ' \u00b7 Prev: ' + ev.previous : '') + '</div></div>'
+            + '<div style="font-size:12px;color:var(--text2);margin-top:3px;">' + timeStr + (ev.forecast ? ' \u00b7 Forecast: ' + ev.forecast : '') + (ev.previous ? ' \u00b7 Prev: ' + ev.previous : '') + '</div></div>'
             + (c.lbl ? '<div style="font-size:11px;font-weight:800;color:'+c.dot+';letter-spacing:1px;">'+c.lbl+'</div>' : '')
             + '</div>';
         });
         // Rebuild: fed banner + live events + links footer (reuse pieces)
         var footer = '<div style="display:flex;gap:8px;margin-top:10px;">'
-          + '<a href="https://www.federalreserve.gov/newsevents/calendar.htm" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:10px;font-weight:700;color:var(--muted);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Fed Speeches</a>'
-          + '<a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:10px;font-weight:700;color:var(--muted);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Full Calendar</a></div>'
-          + '<div style="margin-top:8px;font-size:10px;color:var(--faint);line-height:1.6;">Presidential remarks and surprise pressers are unscheduled \u2014 keep news alerts on and never hold size through breaking headlines.</div>';
+          + '<a href="https://www.federalreserve.gov/newsevents/calendar.htm" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Fed Speeches</a>'
+          + '<a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Full Calendar</a></div>'
+          + '<div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.6;">Presidential remarks and surprise pressers are unscheduled \u2014 keep news alerts on and never hold size through breaking headlines.</div>';
         calEl.innerHTML = liveHtml + footer;
       })
       .catch(function(){ /* fallback template already rendered */ });
