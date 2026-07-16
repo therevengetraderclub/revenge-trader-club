@@ -1752,6 +1752,14 @@ button, .mood-btn, .sleep-btn, .wu-step, .cl-item, .kill-item,
   }
 }
 
+/* Trading Mode — crisp anti-aliased text, larger readout on desktop */
+#tradingModeOverlay{ -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility; }
+@media (min-width: 769px){
+  #tmTitle{ font-size:54px !important; }
+  #tmRiskCard, #tmTradesCard, #tmDrawdownCard, #tmPnlCard, #tmScoreCard{ padding:18px 12px !important; }
+  #tmRisk, #tmTradesLeft, #tmDrawdown, #tmPnl, #tmScore{ font-size:34px !important; }
+}
+
 @media (max-width: 400px) {
   /* Trading Mode stats — 2+3 layout on very small phones */
   #tmRiskCard, #tmTradesCard, #tmDrawdownCard {
@@ -3623,6 +3631,9 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           </div>
         </div>
       </div>
+
+      <!-- ── SESSION READ — the system's summary of your day ── -->
+      <div id="tmSummary" style="background:#0c0c0c;border:1px solid #2a2413;border-radius:4px;padding:16px 18px;margin-top:12px;display:none;"></div>
 
       <div style="text-align:center;margin-top:10px;font-size:9px;color:var(--faint);letter-spacing:2px;text-transform:uppercase;">Tap anywhere outside to close</div>
 
@@ -10908,9 +10919,9 @@ function populateTradingMode() {
 
   // ── CHECK IF DAILY GOAL IS HIT ──────────────────────
   const loggedDays = pnlLog.filter(function(e) { return e !== null; });
-  const todayPnlEntry = loggedDays[loggedDays.length - 1];
-  const todayPnl = todayPnlEntry && new Date(todayPnlEntry.date || '').toDateString() === todayStr
-    ? todayPnlEntry.pnl : null;
+  const todayKey = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric' });
+  const todayEntries = loggedDays.filter(function(e) { return e && e.date === todayKey; });
+  const todayPnl = todayEntries.length ? todayEntries.reduce(function(s,e){ return s + (e.pnl||0); }, 0) : null;
   const goalHit = goalData && goalData.daily && todayPnl !== null && todayPnl >= goalData.daily;
 
   // ── GOAL ACHIEVED STATE ──────────────────────────────
@@ -11063,6 +11074,15 @@ function populateTradingMode() {
     if (subEl) subEl.textContent = pct + '% of $' + Math.round(goalData.amt).toLocaleString();
   } else {
     if (goalCardEl) goalCardEl.style.display = 'none';
+  }
+
+  // ── SESSION READ — the system's summary below ────────
+  const sumEl = document.getElementById('tmSummary');
+  if (sumEl) {
+    try {
+      sumEl.innerHTML = '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:2px;border-bottom:1px solid #2a2413;padding-bottom:8px;">RTC:// Session Read</div>' + buildDailyBriefHTML();
+      sumEl.style.display = 'block';
+    } catch(e) { sumEl.style.display = 'none'; }
   }
 }
 
@@ -12191,10 +12211,10 @@ const OB_STEPS = [
     tab: 'checkin',
     render: function() {
       return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>', 'Check-In Tab', 'Start every morning here before you open a chart.',
-        [ 'Set your mood and sleep quality \u2014 these directly affect your trading decisions',
-          'See today\u2019s economic calendar so you never get caught by a news event',
-          'Run your pre-market warmup to sharpen your focus before the session',
-          'Your RTC companion surfaces personalized insights based on your recent history' ]);
+        [ 'Log your mood, hours of sleep, and stress level \u2014 the raw data your Mirror learns from',
+          'See today\u2019s economic calendar so a news event never catches you off guard',
+          'Run your pre-market warmup to lock in before the session',
+          'Tap the gold button any time for your Daily Brief \u2014 the system\u2019s read on how you\u2019re doing' ]);
     }
   },
   // ── STEP 5: Tour — Checklist ─────────────────────────
@@ -12238,10 +12258,10 @@ const OB_STEPS = [
     type: 'tour',
     tab: 'goals',
     render: function() {
-      return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>', 'Goals Tab', 'Log your P&L every day and watch your target get closer.',
-        [ 'Visual calendar shows every trading day with your daily target and what you actually logged',
-          'Tap any date to see the trades you took that day, your notes, and your screenshots',
-          'Goal Pace shows if you\u2019re on track, ahead, or behind your original timeline',
+      return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>', 'Goals Tab', 'Watch your target get closer as your trades roll in.',
+        [ 'Set a profit target and number of trading days \u2014 you get an automatic daily target to hit',
+          'Your P&L flows in automatically from your trade reviews \u2014 log it once, it lands here',
+          'Tap any date to see that day\u2019s trades, notes, and screenshots; Goal Pace shows if you\u2019re on track',
           'Write a monthly letter to yourself. You\u2019ll read it next month \u2014 it will surprise you.' ]);
     }
   },
@@ -12250,11 +12270,11 @@ const OB_STEPS = [
     type: 'tour',
     tab: 'perf',
     render: function() {
-      return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', 'Performance Tab', 'Your intelligence report. Patterns you can\u2019t see in the moment.',
-        [ 'Discipline Net Worth shows your total accumulated score across all trades',
-          'Best Time To Trade tells you which hours produce your highest discipline scores',
-          'Tag Performance shows which setups work best for you specifically',
-          'Share My Stats generates a shareable card with your competitive stats \u2014 post it.' ]);
+      return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', 'Performance Tab', 'The Mirror. The patterns you can\u2019t see in the moment.',
+        [ 'The Mirror is the headline \u2014 it names your Kryptonite (what quietly wrecks your discipline) and your Edge (when you\u2019re sharpest), in your own numbers',
+          'Best Time To Trade shows which hours you\u2019re most disciplined',
+          'Tag Performance shows which setups actually work for you',
+          'Share My Stats builds a card you can post \u2014 discipline, not P&L.' ]);
     }
   },
   // ── STEP 10: Tour — Journal ──────────────────────────
@@ -12264,9 +12284,20 @@ const OB_STEPS = [
     render: function() {
       return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>', 'Journal Tab', 'Every trade logged. Every lesson captured.',
         [ 'Log ticker, direction, tags, notes, and screenshots for every trade',
-          'Organized by month so you can find any trade instantly without endless scrolling',
-          'Review your trades to track outcomes \u2014 this builds your win rate data over time',
+          'Organized by month so you can find any trade instantly',
+          'Review a trade to mark it a win or loss and enter your P&L \u2014 it flows straight to your goal, no double-typing',
           'Your edge lives in here. Traders who journal improve faster than those who don\u2019t.' ]);
+    }
+  },
+  // ── STEP: Tour — Trading Mode ────────────────────────
+  {
+    type: 'tour',
+    render: function() {
+      return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>', 'Trading Mode', 'Your live command center for an active session.',
+        [ 'One tap opens a focused overlay — risk per trade, trades left today, drawdown, live P&L, and score, all in one place',
+          'A pre-trade kill switch stops you before a tilt trade, and a quick journal logs the setup fast',
+          'Your goal’s daily target and pace sit right there so you never lose the thread',
+          'The Session Read at the bottom is the system’s full summary of your day — your Mirror, in the moment.' ]);
     }
   },
   // ── STEP 11: Done ────────────────────────────────────
