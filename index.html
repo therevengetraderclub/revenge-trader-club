@@ -1654,8 +1654,8 @@ button, .mood-btn, .sleep-btn, .wu-step, .cl-item, .kill-item,
     letter-spacing: 4px !important;
   }
   #tmHeaderLabel {
-    font-size: 9px !important;
-    letter-spacing: 4px !important;
+    font-size: 11px !important;
+    letter-spacing: 5px !important;
   }
 
   /* Trading Mode — stats row: 3 cols top, 2 cols bottom on mobile */
@@ -1761,6 +1761,7 @@ button, .mood-btn, .sleep-btn, .wu-step, .cl-item, .kill-item,
 #tradingModeOverlay .tm-stats-row > div > div:last-child{ font-size:11px !important; }
 @media (min-width: 769px){
   #tmTitle{ font-size:58px !important; }
+  #tmHeaderLabel{ font-size:15px !important; letter-spacing:8px !important; }
   #tmRiskCard, #tmTradesCard, #tmDrawdownCard, #tmPnlCard, #tmScoreCard{ padding:24px 14px !important; }
   #tmRisk, #tmTradesLeft, #tmDrawdown, #tmPnl, #tmScore{ font-size:46px !important; }
   #tradingModeOverlay .tm-stats-row > div > div:first-child{ font-size:13px !important; }
@@ -1821,6 +1822,9 @@ button, .btn-gold, .btn-calc {
 /* ============ FIGHT CAMP x TERMINAL REDESIGN ============ */
 body{
   background-color:#080808;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
 }
 .welcome-eyebrow{
   display:inline-block;
@@ -2431,7 +2435,6 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 .nav-tab.active{
   color:var(--gold) !important;
   border-bottom-color:var(--gold) !important;
-  text-shadow:0 0 12px rgba(201,168,76,0.35);
 }
 @media(max-width:480px){
   .nav-tab{ font-size:11px !important; padding:12px 12px !important; }
@@ -3492,7 +3495,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
       <!-- ── HEADER ── -->
       <div style="text-align:center;padding:16px 0 18px;">
-        <div id="tmHeaderLabel" style="font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:7px;color:var(--gold);opacity:.7;margin-bottom:4px;text-transform:uppercase;">Active Session</div>
+        <div id="tmHeaderLabel" style="font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;letter-spacing:6px;color:var(--gold);opacity:1;margin-bottom:8px;text-transform:uppercase;">Active Session</div>
         <div id="tmTitle" style="font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:8px;color:var(--white);line-height:1;">TRADING MODE</div>
 
         <!-- GOAL ACHIEVED STATE -->
