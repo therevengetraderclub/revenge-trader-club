@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#080808">
 <title>The Revenge Trader Club v2.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script>try{var _t=localStorage.getItem('rtc_theme');if(_t&&_t!=='dark')document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+<script>try{var _t=localStorage.getItem('rtc_theme');if(_t&&_t!=='dark')document.documentElement.setAttribute('data-theme',_t);}catch(e){/* pre-boot: runs before the logger exists; a theme read failing is harmless */}</script>
 <style>
 :root{
   --bg:#0f0f0f; --bg2:#1c1c1c; --bg3:#292929; --bg4:#363636; --bg5:#414141;
@@ -40,6 +40,23 @@ html[data-theme="rose"]{
 .theme-swatch span{ width:16px; height:16px; border-radius:50%; display:block; }
 .theme-name{ font-size:13px; font-weight:700; color:var(--text2); }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+
+/* ── Keyboard focus ring ──────────────────────────────────────
+   :focus-visible only fires for keyboard/AT navigation, so mouse users
+   see nothing change. Without this, tabbing through the app is invisible. */
+:focus-visible{
+  outline:2px solid var(--gold);
+  outline-offset:2px;
+  border-radius:2px;
+}
+/* Skip link — lets keyboard users jump past the header straight to content */
+.rtc-skip{
+  position:absolute; left:-9999px; top:0; z-index:100010;
+  background:var(--gold); color:#0a0a0a; padding:10px 16px;
+  font-family:'Inter',sans-serif; font-size:13px; font-weight:700;
+  border-radius:0 0 4px 0; text-decoration:none;
+}
+.rtc-skip:focus{ left:0; }
 html,body{background:#000000;font-family:"Inter",sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden;}
 
 /* ── DESKTOP CONTAINMENT — app stays centered, max width like a real app ── */
@@ -3040,7 +3057,9 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 #authOverlay #authForgot:hover{ color:var(--gold); }
 #authOverlay .auth-legal{ display:block; margin-top:14px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; color:var(--faint); text-transform:uppercase; }
 </style></style></style></style></style></style></style></style></style></style></style></style></style></style></style></style></style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Pinned exact version. A floating "@2" auto-executes ANY future 2.x release in every
+     user's browser with full auth access — a supply-chain hole. Bump this deliberately. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 </head>
 <body>
 <!-- Terminal HUD frame — ambient chrome in the wide-screen gutters. Purely decorative. -->
@@ -5182,6 +5201,23 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
    rewriting a single call site.
 
    Only keys prefixed rtc_ are ever touched. */
+// ═══════════════════════════════════════════════════════════════
+// rtcWarn — error visibility
+// ~104 catch blocks used to swallow errors silently. In production that means a
+// user reports "my trade didn't save" and there is literally nothing to look at.
+// These calls do NOT change control flow — the app still swallows and continues,
+// exactly as before — it's just no longer invisible. This is also the single
+// choke point for wiring an error service (Sentry) later: one function, not 104.
+// ═══════════════════════════════════════════════════════════════
+function rtcWarn(err, context) {
+  try {
+    console.error('[RTC]' + (context ? ' ' + context + ':' : ''), err);
+    if (window.Sentry && typeof window.Sentry.captureException === 'function') {
+      window.Sentry.captureException(err, context ? { extra: { context: context } } : undefined);
+    }
+  } catch (_) { /* logging must never be the thing that breaks the app */ }
+}
+
 var RTCStore = (function () {
   var PREFIX = 'rtc_';
   var cache  = Object.create(null);
@@ -5246,8 +5282,8 @@ var RTCStore = (function () {
     remove: function (key) {
       delete cache[key];
       var r;
-      try { r = backend.drop(key); } catch (e) {}
-      try { localStorage.removeItem(key); } catch (e) {}   // also clear the migration copy
+      try { r = backend.drop(key); } catch (e) { rtcWarn(e); }
+      try { localStorage.removeItem(key); } catch (e) { rtcWarn(e); }   // also clear the migration copy
       return Promise.resolve(r);
     },
 
@@ -5331,7 +5367,7 @@ function makeIDBBackend() {
    localStorage is NOT cleared: it stays as a fallback until we're confident. */
 RTCStore.ready = (function () {
   var canIDB = false;
-  try { canIDB = typeof indexedDB !== 'undefined' && !!indexedDB; } catch (e) {}
+  try { canIDB = typeof indexedDB !== 'undefined' && !!indexedDB; } catch (e) { rtcWarn(e); }
   if (!canIDB) { console.warn('[RTC] IndexedDB unavailable — staying on localStorage'); return RTCStore.hydrate(); }
 
   RTCStore.setBackend(makeIDBBackend());
@@ -5368,8 +5404,8 @@ function rtcSet(key, val) { return RTCStore.set(key, val); }
 function setTheme(name){
   if(name && name!=='dark') document.documentElement.setAttribute('data-theme', name);
   else document.documentElement.removeAttribute('data-theme');
-  try{ rtcSet('rtc_theme', name||'dark'); }catch(e){}
-  try{ renderThemePicker(); }catch(e){}
+  try{ rtcSet('rtc_theme', name||'dark'); }catch(e){ rtcWarn(e); }
+  try{ renderThemePicker(); }catch(e){ rtcWarn(e); }
 }
 function getTheme(){ try{ return RTCStore.get('rtc_theme') || 'dark'; }catch(e){ return 'dark'; } }
 function renderThemePicker(){
@@ -5418,8 +5454,8 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
     var els=document.querySelectorAll('#hudClock [data-tz]');
     for(var i=0;i<els.length;i++){var z=els[i].getAttribute('data-tz');try{els[i].textContent=new Date().toLocaleTimeString('en-US',{hour12:false,timeZone:z});}catch(e){els[i].textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}}
     var openCities=[];
-    Object.keys(CITY).forEach(function(k){var on=false;try{on=CITY[k]();}catch(e){}var row=document.querySelector('#hudClock .wc[data-city="'+k+'"]');if(row){row.classList.toggle('open',on);var st=row.querySelector('.wc-s');if(st)st.textContent=on?'● LIVE':'';}if(on)openCities.push(LABEL[k]);});
-    var fs='CLOSED';try{fs=futuresState();}catch(e){}
+    Object.keys(CITY).forEach(function(k){var on=false;try{on=CITY[k]();}catch(e){ rtcWarn(e); }var row=document.querySelector('#hudClock .wc[data-city="'+k+'"]');if(row){row.classList.toggle('open',on);var st=row.querySelector('.wc-s');if(st)st.textContent=on?'● LIVE':'';}if(on)openCities.push(LABEL[k]);});
+    var fs='CLOSED';try{fs=futuresState();}catch(e){ rtcWarn(e); }
     var fEl=document.getElementById('futStatus');
     if(fEl){var map={RTH:'● OPEN · RTH',OPEN:'● OPEN',HALT:'○ HALT',CLOSED:'○ CLOSED',HOLIDAY:'○ HOLIDAY'};fEl.textContent=map[fs]||fs;fEl.className='wc-v st-'+fs.toLowerCase();}
     var sessEl=document.getElementById('hudSess'),sessTxt=document.getElementById('hudSessTxt');
@@ -5760,7 +5796,20 @@ function goalKey(i)    { return 'rtc_goal_'     + i; }
 function pnlKey(i)     { return 'rtc_pnl_'      + i; }
 function customKey()   { return 'rtc_custom_cl_' + getActiveIdx(); }
 
-function getTrades()   { return JSON.parse(RTCStore.get(tradeKey(getActiveIdx()))   || '[]'); }
+// getTrades() is called ~42x (renderPerf alone triggers 8) and each call re-parsed the
+// whole history — including base64 screenshots. Memoize on the raw string: any write
+// changes the string and invalidates automatically. Safe because every mutation of the
+// returned array is immediately followed by saveTrades(); nothing sorts/splices it.
+var _tradesMemo = { raw: null, val: null };
+function getTrades() {
+  var raw = RTCStore.get(tradeKey(getActiveIdx())) || '[]';
+  if (_tradesMemo.raw === raw) return _tradesMemo.val;
+  var parsed;
+  try { parsed = JSON.parse(raw); }
+  catch (e) { console.error('[RTC] trades parse failed — falling back to empty', e); parsed = []; }
+  _tradesMemo = { raw: raw, val: parsed };
+  return parsed;
+}
 function saveTrades(t) { rtcSet(tradeKey(getActiveIdx()),   JSON.stringify(t)); }
 function getCheckins() { return JSON.parse(RTCStore.get(checkinKey(getActiveIdx())) || '[]'); }
 function saveCheckins(c){ rtcSet(checkinKey(getActiveIdx()), JSON.stringify(c)); }
@@ -5809,7 +5858,7 @@ function showScreen(id) {
   s.style.display = 'flex';
   s.scrollTop = 0;
   window.scrollTo(0, 0);
-  try { renderHudData(); } catch(e) {}
+  try { renderHudData(); } catch(e) { rtcWarn(e); }
 
   // Show back-to-dashboard if returning to welcome as existing member
   const backBtn = document.getElementById('backToDashBtn');
@@ -5857,7 +5906,7 @@ function rtcToggleAcctMenu(ev) {
 function rtcMenuSwitch(i) {
   rtcCloseAcctMenu();
   if (i === getActiveIdx()) return;
-  try { switchAccount(i); } catch(e) {}
+  try { switchAccount(i); } catch(e) { rtcWarn(e); }
 }
 function switchTab(tab, el) {
   document.querySelectorAll('.tab-body').forEach(t => {
@@ -5868,18 +5917,18 @@ function switchTab(tab, el) {
   const target = document.getElementById('tab-' + tab);
   if (target) { target.classList.add('active'); target.style.display = 'block'; }
   if (el) el.classList.add('active');
-  if (tab === 'checklist') { renderChecklist(); try{renderSavedTickers();}catch(e){} }
-  if (tab === 'goals')     { renderGoals(); try{renderMonthlyLetter();}catch(e){} try{renderTradingTimeline();}catch(e){} }
+  if (tab === 'checklist') { renderChecklist(); try{renderSavedTickers();}catch(e){ rtcWarn(e); } }
+  if (tab === 'goals')     { renderGoals(); try{renderMonthlyLetter();}catch(e){ rtcWarn(e); } try{renderTradingTimeline();}catch(e){ rtcWarn(e); } }
   if (tab === 'settings')  renderSettings();
-  try{renderSessionStrip();}catch(e){}
-  if (tab === 'recovery')  { try{renderRecoveryMode();}catch(e){} }
-  if (tab === 'checkin')   { renderMindset(); renderStreakBanner(); renderNewsCalendar(); try{renderWarmup();}catch(e){} try{renderTodaysFocus();}catch(e){} try{renderComebackCard();}catch(e){} }
-  if (tab === 'perf')      setTimeout(function(){ try{renderWeeklyReport();}catch(e){} }, 50);
+  try{renderSessionStrip();}catch(e){ rtcWarn(e); }
+  if (tab === 'recovery')  { try{renderRecoveryMode();}catch(e){ rtcWarn(e); } }
+  if (tab === 'checkin')   { renderMindset(); renderStreakBanner(); renderNewsCalendar(); try{renderWarmup();}catch(e){ rtcWarn(e); } try{renderTodaysFocus();}catch(e){ rtcWarn(e); } try{renderComebackCard();}catch(e){ rtcWarn(e); } }
+  if (tab === 'perf')      setTimeout(function(){ try{renderWeeklyReport();}catch(e){ rtcWarn(e); } }, 50);
 }
 
 // ── LOAD DASHBOARD ──────────────────────────────────────────────
 function loadDash() {
-  try{renderSessionStrip();}catch(e){}
+  try{renderSessionStrip();}catch(e){ rtcWarn(e); }
   const acc = getActiveAcc();
   if (!acc) return;
 
@@ -5916,23 +5965,23 @@ function loadDash() {
     if (d7) d7.value = acc.balance;
   }
   // Daily intelligence pack — fire immediately
-  try { renderWelcomeBack(); } catch(e) {}
-  try { renderTodaysFocus(); } catch(e) {}
-  try { renderComebackCard(); } catch(e) {}
-  try { renderMindset(); } catch(e) {}
-  try { renderStreakBanner(); } catch(e) {}
-  try { renderNewsCalendar(); } catch(e) {}
-  try { renderWarmup(); } catch(e) {}
-  try { prefillPSBalance(); } catch(e) {}
-  try { loadDrawdownSettings(); } catch(e) {}
-  try { renderSoundToggle(); } catch(e) {}
-  try { initNavSlider(); } catch(e) {}
-  try { renderAccountBadge(); } catch(e) {}
-  try { initHeaderScrollShrink(); } catch(e) {}
-  try { renderNavDots(); } catch(e) {}
-  try { renderSavedTickers(); } catch(e) {}
-  try { renderMonthlyLetter(); } catch(e) {}
-  try { runCompanionCheck(); } catch(e) {}
+  try { renderWelcomeBack(); } catch(e) { rtcWarn(e); }
+  try { renderTodaysFocus(); } catch(e) { rtcWarn(e); }
+  try { renderComebackCard(); } catch(e) { rtcWarn(e); }
+  try { renderMindset(); } catch(e) { rtcWarn(e); }
+  try { renderStreakBanner(); } catch(e) { rtcWarn(e); }
+  try { renderNewsCalendar(); } catch(e) { rtcWarn(e); }
+  try { renderWarmup(); } catch(e) { rtcWarn(e); }
+  try { prefillPSBalance(); } catch(e) { rtcWarn(e); }
+  try { loadDrawdownSettings(); } catch(e) { rtcWarn(e); }
+  try { renderSoundToggle(); } catch(e) { rtcWarn(e); }
+  try { initNavSlider(); } catch(e) { rtcWarn(e); }
+  try { renderAccountBadge(); } catch(e) { rtcWarn(e); }
+  try { initHeaderScrollShrink(); } catch(e) { rtcWarn(e); }
+  try { renderNavDots(); } catch(e) { rtcWarn(e); }
+  try { renderSavedTickers(); } catch(e) { rtcWarn(e); }
+  try { renderMonthlyLetter(); } catch(e) { rtcWarn(e); }
+  try { runCompanionCheck(); } catch(e) { rtcWarn(e); }
 
   // First entry — dashboard self-build sequence
   if (window._rtcFirstEntry) {
@@ -5941,13 +5990,13 @@ function loadDash() {
   }
   // Retry after 1 second — ensures fonts and DOM are settled
   setTimeout(function() {
-    try { renderMindset(); } catch(e) {}
-    try { renderNewsCalendar(); } catch(e) {}
+    try { renderMindset(); } catch(e) { rtcWarn(e); }
+    try { renderNewsCalendar(); } catch(e) { rtcWarn(e); }
   }, 1000);
 
   // Start onboarding for first-time users
   setTimeout(function() {
-    try { startOnboarding(); } catch(e) {}
+    try { startOnboarding(); } catch(e) { rtcWarn(e); }
   }, 600);
 }
 
@@ -5991,7 +6040,7 @@ function enterStyle() {
 // Resume onboarding at the setup screen (used after the account is sealed, incl. returning from the email-confirm link)
 window.rtcResumeSetup = function() {
   var nm = '';
-  try { nm = localStorage.getItem('rtc_seal_name') || ''; } catch(e){}
+  try { nm = localStorage.getItem('rtc_seal_name') || ''; } catch(e){ rtcWarn(e); }
   if (nm) {
     pendingName = nm;
     var greet = document.getElementById('styleGreeting');
@@ -6014,7 +6063,7 @@ function checkStyle() {
 }
 function enterDash() {
   // onboarding complete — clear the "seal / needs setup" breadcrumbs
-  try { localStorage.removeItem('rtc_seal_setup'); localStorage.removeItem('rtc_seal_name'); } catch(e){}
+  try { localStorage.removeItem('rtc_seal_setup'); localStorage.removeItem('rtc_seal_name'); } catch(e){ rtcWarn(e); }
   const bal  = parseFloat(document.getElementById('accountBal').value) || 0;
   const name = pendingName || 'Trader';
   const style = selectedStyle || 'Day Trader';
@@ -6309,9 +6358,9 @@ function resetChecklist() {
   resetTags();
   const saveBtn = document.getElementById('saveTickerBtn');
   if (saveBtn) saveBtn.style.opacity = '0';
-  try { renderSavedTickers(); } catch(e) {}
-  try { renderMonthlyLetter(); } catch(e) {}
-  try { runCompanionCheck(); } catch(e) {}
+  try { renderSavedTickers(); } catch(e) { rtcWarn(e); }
+  try { renderMonthlyLetter(); } catch(e) { rtcWarn(e); }
+  try { runCompanionCheck(); } catch(e) { rtcWarn(e); }
   updateScore();
 }
 
@@ -6341,14 +6390,14 @@ function saveTrade() {
   saveTrades(trades);
   renderJournal();
   renderPerf();
-  try { renderAccountBadge(); } catch(e) {}
-  try { renderNavDots(); } catch(e) {}
-  try { runCompanionCheck(); } catch(e) {}
-  try { renderSavedTickers(); } catch(e) {}
-  try { renderMonthlyLetter(); } catch(e) {}
-  try { runCompanionCheck(); } catch(e) {}
-  try { renderTodaysFocus(); } catch(e) {}
-  try { renderComebackCard(); } catch(e) {}
+  try { renderAccountBadge(); } catch(e) { rtcWarn(e); }
+  try { renderNavDots(); } catch(e) { rtcWarn(e); }
+  try { runCompanionCheck(); } catch(e) { rtcWarn(e); }
+  try { renderSavedTickers(); } catch(e) { rtcWarn(e); }
+  try { renderMonthlyLetter(); } catch(e) { rtcWarn(e); }
+  try { runCompanionCheck(); } catch(e) { rtcWarn(e); }
+  try { renderTodaysFocus(); } catch(e) { rtcWarn(e); }
+  try { renderComebackCard(); } catch(e) { rtcWarn(e); }
   btn.disabled = true;
   btn.classList.add('saving');
   btn.textContent = 'Trade Saved';
@@ -6603,9 +6652,9 @@ function renderGoals() {
   if (pctEl) animateCountUp('gProgressPct', pct, '%');
   // Calendar
   try { renderCalendarGrid(); } catch(e) { console.warn('renderCalendarGrid failed:', e); }
-  try { renderTradingTimeline(); } catch(e) {}
-  try { renderProjectedFinish(); } catch(e) {}
-  try { renderStayTheCourse(); } catch(e) {}
+  try { renderTradingTimeline(); } catch(e) { rtcWarn(e); }
+  try { renderProjectedFinish(); } catch(e) { rtcWarn(e); }
+  try { renderStayTheCourse(); } catch(e) { rtcWarn(e); }
 }
 
 // ── PERFORMANCE ─────────────────────────────────────────────────
@@ -6760,14 +6809,14 @@ function renderPerf() {
   set('p-avg', trades.length ? avg+'%' : '—');
   const goodSleep = checkins.filter(c => c.sleep && c.sleep.includes('Well')).length;
   set('p-sleep', checkins.length ? Math.round((goodSleep/checkins.length)*100)+'%' : '—');
-  try { renderWeeklyReport(); }   catch(e) {}
-  try { renderMirror(); }         catch(e) {}
-  try { renderMoodPerf(); }       catch(e) {}
-  try { renderTimeOfDay(); }      catch(e) {}
-  try { renderTagPerf(); }        catch(e) {}
-  try { renderDisciplineNetWorth(); } catch(e) {}
-  try { renderTrendArrows(); }        catch(e) {}
-  try { renderBestTradeSpotlight(); } catch(e) {}
+  try { renderWeeklyReport(); }   catch(e) { rtcWarn(e); }
+  try { renderMirror(); }         catch(e) { rtcWarn(e); }
+  try { renderMoodPerf(); }       catch(e) { rtcWarn(e); }
+  try { renderTimeOfDay(); }      catch(e) { rtcWarn(e); }
+  try { renderTagPerf(); }        catch(e) { rtcWarn(e); }
+  try { renderDisciplineNetWorth(); } catch(e) { rtcWarn(e); }
+  try { renderTrendArrows(); }        catch(e) { rtcWarn(e); }
+  try { renderBestTradeSpotlight(); } catch(e) { rtcWarn(e); }
 }
 
 // ── JOURNAL ─────────────────────────────────────────────────────
@@ -6805,14 +6854,14 @@ function openFullScreen(tradeId) {
     + '<span style="font-size:11px;font-weight:800;color:' + (trade.direction==='Long'?'#00d084':'#e53935') + ';letter-spacing:1.5px;text-transform:uppercase;">' + (trade.direction || '—') + '</span>'
     + '<span style="font-size:11px;font-weight:800;color:' + scoreColor + ';padding:3px 8px;border-radius:4px;border:1px solid ' + scoreColor + '44;">' + scoreLabel + ' · ' + (trade.pct||0) + '%</span>'
     + '</div>'
-    + '<span style="font-size:12px;color:rgba(255,255,255,0.3);letter-spacing:1px;">' + (trade.date||'') + ' · ' + (trade.time||'') + (trade.entry && trade.entry!=='—' ? ' · Entry: ' + trade.entry : '') + '</span>';
+    + '<span style="font-size:12px;color:rgba(255,255,255,0.3);letter-spacing:1px;">' + _esc(trade.date||'') + ' · ' + _esc(trade.time||'') + (trade.entry && trade.entry!=='—' ? ' · Entry: ' + _esc(trade.entry) : '') + '</span>';
 
   // Chart image — double click/tap to go true fullscreen
   const imgWrap = document.createElement('div');
   imgWrap.style.cssText = 'width:100%;max-width:800px;border-radius:4px;border:1px solid rgba(255,255,255,0.06);margin-bottom:20px;overflow:hidden;position:relative;background:#000;';
 
   const img = document.createElement('img');
-  img.src = shots[currentShotIndex];
+  RTCShots.url(shots[currentShotIndex]).then(function(u){ if (u) img.src = u; });
   img.style.cssText = 'width:100%;display:block;cursor:zoom-in;';
 
   // Hint label
@@ -6866,7 +6915,7 @@ function openFullScreen(tradeId) {
 
   function shiftShot(delta) {
     currentShotIndex = (currentShotIndex + delta + shots.length) % shots.length;
-    img.src = shots[currentShotIndex];
+    RTCShots.url(shots[currentShotIndex]).then(function(u){ if (u) img.src = u; });
     if (counterLabel) counterLabel.textContent = (currentShotIndex+1) + ' / ' + shots.length;
   }
 
@@ -6877,7 +6926,7 @@ function openFullScreen(tradeId) {
   let notesHTML = '<div style="font-size:10px;font-weight:700;color:rgba(var(--gold-rgb),0.7);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;">Trade Notes</div>';
 
   if (trade.notes) {
-    notesHTML += '<div style="font-size:15px;color:rgba(255,255,255,0.8);line-height:1.8;font-weight:300;font-style:italic;">"' + trade.notes + '"</div>';
+    notesHTML += '<div style="font-size:15px;color:rgba(255,255,255,0.8);line-height:1.8;font-weight:300;font-style:italic;">"' + _esc(trade.notes) + '"</div>';
   } else {
     notesHTML += '<div style="font-size:13px;color:rgba(255,255,255,0.5);font-style:italic;">No notes recorded for this trade.</div>';
   }
@@ -6921,7 +6970,7 @@ window.rtcToggleAddAccount = function() {
   var open = f.style.display !== 'none';
   f.style.display = open ? 'none' : 'block';
   if (t) t.textContent = open ? '+ Add Account' : '– Close';
-  if (!open) { try { f.scrollIntoView({behavior:'smooth', block:'nearest'}); } catch(e){} }
+  if (!open) { try { f.scrollIntoView({behavior:'smooth', block:'nearest'}); } catch(e){ rtcWarn(e); } }
 };
 function renderSettings() {
   const acc  = getActiveAcc();
@@ -6942,7 +6991,7 @@ function renderSettings() {
         window.RTCsb.auth.getSession().then(function(r){ _lo.style.display = (r && r.data && r.data.session) ? 'block' : 'none'; }).catch(function(){});
       }
     }
-  } catch(e){}
+  } catch(e){ rtcWarn(e); }
   const list = document.getElementById('accountList');
   if (list) {
     list.innerHTML = accs.map((a, i) => {
@@ -7047,11 +7096,11 @@ rtcOnReady(function() {
   // Always render on page load
   setTimeout(renderMindset, 200);
   setTimeout(renderNewsCalendar, 200);
-  setTimeout(function(){ try{renderWarmup();}catch(e){} }, 300);
+  setTimeout(function(){ try{renderWarmup();}catch(e){ rtcWarn(e); } }, 300);
 });
 
 rtcOnReady(function init() {
-  try{ renderHudData(); }catch(e){}
+  try{ renderHudData(); }catch(e){ rtcWarn(e); }
   // Clean up any duplicate blank accounts from old bug
   let accs = getAccounts();
   if (accs.length > 1) {
@@ -7657,7 +7706,100 @@ function renderNewsCalendar() {
 // SCREENSHOT / CHART UPLOAD SYSTEM
 // ═══════════════════════════════════════════════════════
 
-let currentScreenshots = []; // array of base64 strings — supports multiple per trade
+// ═══════════════════════════════════════════════════════
+// RTCShots — chart screenshot storage adapter
+// Screenshots used to be stored as base64 INSIDE the trades array in localStorage.
+// That capped the whole app at the ~5MB localStorage quota and forced every
+// getTrades() to JSON.parse megabytes of image data. Now we upload to a private
+// Supabase bucket and persist only a path.
+// Back-compat: a "ref" is either a storage path OR a legacy "data:" base64 string —
+// url() renders both. If there's no session or the upload fails we fall back to
+// base64, so offline/logged-out behaviour is unchanged.
+// ═══════════════════════════════════════════════════════
+var RTCShots = (function () {
+  var BUCKET   = 'screenshots';
+  var urlCache = Object.create(null);   // ref -> { url, exp }
+
+  function client(){ return (window.RTCsb && window.RTCsb.storage) ? window.RTCsb : null; }
+  function isData(s){ return typeof s === 'string' && s.indexOf('data:') === 0; }
+
+  function currentUid(){
+    var c = client();
+    if (!c || !c.auth) return Promise.resolve(null);
+    return c.auth.getSession()
+      .then(function(r){ return (r && r.data && r.data.session && r.data.session.user) ? r.data.session.user.id : null; })
+      .catch(function(){ return null; });
+  }
+
+  function dataUrlToBlob(dataUrl){
+    var parts = dataUrl.split(',');
+    var mime  = (parts[0].match(/:(.*?);/) || [null, 'image/jpeg'])[1];
+    var bin   = atob(parts[1]);
+    var n = bin.length, u8 = new Uint8Array(n);
+    while (n--) u8[n] = bin.charCodeAt(n);
+    return new Blob([u8], { type: mime });
+  }
+
+  // dataUrl -> storage path (or the dataUrl itself if we can't upload)
+  function put(dataUrl){
+    if (!isData(dataUrl)) return Promise.resolve(dataUrl);   // already a ref
+    var c = client();
+    if (!c) return Promise.resolve(dataUrl);                 // local-only mode
+    return currentUid().then(function(id){
+      if (!id) return dataUrl;                               // logged out -> keep base64
+      var path = id + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 9) + '.jpg';
+      var blob = dataUrlToBlob(dataUrl);
+      return c.storage.from(BUCKET).upload(path, blob, { contentType: blob.type, upsert: false })
+        .then(function(res){
+          if (res && res.error) { console.error('[RTC] screenshot upload failed:', res.error.message); return dataUrl; }
+          return path;
+        });
+    }).catch(function(e){ console.error('[RTC] screenshot upload error:', e); return dataUrl; });
+  }
+
+  function putAll(list){ return Promise.all((list || []).map(put)); }
+
+  // ref -> displayable url (base64 passes straight through)
+  function url(ref){
+    if (!ref) return Promise.resolve('');
+    if (isData(ref)) return Promise.resolve(ref);
+    var c = client();
+    if (!c) return Promise.resolve('');
+    var hit = urlCache[ref];
+    if (hit && hit.exp > Date.now()) return Promise.resolve(hit.url);
+    return c.storage.from(BUCKET).createSignedUrl(ref, 3600)
+      .then(function(res){
+        if (res && res.error) { console.error('[RTC] signed url failed:', res.error.message); return ''; }
+        var u = res.data && res.data.signedUrl;
+        if (u) urlCache[ref] = { url: u, exp: Date.now() + 55 * 60 * 1000 };
+        return u || '';
+      })
+      .catch(function(e){ console.error('[RTC] signed url error:', e); return ''; });
+  }
+
+  function remove(ref){
+    if (!ref || isData(ref)) return Promise.resolve();
+    var c = client();
+    if (!c) return Promise.resolve();
+    return c.storage.from(BUCKET).remove([ref]).catch(function(e){ console.error('[RTC] screenshot delete failed:', e); });
+  }
+
+  // Resolve every <img data-shot="ref"> under root into a real src
+  function hydrate(root){
+    var scope = root || document;
+    var imgs = scope.querySelectorAll ? scope.querySelectorAll('img[data-shot]') : [];
+    Array.prototype.forEach.call(imgs, function(img){
+      var ref = img.getAttribute('data-shot');
+      img.removeAttribute('data-shot');
+      if (!ref) return;
+      url(ref).then(function(u){ if (u) img.src = u; });
+    });
+  }
+
+  return { put: put, putAll: putAll, url: url, remove: remove, hydrate: hydrate, isData: isData };
+})();
+
+let currentScreenshots = []; // base64 held in memory while editing; uploaded on save
 
 function handleScreenshotUpload(input) {
   const files = Array.from(input.files || []);
@@ -7767,14 +7909,22 @@ saveTrade = function() {
   _origSaveTradeScreenshot();
   const tradesAfter = getTrades().length;
 
-  // If a new trade was saved and we have screenshot(s), attach them
+  // If a new trade was saved and we have screenshot(s), upload then attach the refs.
+  // The trade itself is already saved — we patch it once the upload resolves, so the
+  // UI never blocks and base64 never lands in localStorage (when signed in).
   if (tradesAfter > tradesBefore && currentScreenshots && currentScreenshots.length) {
-    const trades = getTrades();
-    trades[0].screenshots = currentScreenshots.slice();
-    saveTrades(trades);
-    renderJournal();
-    // Clear screenshots for next trade
-    removeAllScreenshots();
+    const shots   = currentScreenshots.slice();
+    const tradeId = getTrades()[0] && getTrades()[0].id;
+    removeAllScreenshots();               // clear the picker immediately
+    RTCShots.putAll(shots).then(function(refs){
+      if (!refs || !refs.length) return;
+      const t = getTrades();
+      const i = t.findIndex(function(x){ return String(x.id) === String(tradeId); });
+      if (i === -1) { console.error('[RTC] trade vanished before screenshots attached:', tradeId); return; }
+      t[i].screenshots = refs;
+      saveTrades(t);
+      try { renderJournal(); } catch(e) { console.error('[RTC] renderJournal after screenshot attach failed', e); }
+    }).catch(function(e){ console.error('[RTC] screenshot attach failed', e); });
   } else if (tradesAfter > tradesBefore) {
     removeAllScreenshots();
   }
@@ -8608,7 +8758,7 @@ function applyTradePnlToGoal(delta, isNew){
   else if (pnlLog.length){ pnlLog[pnlLog.length-1].pnl += delta; }
   else                   { pnlLog.push({ pnl: delta, date: today, ts: Date.now() }); }
   savePnl(pnlLog);
-  try { renderGoals(); } catch(e) {}
+  try { renderGoals(); } catch(e) { rtcWarn(e); }
 }
 
 function saveTradeReview() {
@@ -8637,18 +8787,18 @@ function saveTradeReview() {
     var prevPosted = (typeof trades[idx].pnlPosted === 'number') ? trades[idx].pnlPosted : 0;
     trades[idx].tradePnl = signedPnl;
     var delta = signedPnl - prevPosted;
-    if (delta !== 0) { try { applyTradePnlToGoal(delta, prevPosted === 0); } catch(e){} }
+    if (delta !== 0) { try { applyTradePnlToGoal(delta, prevPosted === 0); } catch(e){ rtcWarn(e); } }
     trades[idx].pnlPosted = signedPnl;
   }
   saveTrades(trades);
-  try { renderHudData(); } catch(e) {}
-  try { renderSessionStrip(); } catch(e) {}
+  try { renderHudData(); } catch(e) { rtcWarn(e); }
+  try { renderSessionStrip(); } catch(e) { rtcWarn(e); }
   closeReviewModal();
   renderJournal();
-  try { renderNavDots(); } catch(e) {}
-  try { renderSavedTickers(); } catch(e) {}
-  try { renderMonthlyLetter(); } catch(e) {}
-  try { runCompanionCheck(); } catch(e) {}
+  try { renderNavDots(); } catch(e) { rtcWarn(e); }
+  try { renderSavedTickers(); } catch(e) { rtcWarn(e); }
+  try { renderMonthlyLetter(); } catch(e) { rtcWarn(e); }
+  try { runCompanionCheck(); } catch(e) { rtcWarn(e); }
 
   // Feedback
   const btn = document.getElementById('saveReviewBtn');
@@ -9168,10 +9318,10 @@ const _origSwitchTabHeader = switchTab;
 switchTab = function(tab, el) {
   _origSwitchTabHeader(tab, el);
   if (el) setTimeout(() => positionNavSlider(el), 10);
-  try { renderNavDots(); } catch(e) {}
-  try { renderSavedTickers(); } catch(e) {}
-  try { renderMonthlyLetter(); } catch(e) {}
-  try { runCompanionCheck(); } catch(e) {}
+  try { renderNavDots(); } catch(e) { rtcWarn(e); }
+  try { renderSavedTickers(); } catch(e) { rtcWarn(e); }
+  try { renderMonthlyLetter(); } catch(e) { rtcWarn(e); }
+  try { runCompanionCheck(); } catch(e) { rtcWarn(e); }
 };
 
 // Reposition slider on window resize (tab widths can change)
@@ -9669,10 +9819,10 @@ function renderEditScreenshotThumbStrip() {
   strip.innerHTML = '';
   editScreenshots.forEach(function(src, i) {
     const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:relative;width:72px;height:72px;border-radius:4px;overflow:hidden;border:1px solid var(--border2);flex-shrink:0;';
+    wrap.style.cssText = 'position:relative;width:72px;height:72px;border-radius:4px;overflow:hidden;border:1px solid var(--border2);flex-shrink:0;background:var(--bg3);';
 
     const img = document.createElement('img');
-    img.src = src;
+    RTCShots.url(src).then(function(u){ if (u) img.src = u; });
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
     wrap.appendChild(img);
 
@@ -9703,17 +9853,28 @@ function saveEditedTrade() {
   trades[idx].notes     = get('editNotes');
   trades[idx].tags      = editTagsSelected.slice();
 
-  // Screenshots — replace entirely with the edited working set
-  if (editScreenshots.length) {
-    trades[idx].screenshots = editScreenshots.slice();
-  } else {
-    delete trades[idx].screenshots;
-  }
+  // Screenshots — the working set mixes existing refs with newly added base64.
+  // Save the rest of the edit immediately; upload any new images and patch after.
+  const _editShots = editScreenshots.slice();
+  const _editId    = trades[idx].id;
+  if (!_editShots.length) delete trades[idx].screenshots;
   delete trades[idx].screenshot; // clear legacy single-image field, fully migrated to array
 
   saveTrades(trades);
   closeEditTradeModal();
   renderJournal();
+
+  if (_editShots.length) {
+    // putAll passes existing refs straight through and only uploads new base64
+    RTCShots.putAll(_editShots).then(function(refs){
+      const t = getTrades();
+      const i = t.findIndex(function(x){ return String(x.id) === String(_editId); });
+      if (i === -1) { console.error('[RTC] trade vanished before edited screenshots saved:', _editId); return; }
+      t[i].screenshots = refs;
+      saveTrades(t);
+      try { renderJournal(); } catch(e) { console.error('[RTC] renderJournal after edit attach failed', e); }
+    }).catch(function(e){ console.error('[RTC] edited screenshot upload failed', e); });
+  }
 
   const btn = document.getElementById('saveEditTradeBtn');
   if (btn) {
@@ -10506,7 +10667,7 @@ function buildReactionCtx(){
   var todayTrades = trades.filter(function(t){ return _rxDay(t.date)===today; });
   var lastTrade = trades[0]||null, lastReviewed = reviewed[0]||null;
   var todayCheckin=null; for(var i=0;i<checkins.length;i++){ if(_rxDay(checkins[i].date)===today){ todayCheckin=checkins[i]; break; } }
-  var mir=null; try{ mir=computeMirror(trades); }catch(e){}
+  var mir=null; try{ mir=computeMirror(trades); }catch(e){ rtcWarn(e); }
   return {
     trades:trades, checkins:checkins, n:trades.length,
     winStreak: lead(reviewed,function(t){return t.review.outcome==='win';}),
@@ -10717,7 +10878,7 @@ function buildDailyBriefHTML(){
   var tw=_briefWeekAvg(trades,0), lw=_briefWeekAvg(trades,1);
   var trend = (tw!=null&&lw!=null) ? tw-lw : null;
   var trendStr = trend==null ? '' : (trend>0 ? ' <span style="color:var(--green);">&#9650; +'+trend+'</span>' : (trend<0 ? ' <span style="color:var(--red);">&#9660; '+trend+'</span>' : ' <span style="color:var(--muted);">&mdash; 0</span>'));
-  var focus=''; try{ var rx=pickReaction(); focus = rx ? rx.msg : ''; }catch(e){}
+  var focus=''; try{ var rx=pickReaction(); focus = rx ? rx.msg : ''; }catch(e){ rtcWarn(e); }
   var h='';
   h+=sec("How you're doing");
   h+=row('DISCIPLINE', (trades.length ? avg+'%' : '&mdash;')+trendStr);
@@ -10725,7 +10886,7 @@ function buildDailyBriefHTML(){
   h+=row('TRADES TAKEN', ctx.todayCount+' / 3');
   h+=row('CHECK-IN', ctx.todayCheckin ? '<b style="color:var(--green);font-weight:700;">done</b>' : '<b style="color:#e0a04a;font-weight:700;">not done</b>');
   if(typeof goalData!=='undefined' && goalData){
-    var earned=0; try{ earned=(pnlLog||[]).reduce(function(s,e){return s+(e?e.pnl:0);},0); }catch(e){}
+    var earned=0; try{ earned=(pnlLog||[]).reduce(function(s,e){return s+(e?e.pnl:0);},0); }catch(e){ rtcWarn(e); }
     var gp=Math.min(100,Math.max(0,Math.round((earned/goalData.amt)*100)));
     var dleft=Math.max(0, goalData.days - ((typeof pnlLog!=='undefined'&&pnlLog?pnlLog.length:0)));
     h+=sec('Your goal');
@@ -10918,7 +11079,7 @@ function runCompanionCheck() {
 
   // Only auto-show for priority 1 alerts (overtrading, correlation)
   const urgent = msgs.filter(function(m) { return m.priority === 1; });
-  var rxUrgent = false; try { rxUrgent = hasUrgentReaction(); } catch(e) {}
+  var rxUrgent = false; try { rxUrgent = hasUrgentReaction(); } catch(e) { rtcWarn(e); }
   if ((urgent.length || rxUrgent) && !companionVisible) {
     if (dot) dot.style.display = 'block';
     // Don't auto-open, just light the dot so they tap to see
@@ -11166,7 +11327,7 @@ function tmLogPnl() {
   input.style.borderColor = 'var(--green)';
   setTimeout(function(){ input.style.borderColor=''; }, 800);
 
-  try { renderGoals(); } catch(e) {}
+  try { renderGoals(); } catch(e) { rtcWarn(e); }
   populateTradingMode(); // refresh all numbers
 }
 
@@ -11372,7 +11533,7 @@ function saveTmTrade() {
     entry:     '\u2014',
     notes:     notes,
     tags:      tmSelectedTags.slice(),
-    screenshots: tmScreenshots.slice(),
+    screenshots: [],           // filled in below once uploaded — never base64 in storage
     score:     0,
     pct:       0,
     mood:      '',
@@ -11382,6 +11543,20 @@ function saveTmTrade() {
   const trades = getTrades();
   trades.unshift(trade);
   saveTrades(trades);
+
+  // Upload screenshots, then patch this trade with the storage refs
+  if (tmScreenshots.length) {
+    const _shots = tmScreenshots.slice(), _id = trade.id;
+    RTCShots.putAll(_shots).then(function(refs){
+      if (!refs || !refs.length) return;
+      const t = getTrades();
+      const i = t.findIndex(function(x){ return String(x.id) === String(_id); });
+      if (i === -1) { console.error('[RTC] tm trade vanished before screenshots attached:', _id); return; }
+      t[i].screenshots = refs;
+      saveTrades(t);
+      try { renderJournal(); } catch(e) { console.error('[RTC] renderJournal after tm screenshot attach failed', e); }
+    }).catch(function(e){ console.error('[RTC] tm screenshot attach failed', e); });
+  }
 
   // Reset form
   const clear = function(id) { const el = document.getElementById(id); if (el) el.value = ''; };
@@ -11404,9 +11579,9 @@ function saveTmTrade() {
     setTimeout(function() { btn.textContent = orig; btn.style.background = 'var(--gold)'; }, 1200);
   }
 
-  try { renderJournal(); } catch(e) {}
-  try { renderNavDots(); } catch(e) {}
-  try { runCompanionCheck(); } catch(e) {}
+  try { renderJournal(); } catch(e) { rtcWarn(e); }
+  try { renderNavDots(); } catch(e) { rtcWarn(e); }
+  try { runCompanionCheck(); } catch(e) { rtcWarn(e); }
   populateTradingMode();
 }
 
@@ -11797,8 +11972,8 @@ function openCalDayPanel(dateKey, planIndex) {
         thumbRow.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;';
         shots.forEach(function(src, si) {
           const thumb = document.createElement('img');
-          thumb.src = src;
-          thumb.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid var(--border2);cursor:pointer;';
+          RTCShots.url(src).then(function(u){ if (u) thumb.src = u; });
+          thumb.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);';
           thumb.onclick = function(e) { e.stopPropagation(); openFullScreen(String(trade.id)); };
           thumbRow.appendChild(thumb);
         });
@@ -11973,9 +12148,9 @@ function renderJournal() {
         // Date
         + '<div style="font-size:11px;color:var(--muted);padding:6px 16px;border-bottom:1px solid var(--border);">' + (function(){ if(!t.date) return ''; var d=new Date(t.date); if(!isNaN(d)&&d.getFullYear()<2010){d=new Date(t.date+', '+new Date().getFullYear());} return isNaN(d)?t.date:d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}); })() + '</div>'
         // Tags
-        + (t.tags && t.tags.length ? '<div style="display:flex;flex-wrap:wrap;gap:5px;padding:8px 16px;border-bottom:1px solid var(--border);">' + t.tags.map(function(tag){ return '<span style="font-size:10px;padding:2px 8px;background:rgba(var(--gold-rgb),0.08);border:1px solid rgba(var(--gold-rgb),0.2);border-radius:4px;color:var(--gold);">' + tag + '</span>'; }).join('') + '</div>' : '')
+        + (t.tags && t.tags.length ? '<div style="display:flex;flex-wrap:wrap;gap:5px;padding:8px 16px;border-bottom:1px solid var(--border);">' + t.tags.map(function(tag){ return '<span style="font-size:10px;padding:2px 8px;background:rgba(var(--gold-rgb),0.08);border:1px solid rgba(var(--gold-rgb),0.2);border-radius:4px;color:var(--gold);">' + _esc(tag) + '</span>'; }).join('') + '</div>' : '')
         // Notes
-        + (t.notes ? '<div style="padding:10px 16px;font-size:13px;color:var(--text2);line-height:1.7;border-bottom:1px solid var(--border);">' + t.notes + '</div>' : '')
+        + (t.notes ? '<div style="padding:10px 16px;font-size:13px;color:var(--text2);line-height:1.7;border-bottom:1px solid var(--border);">' + _esc(t.notes) + '</div>' : '')
         // Screenshots
         + (shots.length ? '<div style="padding:8px 16px;border-bottom:1px solid var(--border);"><button onclick="openFullScreen(\'' + t.id + '\')" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;cursor:pointer;transition:all .2s;font-family:\'Inter\',sans-serif;text-align:left;" onmouseenter="this.style.borderColor=\'var(--gold-dim)\'" onmouseleave="this.style.borderColor=\'var(--border2)\'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span style="font-size:12px;font-weight:600;color:var(--text2);">' + (shots.length > 1 ? 'View ' + shots.length + ' Screenshots' : 'View Chart Screenshot') + '</span><span style="margin-left:auto;font-size:10px;color:var(--muted);letter-spacing:1px;">TAP \u2192</span></button></div>' : '')
         // Review
@@ -12012,11 +12187,11 @@ function rtcCollectAll() {
 function rtcBackupBlob() {
   var keys = rtcCollectAll();
   var accounts = [];
-  try { accounts = JSON.parse(keys['rtc_accounts'] || '[]'); } catch (e) {}
+  try { accounts = JSON.parse(keys['rtc_accounts'] || '[]'); } catch (e) { rtcWarn(e); }
   var trades = 0;
   Object.keys(keys).forEach(function (k) {
     if (k.indexOf('rtc_trades_') === 0) {
-      try { trades += JSON.parse(keys[k] || '[]').length; } catch (e) {}
+      try { trades += JSON.parse(keys[k] || '[]').length; } catch (e) { rtcWarn(e); }
     }
   });
   var payload = {
@@ -12092,7 +12267,7 @@ function importAllData(file) {
     if (!confirm(msg)) return;
 
     // rollback snapshot before we touch anything
-    try { rtcDownload(rtcBackupBlob(), 'RTC_Rollback_' + Date.now() + '.json'); } catch (e) {}
+    try { rtcDownload(rtcBackupBlob(), 'RTC_Rollback_' + Date.now() + '.json'); } catch (e) { rtcWarn(e); }
 
     RTCStore.clearNamespace();   // scoped: only rtc_ keys
 
@@ -12239,7 +12414,7 @@ const OB_STEPS = [
       if (amt > 0 && days > 0) {
         goalData = { amt: amt, days: days, daily: amt/days, createdAt: new Date().toISOString() };
         saveGoal(goalData);
-        try { renderGoals(); } catch(e) {}
+        try { renderGoals(); } catch(e) { rtcWarn(e); }
       }
     }
   },
@@ -12456,15 +12631,15 @@ function completeOnboarding() {
   const overlay = document.getElementById('onboardingOverlay');
   if (overlay) overlay.style.display = 'none';
   // Go to check-in to start their first session
-  try { switchTab('checkin', document.querySelector('[onclick*="checkin"]')); } catch(e) {}
-  try { renderAll(); } catch(e) {}
+  try { switchTab('checkin', document.querySelector('[onclick*="checkin"]')); } catch(e) { rtcWarn(e); }
+  try { renderAll(); } catch(e) { rtcWarn(e); }
 }
 
 function skipOnboarding() {
   rtcSet(OB_KEY + getActiveIdx(), 'true');
   const overlay = document.getElementById('onboardingOverlay');
   if (overlay) overlay.style.display = 'none';
-  try { renderAll(); } catch(e) {}
+  try { renderAll(); } catch(e) { rtcWarn(e); }
 }
 
 
@@ -12713,7 +12888,7 @@ function renderHudData() {
     el.innerHTML = rows.map(function(r){
       return '<div class="hd-row"><div class="hd-k">' + r[0] + '</div><div class="hd-v ' + r[2] + '">' + r[1] + '</div></div>';
     }).join('');
-  } catch(e) {}
+  } catch(e) { rtcWarn(e); }
 }
 
 function renderSessionStrip() {
@@ -12733,7 +12908,7 @@ function renderSessionStrip() {
     if (rec && rec.active) parts.push('<span style="color:var(--orange);">[RECOVERY MODE]</span>');
     else parts.push('<span style="color:var(--green);">[SYSTEM READY]</span>');
     el.innerHTML = parts.join('<span class="ss-sep">//</span>');
-  } catch(e) {}
+  } catch(e) { rtcWarn(e); }
   renderHudData();
 }
 
@@ -12846,7 +13021,7 @@ rtcOnReady(function(){
             var onIntake=['welcomeScreen','pledgeScreen'].some(function(id){ var e2=document.getElementById(id); return e2 && e2.classList.contains('active'); });
             var ov=el('authOverlay'); var authUp=ov && ov.style.display!=='none';
             if(authUp || onIntake){ hide(); rtcEnterApp(); }
-          }catch(_e){}
+          }catch(_e){ rtcWarn(_e); }
         }, 1300);
       });
     }
@@ -12880,8 +13055,8 @@ rtcOnReady(function(){
   function rtcEnterApp(){
     try{
       if (RTCStore.get('rtc_member')==='true' && getAccounts().length>0){
-        try{ goalData=getGoal(); }catch(e){}
-        try{ pnlLog=getPnl(); }catch(e){}
+        try{ goalData=getGoal(); }catch(e){ rtcWarn(e); }
+        try{ pnlLog=getPnl(); }catch(e){ rtcWarn(e); }
         window._rtcPostAuth=null; loadDash();
       } else if (window._rtcPostAuth){
         var cb=window._rtcPostAuth; window._rtcPostAuth=null; cb();
@@ -12971,7 +13146,7 @@ rtcOnReady(function(){
   function rtcAlreadyPledged(){ try{ return localStorage.getItem('rtc_pledged')==='1'; }catch(e){ return false; } }
   // After signing the pledge, a logged-out user seals it by creating an account
   window.rtcSealPledge=function(name){
-    try{ localStorage.setItem('rtc_pledged','1'); localStorage.setItem('rtc_seal_setup','1'); if(name) localStorage.setItem('rtc_seal_name',name); }catch(e){}
+    try{ localStorage.setItem('rtc_pledged','1'); localStorage.setItem('rtc_seal_setup','1'); if(name) localStorage.setItem('rtc_seal_name',name); }catch(e){ rtcWarn(e); }
     window._rtcPostAuth=function(){ if(typeof window.rtcResumeSetup==='function') window.rtcResumeSetup(); else showScreen('styleScreen'); };
     sealMode=true; show(); rtcAuthMode('up');                // create-account tab, seal framing
     var n=el('authName'); if(n){ n.value=name||''; }         // carry the signed name in
@@ -12988,11 +13163,11 @@ rtcOnReady(function(){
     try{
       var _dn = session.user && session.user.user_metadata && session.user.user_metadata.display_name;
       if(_dn && !localStorage.getItem('rtc_seal_name')) localStorage.setItem('rtc_seal_name', _dn);
-    }catch(e){}
+    }catch(e){ rtcWarn(e); }
     var backend=makeSupaBackend(userId);
     backend.hydrate().then(function(cloud){
       var cloudEmpty = Object.keys(cloud).length===0;
-      var localAccts=0; try{ localAccts=JSON.parse(RTCStore.get('rtc_accounts')||'[]').length; }catch(e){}
+      var localAccts=0; try{ localAccts=JSON.parse(RTCStore.get('rtc_accounts')||'[]').length; }catch(e){ rtcWarn(e); }
       RTCStore.setBackend(backend);
       if(cloudEmpty && localAccts>0){
         if(window.confirm('Import the journal saved on this device into your account?')){
@@ -13010,7 +13185,7 @@ rtcOnReady(function(){
       console.error('[RTC] cloud hydrate failed — staying local',e);
       hide();  // don't lock the user out if the cloud call fails
       hideBootLoading();
-      try{ rtcEnterApp(); }catch(_e){}   // still route the user in on whatever data is cached — never strand them on home
+      try{ rtcEnterApp(); }catch(_e){ rtcWarn(_e); }   // still route the user in on whatever data is cached — never strand them on home
     });
   }
 
@@ -13033,6 +13208,68 @@ rtcOnReady(function(){
     });
   }
   if(document.readyState!=='loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
+})();
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// RTCa11y — makes every clickable element keyboard + screen-reader operable
+//
+// The app has ~121 <div onclick> controls (mood, sleep, hours, stress, tags...).
+// Browsers only give focus and Enter/Space handling to real <button>/<a>, so those
+// divs were unreachable without a mouse and were announced as plain text — a keyboard
+// or screen-reader user literally could not complete a check-in.
+//
+// Rather than rewrite 121 call sites (risk, no benefit), we upgrade them in place:
+//   role="button"  -> assistive tech announces it as a control
+//   tabindex="0"   -> it enters the tab order
+//   Enter/Space    -> delegated at document level, so it also covers elements
+//                     rendered later (journal cards, calendar, dynamic lists)
+// A MutationObserver catches anything rendered after load. Zero behaviour change
+// for mouse users: we never touch the existing onclick.
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  var SKIP = { BUTTON:1, A:1, INPUT:1, SELECT:1, TEXTAREA:1 };
+
+  function upgrade(el){
+    if (!el || !el.tagName || SKIP[el.tagName]) return;
+    if (!el.hasAttribute('role'))     el.setAttribute('role', 'button');
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+  }
+
+  function scan(root){
+    if (!root || !root.querySelectorAll) return;
+    if (root.hasAttribute && root.hasAttribute('onclick')) upgrade(root);
+    var nodes = root.querySelectorAll('[onclick]');
+    for (var i = 0; i < nodes.length; i++) upgrade(nodes[i]);
+  }
+
+  // Enter / Space activate, matching native button behaviour
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+    var t = e.target;
+    if (!t || !t.getAttribute || t.getAttribute('role') !== 'button') return;
+    if (SKIP[t.tagName]) return;              // native elements handle themselves
+    e.preventDefault();                        // stop Space from scrolling the page
+    t.click();
+  });
+
+  function start(){
+    scan(document.body);
+    if (window.MutationObserver) {
+      new MutationObserver(function(muts){
+        for (var i = 0; i < muts.length; i++) {
+          var added = muts[i].addedNodes;
+          for (var j = 0; j < added.length; j++) {
+            if (added[j].nodeType === 1) scan(added[j]);
+          }
+        }
+      }).observe(document.body, { childList: true, subtree: true });
+    }
+  }
+
+  if (document.readyState !== 'loading') start();
+  else document.addEventListener('DOMContentLoaded', start);
 })();
 </script>
 </body>
