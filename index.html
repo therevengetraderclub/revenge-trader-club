@@ -78,6 +78,9 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
   box-shadow:0 10px 34px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08) !important;
   border-color:var(--border2) !important;
 }
+/* 7-day breakdown: on light themes --gold-dim is a pale pastel, so the highlighted
+   Day-1 balance ("· $2,000.00") was nearly invisible. Use readable ink instead. */
+html:is([data-theme="light"],[data-theme="rose"]) .d7-row.now .d7-day span{ color:var(--text2) !important; }
 html:is([data-theme="light"],[data-theme="rose"]) #killTakeover .kill-takeover-title{ color:var(--red) !important; }
 html:is([data-theme="light"],[data-theme="rose"]) #aPlusTakeover .aplus-takeover-title{ color:var(--text) !important; }
 html:is([data-theme="light"],[data-theme="rose"]) #killTakeover .kill-takeover-sub,
@@ -2985,14 +2988,6 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   text-transform:uppercase; color:rgba(var(--gold-rgb),0.72); text-align:right;
 }
 #hudFrame .hud-mantra span:first-child{ color:rgba(var(--gold-rgb),0.95); }
-/* Brand crest — sits at the top of the creed in the right gutter */
-#hudFrame .hud-crest{
-  width:62px; height:62px; border-radius:50%;
-  border:1.5px solid var(--gold);
-  object-fit:cover; margin-bottom:14px; align-self:flex-end;
-  box-shadow:0 0 0 3px rgba(var(--gold-rgb),0.1);
-}
-#hudFrame .hud-crest:not([src]){ display:none; }   /* hidden until the src is wired in */
 #tmLogoImg:not([src]){ display:none; }   /* trading-mode header crest, hidden until wired */
 
 /* live New York clock, bottom-right */
@@ -3165,7 +3160,6 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <span>MASTER YOURSELF</span>
     <span>PROTECT CAPITAL</span>
     <span>DONE LOSING</span>
-    <img id="hudLogoImg" class="hud-crest" alt="">
   </div>
 </div>
 
@@ -4315,6 +4309,19 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div style="font-size:12px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Max Risk Per Trade Today</div>
           <div style="font-size:56px;font-weight:900;color:var(--gold);letter-spacing:-1.5px;line-height:1;font-family:'Inter',sans-serif;" id="psPerTrade">$0</div>
           <div style="font-size:13px;color:var(--muted);margin-top:8px;">Do not risk more than this on any single trade</div>
+        </div>
+
+        <!-- Live remaining budget — auto-updates as trades are logged -->
+        <div id="psLeft" style="display:none;justify-content:space-between;align-items:center;gap:14px;padding:14px 16px;background:var(--bg3);border:1px solid var(--border2);border-left:3px solid var(--green);border-radius:var(--r-sm);margin-bottom:12px;">
+          <div style="min-width:0;">
+            <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Left Today</div>
+            <div id="psLeftAmt" style="font-size:26px;font-weight:900;color:var(--green);font-family:'Inter',sans-serif;line-height:1;">$0</div>
+            <div id="psLeftNote" style="font-size:11px;color:var(--muted);margin-top:5px;">Auto-deducts your logged losses — no math needed</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Trades Left</div>
+            <div id="psLeftTrades" style="font-size:26px;font-weight:900;color:var(--white);font-family:'Inter',sans-serif;line-height:1;">3</div>
+          </div>
         </div>
 
         <!-- Breakdown -->
@@ -5899,13 +5906,13 @@ function getTrades() {
   _tradesMemo = { raw: raw, val: parsed };
   return parsed;
 }
-function saveTrades(t) { rtcSet(tradeKey(getActiveIdx()),   JSON.stringify(t)); }
+function saveTrades(t) { rtcSet(tradeKey(getActiveIdx()),   JSON.stringify(t)); try{ updateRiskRemaining(); }catch(e){ /* risk panel may not be mounted yet */ } }
 function getCheckins() { return JSON.parse(RTCStore.get(checkinKey(getActiveIdx())) || '[]'); }
 function saveCheckins(c){ rtcSet(checkinKey(getActiveIdx()), JSON.stringify(c)); }
 function getGoal()     { return JSON.parse(RTCStore.get(goalKey(getActiveIdx()))    || 'null'); }
 function saveGoal(g)   { rtcSet(goalKey(getActiveIdx()),    JSON.stringify(g)); }
 function getPnl()      { return JSON.parse(RTCStore.get(pnlKey(getActiveIdx()))     || '[]'); }
-function savePnl(p)    { rtcSet(pnlKey(getActiveIdx()),     JSON.stringify(p)); }
+function savePnl(p)    { rtcSet(pnlKey(getActiveIdx()),     JSON.stringify(p)); try{ updateRiskRemaining(); }catch(e){ /* risk panel may not be mounted yet */ } }
 function getCustomItems(){ return JSON.parse(RTCStore.get(customKey()) || '[]'); }
 function saveCustomItems(items){ rtcSet(customKey(), JSON.stringify(items)); }
 
@@ -8207,6 +8214,52 @@ function calcRiskPerTrade() {
     btn.classList.add('fired'); btn.textContent = '✓ Done';
     setTimeout(() => { btn.classList.remove('fired'); btn.textContent = o; }, 1800);
   }
+
+  try { updateRiskRemaining(); } catch(e) { rtcWarn(e); }
+}
+
+// ── LIVE DAILY-RISK BUDGET ────────────────────────────────
+// Daily max minus today's net losses, pulled straight from the logged trades —
+// the trader never has to do the "what's left" math themselves.
+function updateRiskRemaining() {
+  var wrap = document.getElementById('psLeft'); if (!wrap) return;
+  var bal = parseFloat((document.getElementById('psBalance') || {}).value) || 0;
+  if (!bal || bal <= 0) { var acc = getActiveAcc(); bal = (acc && acc.balance) || 0; }
+  if (!bal || bal <= 0) { wrap.style.display = 'none'; return; }
+  var dailyMax = bal / 7;
+
+  var todayStr = new Date().toDateString(), net = 0, count = 0;
+  var trades = getTrades();
+  for (var i = 0; i < trades.length; i++) {
+    var t = trades[i];
+    if (!t.date || new Date(t.date).toDateString() !== todayStr) continue;
+    count++;
+    if (typeof t.tradePnl === 'number') net += t.tradePnl;
+  }
+  // Manual P&L logged in the Goals section counts too. Trade-sourced goal entries
+  // are tagged src:'trade' and skipped — that money is already counted above.
+  try {
+    var todayKey = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    (pnlLog || []).forEach(function(e){ if (e && e.date === todayKey && e.src !== 'trade') net += (e.pnl || 0); });
+  } catch(e) { rtcWarn(e); }
+
+  var left = Math.max(0, dailyMax + Math.min(0, net));   // net-based, like a prop-firm daily loss limit
+  var tradesLeft = Math.max(0, 3 - count);
+  var pct = dailyMax ? left / dailyMax : 0;
+  var col = (left <= 0 || pct < 0.34) ? 'var(--red)' : pct < 0.67 ? 'var(--orange)' : 'var(--green)';
+
+  var amtEl = document.getElementById('psLeftAmt');
+  var trEl  = document.getElementById('psLeftTrades');
+  var note  = document.getElementById('psLeftNote');
+  if (amtEl) { amtEl.textContent = '$' + left.toFixed(2); amtEl.style.color = col; }
+  wrap.style.borderLeftColor = col;
+  if (trEl) { trEl.textContent = tradesLeft; trEl.style.color = tradesLeft === 0 ? 'var(--red)' : tradesLeft === 1 ? 'var(--orange)' : 'var(--white)'; }
+  if (note) {
+    if (left <= 0 || tradesLeft === 0) { note.textContent = 'DONE for today — close the platform. No revenge.'; note.style.color = 'var(--red)'; note.style.fontWeight = '700'; }
+    else if (net < 0) { note.textContent = '$' + Math.abs(net).toFixed(2) + ' in losses already deducted today'; note.style.color = 'var(--muted)'; note.style.fontWeight = '400'; }
+    else { note.textContent = 'Auto-deducts your logged losses — no math needed'; note.style.color = 'var(--muted)'; note.style.fontWeight = '400'; }
+  }
+  wrap.style.display = 'flex';
 }
 
 // Prefill balance from active account
@@ -8841,11 +8894,13 @@ function toggleReviewBool(el, key) {
 function applyTradePnlToGoal(delta, isNew){
   if (typeof goalData === 'undefined' || !goalData || !delta) return;
   var today = new Date().toLocaleDateString('en-US',{ month:'short', day:'numeric' });
-  var i = pnlLog.findIndex(function(e){ return e && e.date === today; });
+  // Only merge into the trade-sourced entry for today (src tag), so manual goal
+  // entries stay separate — the risk budget needs to tell the two apart.
+  var i = pnlLog.findIndex(function(e){ return e && e.date === today && e.src === 'trade'; });
   if (i >= 0)            { pnlLog[i].pnl += delta; }
-  else if (isNew)        { pnlLog.push({ pnl: delta, date: today, ts: Date.now() }); }
-  else if (pnlLog.length){ pnlLog[pnlLog.length-1].pnl += delta; }
-  else                   { pnlLog.push({ pnl: delta, date: today, ts: Date.now() }); }
+  else if (isNew)        { pnlLog.push({ pnl: delta, date: today, ts: Date.now(), src: 'trade' }); }
+  else if (pnlLog.length && pnlLog[pnlLog.length-1].src === 'trade'){ pnlLog[pnlLog.length-1].pnl += delta; }
+  else                   { pnlLog.push({ pnl: delta, date: today, ts: Date.now(), src: 'trade' }); }
   savePnl(pnlLog);
   try { renderGoals(); } catch(e) { rtcWarn(e); }
 }
@@ -13371,7 +13426,7 @@ rtcOnReady(function(){
     var imgs=document.querySelectorAll('img[src^="data:image"]');
     if(!imgs.length) return;
     var src=imgs[0].getAttribute('src');
-    ['hudLogoImg','tmLogoImg'].forEach(function(id){
+    ['tmLogoImg'].forEach(function(id){
       var el=document.getElementById(id);
       if(el && !el.getAttribute('src')) el.src=src;
     });
