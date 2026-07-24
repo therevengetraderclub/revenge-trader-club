@@ -82,9 +82,10 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
    Day-1 balance ("· $2,000.00") was nearly invisible. Use readable ink instead. */
 html:is([data-theme="light"],[data-theme="rose"]) .d7-row.now .d7-day span{ color:var(--text2) !important; }
 /* Mood picker: the blurred glow behind the selected dot reads as a dark smudge on
-   light surfaces. Use a crisp tinted ring instead (glow stays on the dark theme). */
+   light surfaces. Crisp radio-style ring instead: dot · clean gap · solid ring in
+   the dot's own color. (The glow stays on the dark theme, where it reads as light.) */
 html:is([data-theme="light"],[data-theme="rose"]) .mood-btn.on .mood-indicator{
-  box-shadow:0 0 0 3.5px color-mix(in srgb, currentColor 22%, transparent) !important;
+  box-shadow:0 0 0 2.5px var(--bg), 0 0 0 4px currentColor !important;
 }
 html:is([data-theme="light"],[data-theme="rose"]) #killTakeover .kill-takeover-title{ color:var(--red) !important; }
 html:is([data-theme="light"],[data-theme="rose"]) #aPlusTakeover .aplus-takeover-title{ color:var(--text) !important; }
@@ -6196,33 +6197,52 @@ let currentSleepHours = null;
 let currentStress = '';
 let currentConfidence = null;
 
+// Check-in sound design: every answer plays a pitched pluck — brighter note = better
+// state. The page literally sounds like how the trader is doing.
+const CHECKIN_NOTES = {
+  mood:   { 'Locked In':784, 'Good':659, 'Neutral':523, 'Overconfident':466, 'Frustrated':440, 'Anxious':392, 'Defeated':330 },
+  sleep:  { 'Well Rested':659, 'OK':523, 'Poor':392 },
+  stress: { 'Low':659, 'Medium':523, 'High':392 },
+  hours:  { 4:392, 5:440, 6:494, 7:523, 8:587, 9:659 }
+};
 function selectMood(el, m) {
   document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('on'));
   el.classList.add('on');
   currentMood = m;
+  playSound('note', CHECKIN_NOTES.mood[m] || 523);
 }
 function selectSleep(el, s) {
   document.querySelectorAll('.sleep-btn').forEach(b => b.classList.remove('on'));
   el.classList.add('on');
   currentSleep = s;
+  playSound('note', CHECKIN_NOTES.sleep[s] || 523);
 }
 function selectHours(el, h) {
   document.querySelectorAll('.hours-btn').forEach(b => b.classList.remove('on'));
   el.classList.add('on');
   currentSleepHours = h;
+  playSound('note', CHECKIN_NOTES.hours[h] || 659);
 }
 function selectStress(el, s) {
   document.querySelectorAll('.stress-btn').forEach(b => b.classList.remove('on'));
   el.classList.add('on');
   currentStress = s;
+  playSound('note', CHECKIN_NOTES.stress[s] || 523);
 }
 function selectConfidence(el, c) {
   document.querySelectorAll('.conf-btn').forEach(b => b.classList.remove('on'));
   el.classList.add('on');
   currentConfidence = c;
+  playSound('note', 392 + (c * 55));   // 1 = a coin flip (low) → 5 = certain (high)
 }
 function toggleWarmup(el) {
   el.classList.toggle('done');
+  // Warmup steps climb a scale as you complete them; finishing all five earns the chime.
+  const steps = document.querySelectorAll('.wu-step');
+  const done  = document.querySelectorAll('.wu-step.done').length;
+  if (!el.classList.contains('done')) { playSound('tick'); return; }
+  if (steps.length > 0 && done >= steps.length) playSound('chime');
+  else playSound('note', [440, 494, 523, 587, 659][Math.min(done - 1, 4)] || 440);
 }
 function saveCheckin() {
   const btn = document.getElementById('saveCheckinBtn');
@@ -9218,7 +9238,7 @@ function getAudioCtx() {
   return audioCtx;
 }
 
-function playSound(type) {
+function playSound(type, freq) {
   if (!soundEnabled) return;
   const ctx = getAudioCtx();
   if (!ctx) return;
@@ -9227,7 +9247,22 @@ function playSound(type) {
   const gain = ctx.createGain();
   gain.connect(ctx.destination);
 
-  if (type === 'chime') {
+  if (type === 'note') {
+    // Soft marimba-style pluck at a given pitch. The check-in page maps pitch to
+    // meaning: brighter notes = better state (rested, calm, locked in).
+    const f = freq || 523;
+    [[f, 0.07, 'sine'], [f * 2, 0.018, 'sine']].forEach(function(p) {
+      const osc = ctx.createOscillator();
+      const g   = ctx.createGain();
+      osc.type = p[2];
+      osc.frequency.value = p[0];
+      osc.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(p[1], now + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+      osc.start(now); osc.stop(now + 0.32);
+    });
+  } else if (type === 'chime') {
     // Soft ascending two-note chime — A+ / win moments
     [523.25, 659.25].forEach((freq, i) => {
       const osc = ctx.createOscillator();
