@@ -57,12 +57,23 @@ html[data-theme="light"]{
 }
 /* Light/Rose gutter: faint gold tuned to glow on black washes out on a light surface.
    Darken the text hard and strengthen the frame details (ticks, brackets) so they read. */
-/* frame details — the ruler ticks and corner brackets */
+/* frame details — the ruler ticks and corner brackets get a rose/gold tint */
 html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-ruler{
   opacity:1 !important;
-  background:repeating-linear-gradient(0deg, var(--border3) 0 1px, transparent 1px 26px) !important;
+  background:repeating-linear-gradient(0deg, rgba(var(--gold-rgb),0.45) 0 1px, transparent 1px 26px) !important;
 }
 html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-br{ border-color:var(--gold) !important; }
+
+/* The kill switch + A+ takeovers stay dramatically dark on EVERY theme (that's the point).
+   Their text flipped dark on the light themes — force it light so it reads on the dark scrim. */
+html:is([data-theme="light"],[data-theme="rose"]) #killTakeover .kill-takeover-title,
+html:is([data-theme="light"],[data-theme="rose"]) #aPlusTakeover .aplus-takeover-title{ color:#f4f1e8 !important; }
+html:is([data-theme="light"],[data-theme="rose"]) #killTakeover .kill-takeover-sub,
+html:is([data-theme="light"],[data-theme="rose"]) #aPlusTakeover .aplus-takeover-sub{ color:rgba(244,241,232,0.82) !important; }
+html:is([data-theme="light"],[data-theme="rose"]) #killTakeover .tk-note,
+html:is([data-theme="light"],[data-theme="rose"]) #aPlusTakeover .tk-note{ color:rgba(244,241,232,0.5) !important; }
+html:is([data-theme="light"],[data-theme="rose"]) #killTakeover .kill-takeover-btn,
+html:is([data-theme="light"],[data-theme="rose"]) #aPlusTakeover .aplus-takeover-btn{ color:#f4f1e8 !important; }
 /* kill dark-tuned glows/shadows that read as grey smudges on white */
 html:is([data-theme="light"],[data-theme="rose"]) #companionBubble,
 html:is([data-theme="light"],[data-theme="rose"]) .card{ box-shadow:none !important; }
@@ -3224,7 +3235,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 #acctMenu .acct-action{width:100%;text-align:left;padding:9px 10px;background:transparent;border:none;border-radius:6px;cursor:pointer;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;}
 #acctMenu .acct-action:hover{background:rgba(255,255,255,0.04);}</style>
 <div id="acctMenuBackdrop" onclick="rtcCloseAcctMenu()" style="display:none;position:fixed;inset:0;z-index:9997;"></div>
-<div id="acctMenu" style="display:none;position:fixed;top:54px;right:14px;z-index:9998;width:256px;background:#111;border:1px solid var(--gold-dim);border-radius:10px;box-shadow:0 16px 50px rgba(0,0,0,0.6);overflow:hidden;">
+<div id="acctMenu" style="display:none;position:fixed;top:54px;right:14px;z-index:9998;width:256px;background:var(--bg2);border:1px solid var(--gold-dim);border-radius:10px;box-shadow:0 16px 50px rgba(0,0,0,0.6);overflow:hidden;">
   <div style="padding:13px 15px;border-bottom:1px solid var(--border2);">
     <div id="acctMenuName" style="font-size:15px;font-weight:800;color:var(--white);">&mdash;</div>
     <div id="acctMenuStyle" style="font-size:11px;color:var(--gold);margin-top:1px;"></div>
