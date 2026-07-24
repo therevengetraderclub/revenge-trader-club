@@ -34,7 +34,7 @@ html[data-theme="rose"]{
   --bg:#ffffff; --bg2:#f6efee; --bg3:#efe3e1; --bg4:#e2d5d2; --bg5:#d4c6c2;
   --border:#ecdedb; --border2:#ddccc8; --border3:#c9b6b1;
   --gold:#b56b62; --gold2:#c98a82; --gold-rgb:181,107,98; --gold-dim:#e2c8c4;
-  --green:#0a9e63; --red:#c0392b; --warn:#b5563a; --orange:#0e9e8e;
+  --green:#077a4a; --red:#c0392b; --warn:#b5563a; --orange:#0e9e8e;
   --white:#161210;
   --text:#1a1613; --text2:#413530; --muted:#6d5f5a; --faint:#8f817b;
   --shadow:0 4px 24px rgba(0,0,0,0.12);
@@ -49,7 +49,7 @@ html[data-theme="light"]{
   --bg:#ffffff; --bg2:#f4f2ec; --bg3:#ebe8df; --bg4:#ddd9cd; --bg5:#cfcabb;
   --border:#e4e0d5; --border2:#d4cfc0; --border3:#c0b9a8;
   --gold:#9c7b2a; --gold2:#b8933a; --gold-rgb:156,123,42; --gold-dim:#d6c69f;
-  --green:#0a9e63; --red:#c0392b; --warn:#b5563a; --orange:#0e9e8e;
+  --green:#077a4a; --red:#c0392b; --warn:#b5563a; --orange:#0e9e8e;
   --white:#161512;
   --text:#1a1815; --text2:#403c34; --muted:#6d685e; --faint:#8f897d;
   --shadow:0 4px 24px rgba(0,0,0,0.12);
@@ -6315,7 +6315,7 @@ function renderChecklist() {
 
 // ── CHECKLIST INTERACTIONS ──────────────────────────────────────
 function toggleCl(el)   { el.classList.toggle('on'); playSound('tick'); updateScore(); }
-function toggleKill(el) { el.classList.toggle('on'); updateScore(); }
+function toggleKill(el) { el.classList.toggle('on'); playSound(el.classList.contains('on') ? 'warn' : 'tick'); updateScore(); }
 
 let _lastScoreState = { hasKill: false, isAPlus: false };
 
@@ -9246,6 +9246,19 @@ function playSound(type) {
     g.gain.linearRampToValueAtTime(0.07, now + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
     osc.start(now); osc.stop(now + 0.4);
+  } else if (type === 'warn') {
+    // Low descending double-thud — arming a kill switch. Danger, not celebration.
+    [0, 0.11].forEach((d, i) => {
+      const osc = ctx.createOscillator();
+      const g   = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(i === 0 ? 196 : 147, now + d);
+      osc.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0, now + d);
+      g.gain.linearRampToValueAtTime(0.09, now + d + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + d + 0.22);
+      osc.start(now + d); osc.stop(now + d + 0.22);
+    });
   } else if (type === 'tick') {
     // Quick subtle click — checkbox taps
     const osc = ctx.createOscillator();
@@ -11537,6 +11550,7 @@ function renderTmKillSwitch() {
 
 function toggleTmKill(idx, row, item) {
   tmKillChecked[idx] = !tmKillChecked[idx];
+  try { playSound(tmKillChecked[idx] ? 'warn' : 'tick'); } catch(e) { rtcWarn(e); }
   const box = document.getElementById('tmKill_' + idx);
   const label = row.querySelector('div:last-child');
 
