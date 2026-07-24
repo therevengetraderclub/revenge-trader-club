@@ -55,23 +55,27 @@ html[data-theme="light"]{
   --shadow:0 4px 24px rgba(0,0,0,0.12);
   --gold-shadow:0 0 24px rgba(var(--gold-rgb),0.18);
 }
-/* Light theme: only the decorative ruler ticks dim; the creed text stays readable */
-html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-ruler{ opacity:.5; }
-/* Kill dark-tuned glows/shadows that read as grey smudges on white */
+/* Light/Rose gutter: faint gold tuned to glow on black washes out on a light surface.
+   Darken the text hard and strengthen the frame details (ticks, brackets) so they read. */
+/* frame details — the ruler ticks and corner brackets */
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-ruler{
+  opacity:1 !important;
+  background:repeating-linear-gradient(0deg, var(--border3) 0 1px, transparent 1px 26px) !important;
+}
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-br{ border-color:var(--gold) !important; }
+/* kill dark-tuned glows/shadows that read as grey smudges on white */
 html:is([data-theme="light"],[data-theme="rose"]) #companionBubble,
 html:is([data-theme="light"],[data-theme="rose"]) .card{ box-shadow:none !important; }
-
-/* Light theme: the gutter labels are faint gold tuned to glow on black — on white
-   they wash out. Darken to a readable tone; keep a gold accent on the emphasized line. */
+/* labels + creed -> darkest text tone for real contrast */
 html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-txt,
 html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-data .hd-k,
 html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-clock .wc-k,
-html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-mantra{ color:var(--muted) !important; opacity:1 !important; }
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-mantra{ color:var(--text2) !important; opacity:1 !important; }
 html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-data .hd-v,
-html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-clock .wc-v{ opacity:1 !important; }
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-clock .wc-v{ color:var(--text) !important; opacity:1 !important; }
 html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-mantra span:first-child{ color:var(--gold) !important; }
 html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-txt.tl-t,
-html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-txt.tr-t{ color:var(--text2) !important; }
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-txt.tr-t{ color:var(--text) !important; }
 
 /* Theme picker (Settings → Appearance) */
 .theme-opt{ border:1.5px solid var(--border2); border-radius:var(--r-sm); padding:12px; cursor:pointer; text-align:center; transition:all .15s; }
