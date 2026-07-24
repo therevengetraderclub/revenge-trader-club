@@ -30,7 +30,15 @@
 
 /* ═══ THEME: ROSE GOLD — dark base, rose-copper accent ═══ */
 html[data-theme="rose"]{
-  --gold:#e0a59a; --gold2:#f2ccc4; --gold-rgb:224,165,154; --gold-dim:#5a302b;
+  --page:#f6f0ef;
+  --bg:#ffffff; --bg2:#f6efee; --bg3:#efe3e1; --bg4:#e2d5d2; --bg5:#d4c6c2;
+  --border:#ecdedb; --border2:#ddccc8; --border3:#c9b6b1;
+  --gold:#b56b62; --gold2:#c98a82; --gold-rgb:181,107,98; --gold-dim:#e2c8c4;
+  --green:#0a9e63; --red:#c0392b; --warn:#b5563a; --orange:#0e9e8e;
+  --white:#161210;
+  --text:#1a1613; --text2:#413530; --muted:#6d5f5a; --faint:#8f817b;
+  --shadow:0 4px 24px rgba(0,0,0,0.12);
+  --gold-shadow:0 0 24px rgba(var(--gold-rgb),0.18);
 }
 
 /* ═══ THEME: LIGHT — bright surface, darkened gold for contrast on white ═══
@@ -48,10 +56,22 @@ html[data-theme="light"]{
   --gold-shadow:0 0 24px rgba(var(--gold-rgb),0.18);
 }
 /* Light theme: only the decorative ruler ticks dim; the creed text stays readable */
-html[data-theme="light"] #hudFrame .hud-ruler{ opacity:.5; }
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-ruler{ opacity:.5; }
 /* Kill dark-tuned glows/shadows that read as grey smudges on white */
-html[data-theme="light"] #companionBubble,
-html[data-theme="light"] .card{ box-shadow:none !important; }
+html:is([data-theme="light"],[data-theme="rose"]) #companionBubble,
+html:is([data-theme="light"],[data-theme="rose"]) .card{ box-shadow:none !important; }
+
+/* Light theme: the gutter labels are faint gold tuned to glow on black — on white
+   they wash out. Darken to a readable tone; keep a gold accent on the emphasized line. */
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-txt,
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-data .hd-k,
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-clock .wc-k,
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-mantra{ color:var(--muted) !important; opacity:1 !important; }
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-data .hd-v,
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-clock .wc-v{ opacity:1 !important; }
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-mantra span:first-child{ color:var(--gold) !important; }
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-txt.tl-t,
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-txt.tr-t{ color:var(--text2) !important; }
 
 /* Theme picker (Settings → Appearance) */
 .theme-opt{ border:1.5px solid var(--border2); border-radius:var(--r-sm); padding:12px; cursor:pointer; text-align:center; transition:all .15s; }
@@ -4744,7 +4764,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div class="theme-name">Dark Gold</div>
         </div>
         <div class="theme-opt" data-theme="rose" onclick="setTheme('rose')">
-          <div class="theme-swatch" style="background:#0c0908;"><span style="background:#e0a59a;"></span></div>
+          <div class="theme-swatch" style="background:#f6f0ef;border-color:#ddccc8;"><span style="background:#b56b62;"></span></div>
           <div class="theme-name">Rose Gold</div>
         </div>
         <div class="theme-opt" data-theme="light" onclick="setTheme('light')">
