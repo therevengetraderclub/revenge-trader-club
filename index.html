@@ -85,10 +85,18 @@ html:is([data-theme="light"],[data-theme="rose"]) .d7-row.now .d7-day span{ colo
    light surfaces. Crisp radio-style ring instead: dot · clean gap · solid ring in
    the dot's own color. (The glow stays on the dark theme, where it reads as light.) */
 html:is([data-theme="light"],[data-theme="rose"]) .mood-btn.on .mood-indicator{
-  /* transform:scale stretches the ring onto fractional pixels → uneven edges.
-     Draw the ring unscaled at whole-pixel widths instead. */
+  /* Shadow-based rings rasterize unevenly at small sizes. A real border on the
+     element is geometrically concentric: 2px ring · 3px gap · 10px dot, one circle. */
   transform:none !important;
-  box-shadow:0 0 0 2px var(--bg), 0 0 0 4px currentColor !important;
+  box-shadow:none !important;
+  width:20px !important; height:20px !important;
+  margin:-6px !important;               /* keep the button layout from jumping */
+  border:2px solid currentColor !important;
+  padding:3px !important;
+  background-clip:content-box !important;
+}
+@media (min-width:900px){
+  html:is([data-theme="light"],[data-theme="rose"]) .mood-btn.on .mood-indicator{ margin:-5px !important; }
 }
 html:is([data-theme="light"],[data-theme="rose"]) #killTakeover .kill-takeover-title{ color:var(--red) !important; }
 html:is([data-theme="light"],[data-theme="rose"]) #aPlusTakeover .aplus-takeover-title{ color:var(--text) !important; }
