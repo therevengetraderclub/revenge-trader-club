@@ -3916,31 +3916,31 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div class="card-sub">How are you feeling right now?</div>
       <div class="mood-row">
         <div class="mood-btn" onclick="selectMood(this,'Locked In')">
-          <div class="mood-indicator" style="background:var(--green);"></div>
+          <div class="mood-indicator" style="background:var(--green);color:var(--green);"></div>
           <div class="mood-lbl">Locked In</div>
         </div>
         <div class="mood-btn" onclick="selectMood(this,'Good')">
-          <div class="mood-indicator" style="background:#4dcc6e;"></div>
+          <div class="mood-indicator" style="background:#4dcc6e;color:#4dcc6e;"></div>
           <div class="mood-lbl">Good</div>
         </div>
         <div class="mood-btn" onclick="selectMood(this,'Neutral')">
-          <div class="mood-indicator" style="background:var(--gold);"></div>
+          <div class="mood-indicator" style="background:var(--gold);color:var(--gold);"></div>
           <div class="mood-lbl">Neutral</div>
         </div>
         <div class="mood-btn" onclick="selectMood(this,'Overconfident')">
-          <div class="mood-indicator" style="background:#e8952f;"></div>
+          <div class="mood-indicator" style="background:#e8952f;color:#e8952f;"></div>
           <div class="mood-lbl">Overconfident</div>
         </div>
         <div class="mood-btn" onclick="selectMood(this,'Frustrated')">
-          <div class="mood-indicator" style="background:var(--orange);"></div>
+          <div class="mood-indicator" style="background:var(--orange);color:var(--orange);"></div>
           <div class="mood-lbl">Frustrated</div>
         </div>
         <div class="mood-btn" onclick="selectMood(this,'Anxious')">
-          <div class="mood-indicator" style="background:var(--red);"></div>
+          <div class="mood-indicator" style="background:var(--red);color:var(--red);"></div>
           <div class="mood-lbl">Anxious</div>
         </div>
         <div class="mood-btn" onclick="selectMood(this,'Defeated')">
-          <div class="mood-indicator" style="background:#6b7280;"></div>
+          <div class="mood-indicator" style="background:#6b7280;color:#6b7280;"></div>
           <div class="mood-lbl">Defeated</div>
         </div>
       </div>
@@ -9235,6 +9235,9 @@ function getAudioCtx() {
     try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
     catch(e) { return null; }
   }
+  // Safari starts the audio engine suspended (and re-suspends it after idle).
+  // Every play happens on a user click, so resuming here is always allowed.
+  if (audioCtx && audioCtx.state === 'suspended') { try { audioCtx.resume(); } catch(e) {} }
   return audioCtx;
 }
 
