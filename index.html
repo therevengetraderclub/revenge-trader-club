@@ -81,6 +81,11 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
 /* 7-day breakdown: on light themes --gold-dim is a pale pastel, so the highlighted
    Day-1 balance ("· $2,000.00") was nearly invisible. Use readable ink instead. */
 html:is([data-theme="light"],[data-theme="rose"]) .d7-row.now .d7-day span{ color:var(--text2) !important; }
+/* Mood picker: the blurred glow behind the selected dot reads as a dark smudge on
+   light surfaces. Use a crisp tinted ring instead (glow stays on the dark theme). */
+html:is([data-theme="light"],[data-theme="rose"]) .mood-btn.on .mood-indicator{
+  box-shadow:0 0 0 3.5px color-mix(in srgb, currentColor 22%, transparent) !important;
+}
 html:is([data-theme="light"],[data-theme="rose"]) #killTakeover .kill-takeover-title{ color:var(--red) !important; }
 html:is([data-theme="light"],[data-theme="rose"]) #aPlusTakeover .aplus-takeover-title{ color:var(--text) !important; }
 html:is([data-theme="light"],[data-theme="rose"]) #killTakeover .kill-takeover-sub,
@@ -7715,7 +7720,9 @@ function renderNewsCalendar() {
     }
   }
 
-  let inner = '<div style="font-size:12px;color:var(--text2);margin-bottom:8px;letter-spacing:1px;">'+todayStr+'</div>' + fedBanner;
+  let inner = '<div style="font-size:12px;color:var(--text2);margin-bottom:8px;letter-spacing:1px;">'+todayStr+'</div>'
+    + '<div style="padding:8px 12px;background:rgba(var(--gold-rgb),0.06);border:1px solid rgba(var(--gold-rgb),0.25);border-radius:4px;margin-bottom:8px;font-size:11px;color:var(--text2);line-height:1.6;"><strong style="color:var(--gold);">TYPICAL SCHEDULE</strong> — the live feed is unavailable right now. These are the events that usually land on this weekday, not confirmed releases. Verify on the full calendar before trading news.</div>'
+    + fedBanner;
   events.forEach(ev => {
     const c = colors[ev.impact] || colors.low;
     inner += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+c.bg+';border:1px solid '+c.border+';border-radius:4px;margin-bottom:5px;">'

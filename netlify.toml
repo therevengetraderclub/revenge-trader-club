@@ -1,6 +1,9 @@
 [build]
   publish = "."
 
+[functions]
+  directory = "netlify/functions"
+
 # Security headers. Applied to every response.
 [[headers]]
   for = "/*"
