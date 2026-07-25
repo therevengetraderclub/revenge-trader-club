@@ -78,6 +78,36 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
   box-shadow:0 10px 34px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08) !important;
   border-color:var(--border2) !important;
 }
+/* ── DISCIPLINE CALENDAR ── sized to be readable in a social screenshot.
+   Tiles scale with the viewport; type never drops below legible. */
+#rtcCalGrid, #rtcCalDow{ gap:6px !important; }
+#rtcCalDow > div{ font-size:11px !important; letter-spacing:2px !important; font-weight:700; color:var(--muted) !important; }
+.cal-cell{
+  min-height:78px; display:flex; flex-direction:column;
+  font-family:'Inter',sans-serif;
+}
+.cal-dnum{ font-size:12px; font-weight:700; color:var(--text2); line-height:1.2; }
+.cal-flags{
+  font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:800;
+  letter-spacing:2px; color:var(--warn); line-height:1.2; white-space:nowrap;
+}
+.cal-pnl{ font-size:17px; font-weight:900; letter-spacing:-0.3px; margin-top:6px; line-height:1.1; }
+.cal-sub{
+  font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
+  color:var(--text2); margin-top:auto; padding-top:4px; letter-spacing:0.3px;
+}
+#rtcCalSummary{ font-size:14px !important; }
+#rtcCalLegend{ font-size:11px !important; line-height:2 !important; }
+@media (min-width:1100px){
+  .cal-cell{ min-height:92px; }
+  .cal-pnl{ font-size:19px; }
+}
+@media (max-width:600px){
+  .cal-cell{ min-height:62px; padding:4px 5px !important; }
+  .cal-pnl{ font-size:13px; margin-top:3px; }
+  .cal-sub, .cal-flags{ font-size:9px; }
+  .cal-dnum{ font-size:10px; }
+}
 /* 7-day breakdown: on light themes --gold-dim is a pale pastel, so the highlighted
    Day-1 balance ("· $2,000.00") was nearly invisible. Use readable ink instead. */
 html:is([data-theme="light"],[data-theme="rose"]) .d7-row.now .d7-day span{ color:var(--text2) !important; }
@@ -5795,12 +5825,12 @@ function renderCalendar() {
     } else {
       r.type = clean ? 'cleanloss' : 'tilt';
     }
-    if (over) r.flags.push(['⚠','Overtraded — ' + o.trades + ' trades, your rule is ' + rules.maxTrades]);
-    if (ranRed) r.flags.push(['⊘','Ran the Red — traded through an active kill switch']);
-    if (o.killFired && !ranRed) r.flags.push(['✋','Saved by the Switch — the kill switch fired and you walked away']);
-    if (o.trades === 1 && (o.pnl || 0) > 0 && clean) r.flags.push(['◎','Sniper — one trade, one win']);
-    if (o.checkin && typeof o.checkin.sleepHours === 'number' && o.checkin.sleepHours <= 5) r.flags.push(['☾','Low Fuel — traded on ' + o.checkin.sleepHours + 'h sleep']);
-    if (o.checkin && o.checkin.stress === 'High') r.flags.push(['⚡','Pressure Day — high stress at check-in']);
+    if (over) r.flags.push(['!','Overtraded — ' + o.trades + ' trades, your rule is ' + rules.maxTrades]);
+    if (ranRed) r.flags.push(['X','Ran the Red — traded through an active kill switch']);
+    if (o.killFired && !ranRed) r.flags.push(['S','Saved by the Switch — the kill switch fired and you walked away']);
+    if (o.trades === 1 && (o.pnl || 0) > 0 && clean) r.flags.push(['1','Sniper — one trade, one win']);
+    if (o.checkin && typeof o.checkin.sleepHours === 'number' && o.checkin.sleepHours <= 5) r.flags.push(['Z','Low Fuel — traded on ' + o.checkin.sleepHours + 'h sleep']);
+    if (o.checkin && o.checkin.stress === 'High') r.flags.push(['P','Pressure Day — high stress at check-in']);
     return r;
   }
   var TYPE = {
@@ -5824,23 +5854,23 @@ function renderCalendar() {
     var future = isCurrentMonth && dnum > now.getDate();
     var o = days[dnum];
     if (future || !o) {
-      html += '<div style="min-height:52px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:4px 6px;opacity:' + (future ? '.35' : '.6') + ';"><div style="font-size:9px;color:var(--faint);">' + dnum + '</div></div>';
+      html += '<div class="cal-cell" style="background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:6px 8px;opacity:' + (future ? '.35' : '.6') + ';"><div class="cal-dnum">' + dnum + '</div></div>';
       continue;
     }
     var c = classify(o), t = TYPE[c.type];
     var pnlStr = (o.pnl === null) ? '' :
-      '<div style="font-size:12px;font-weight:800;color:' + ((o.pnl >= 0) ? 'var(--green)' : 'var(--red)') + ';">' + (o.pnl >= 0 ? '+' : '−') + curSym() + Math.abs(o.pnl).toLocaleString(undefined,{maximumFractionDigits:0}) + '</div>';
-    if (c.type === 'discipline') pnlStr = '<div style="font-size:11px;color:var(--gold);">●</div>';
+      '<div class="cal-pnl" style="color:' + ((o.pnl >= 0) ? 'var(--green)' : 'var(--red)') + ';">' + (o.pnl >= 0 ? '+' : '−') + curSym() + Math.abs(o.pnl).toLocaleString(undefined,{maximumFractionDigits:0}) + '</div>';
+    if (c.type === 'discipline') pnlStr = '<div class="cal-pnl" style="color:var(--gold);">&bull;</div>';
     var sub = [];
     if (o.trades) sub.push(o.trades + 't');
     if (c.avg !== null) sub.push(c.avg + '%');
     if (o.checkin && typeof o.checkin.sleepHours === 'number') sub.push(o.checkin.sleepHours + 'h');
     var flagStr = c.flags.map(function(f){ return '<span title="' + _esc(f[1]) + '">' + f[0] + '</span>'; }).join('');
     var tipParts = [t.name].concat(c.flags.map(function(f){ return f[1]; }));
-    html += '<div title="' + _esc(tipParts.filter(Boolean).join(' · ')) + '" style="min-height:52px;background:' + (t.bg || 'var(--bg2)') + ';border:1.5px solid ' + t.ring + ';border-radius:4px;padding:4px 6px;">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:9px;color:var(--faint);">' + dnum + '</span><span style="font-size:9px;color:var(--warn);letter-spacing:1px;">' + flagStr + '</span></div>'
+    html += '<div class="cal-cell" title="' + _esc(tipParts.filter(Boolean).join(' · ')) + '" style="background:' + (t.bg || 'var(--bg2)') + ';border:2px solid ' + t.ring + ';border-radius:5px;padding:6px 8px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px;"><span class="cal-dnum">' + dnum + '</span><span class="cal-flags">' + flagStr + '</span></div>'
       + pnlStr
-      + '<div style="font-size:8.5px;font-family:\'IBM Plex Mono\',monospace;color:var(--muted);margin-top:1px;">' + sub.join('·') + '</div>'
+      + '<div class="cal-sub">' + sub.join(' · ') + '</div>'
       + '</div>';
   }
   grid.innerHTML = html;
@@ -5875,12 +5905,12 @@ function renderCalendar() {
     if (dw !== 0 && dw !== 6) { weekdaysElapsed++; if (days[wd2] && days[wd2].checkin) weekdaysCheckedIn++; }
   }
   var badges = [
-    { name:'Clean Month',      sub:'Every traded day 85+',      icon:'✓', earned: tradedDays.length > 0 && tradedDays.every(function(o){ return o.scores.length && (o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length) >= 85; }) },
-    { name:'Iron Discipline',  sub:'Never over max trades',     icon:'▣', earned: tradedDays.length > 0 && tradedDays.every(function(o){ return o.trades <= rules.maxTrades && !o.killedTrade; }) },
-    { name:'Green Month',      sub:'Positive P&L',              icon:'▲', earned: (tradedDays.length > 0 || checkinDays > 0) && monthNet > 0 },
-    { name:'The Full Stack',   sub:'Clean + green together',    icon:'♛', earned: false },
-    { name:'Perfect Attendance', sub:'Checked in every weekday', icon:'☰', earned: weekdaysElapsed > 0 && weekdaysCheckedIn === weekdaysElapsed },
-    { name:'Well Rested',      sub:'Averaged 7+ hours',         icon:'☾', earned: sleepVals.length >= 5 && (sleepVals.reduce(function(a,b){return a+b;},0)/sleepVals.length) >= 7 }
+    { name:'Clean Month',      sub:'Every traded day 85+',      icon:'&#10003;', earned: tradedDays.length > 0 && tradedDays.every(function(o){ return o.scores.length && (o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length) >= 85; }) },
+    { name:'Iron Discipline',  sub:'Never over max trades',     icon:'&#9635;', earned: tradedDays.length > 0 && tradedDays.every(function(o){ return o.trades <= rules.maxTrades && !o.killedTrade; }) },
+    { name:'Green Month',      sub:'Positive P&L',              icon:'&#9650;', earned: (tradedDays.length > 0 || checkinDays > 0) && monthNet > 0 },
+    { name:'The Full Stack',   sub:'Clean + green together',    icon:'&#9819;', earned: false },
+    { name:'Perfect Attendance', sub:'Checked in every weekday', icon:'&#9776;', earned: weekdaysElapsed > 0 && weekdaysCheckedIn === weekdaysElapsed },
+    { name:'Well Rested',      sub:'Averaged 7+ hours',         icon:'&#9790;', earned: sleepVals.length >= 5 && (sleepVals.reduce(function(a,b){return a+b;},0)/sleepVals.length) >= 7 }
   ];
   badges[3].earned = badges[0].earned && badges[2].earned;
   var bEl = document.getElementById('rtcCalBadges');
@@ -5895,7 +5925,7 @@ function renderCalendar() {
     }).join('');
   }
   var lg = document.getElementById('rtcCalLegend');
-  if (lg) lg.innerHTML = 'Ring: <span style="color:var(--green);">green = rules kept</span> &middot; <span style="color:var(--red);">red = rules broken</span> &middot; <span style="color:var(--gold);">● discipline day (no trade was the trade)</span><br>Flags: ⚠ overtraded &middot; ⊘ ran the red &middot; ✋ saved by the switch &middot; ◎ sniper &middot; ☾ low fuel &middot; ⚡ pressure day';
+  if (lg) lg.innerHTML = 'RING &nbsp;<span style="color:var(--green);">green = rules kept</span> &nbsp;&middot;&nbsp; <span style="color:var(--red);">red = rules broken</span> &nbsp;&middot;&nbsp; <span style="color:var(--gold);">&bull; discipline day &mdash; no trade was the trade</span><br>FLAGS &nbsp;<b>!</b> overtraded &nbsp;&middot;&nbsp; <b>X</b> ran the red &nbsp;&middot;&nbsp; <b>S</b> saved by the switch &nbsp;&middot;&nbsp; <b>1</b> sniper &nbsp;&middot;&nbsp; <b>Z</b> low fuel &nbsp;&middot;&nbsp; <b>P</b> pressure day';
 }
 
 
