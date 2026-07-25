@@ -3585,6 +3585,11 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--page)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
   </button>
 
+  <!-- LOG BUTTON — capture a thought from anywhere, any screen -->
+  <button id="logFabBtn" onclick="openLogEntry()" title="Write in your log" style="position:fixed;bottom:236px;right:max(18px, calc(50% - 604px));z-index:491;width:44px;height:44px;border-radius:12px;background:var(--bg2);border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.35);transition:all .2s;" onmouseenter="this.style.transform='scale(1.08)';this.style.borderColor='var(--gold)'" onmouseleave="this.style.transform='scale(1)';this.style.borderColor='var(--border2)'">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+  </button>
+
   <!-- SHARE STATS BUTTON — quick access, sits directly above Trading Mode -->
   <button id="shareStatsBtn" onclick="openShareCard()" title="Share My Stats" style="position:fixed;bottom:184px;right:max(18px, calc(50% - 604px));z-index:491;width:44px;height:44px;border-radius:12px;background:var(--bg2);border:1.5px solid var(--gold-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.35);transition:all .2s;" onmouseenter="this.style.transform='scale(1.08)';this.style.borderColor='var(--gold)'" onmouseleave="this.style.transform='scale(1)';this.style.borderColor='var(--gold-dim)'">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -3659,6 +3664,33 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
     </div>
   </div>
+
+<!-- ══ THE LOG — personal capture overlay ══ -->
+<div id="logOverlay" onclick="if(event.target===this)closeLogEntry()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:100001;align-items:flex-start;justify-content:center;padding:6vh 18px 24px;overflow-y:auto;">
+  <div id="logSheet" onclick="event.stopPropagation()" style="width:100%;max-width:560px;background:var(--bg);border:1px solid var(--gold-dim);border-radius:12px;box-shadow:0 18px 60px rgba(0,0,0,0.45);overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--gold);line-height:1;">THE LOG</div>
+        <div id="logSheetDate" style="font-size:10px;letter-spacing:1px;color:var(--muted);margin-top:3px;">—</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-plain" id="logExpandBtn" onclick="toggleLogExpand()" title="Expand" style="width:32px;height:32px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);cursor:pointer;font-size:13px;">⤢</button>
+        <button class="btn-plain" onclick="closeLogEntry()" title="Close" style="width:32px;height:32px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);cursor:pointer;font-size:15px;">✕</button>
+      </div>
+    </div>
+    <div style="padding:14px 18px 18px;">
+      <div id="logTypeRow" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px;"></div>
+      <textarea id="logText" rows="5" oninput="rtcLogGrow(this)" placeholder="What's on your mind?" style="width:100%;min-height:130px;background:var(--bg2);border:1px solid var(--border2);border-left:2px solid var(--gold-dim);border-radius:var(--r-sm);padding:14px;color:var(--white);font-family:'Inter',sans-serif;font-size:15px;line-height:1.8;resize:vertical;overflow:hidden;"></textarea>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;">
+        <div id="logMeta" style="font-size:11px;color:var(--muted);">No score. No grade. Just yours.</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-plain" id="logDeleteBtn" onclick="deleteLogEntry()" style="display:none;padding:11px 16px;background:transparent;border:1px solid rgba(229,57,53,0.35);border-radius:var(--r-sm);color:var(--red);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">Delete</button>
+          <button id="logSaveBtn" onclick="saveLogEntry()" class="btn-gold" style="padding:11px 22px;">Save Entry</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- TRADING MODE OVERLAY -->
   <div id="tradingModeOverlay" onclick="closeTradingMode()" style="display:none;position:fixed;inset:0;background:var(--page);z-index:9999;align-items:flex-start;justify-content:center;padding:20px 24px 28px;overflow-y:auto;">
@@ -4067,7 +4099,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div id="tickerDropdownList" style="display:flex;flex-direction:column;"></div>
         </div>
       </div>
-      <div class="info-field"><div class="info-label">Time</div><input class="info-input" id="cl-time" placeholder="9:45 AM"></div>
+      <div class="info-field"><div class="info-label">Time <span id="cl-time-live" style="font-size:9px;letter-spacing:1px;color:var(--green);">● LIVE</span></div><input class="info-input" id="cl-time" placeholder="9:45 AM" oninput="this.dataset.touched='1';var l=document.getElementById('cl-time-live');if(l)l.style.display='none';"></div>
       <div class="info-field" style="position:relative;">
         <div class="info-label">Direction</div>
         <input class="info-input" id="cl-dir" placeholder="Long / Short"
@@ -4088,7 +4120,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           </div>
         </div>
       </div>
-      <div class="info-field"><div class="info-label">Entry Price</div><input class="info-input" id="cl-entry" placeholder="21,420.25"></div>
+      <div class="info-field"><div class="info-label">Entry Price <span style="font-size:9px;letter-spacing:1px;color:var(--faint);">OPTIONAL</span></div><input class="info-input" id="cl-entry" placeholder="Skip it — your chart has it"></div>
     </div>
 
     <!-- Dynamic checklist rendered by JS based on trading style -->
@@ -4764,7 +4796,20 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
   <!-- JOURNAL -->
   <div class="tab-body" id="tab-journal" style="display:none;">
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button class="btn-plain" id="jvTradesBtn" onclick="setJournalView('trades')" style="flex:1;padding:11px;background:var(--bg3);border:1.5px solid var(--gold);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">Trades</button>
+      <button class="btn-plain" id="jvLogBtn" onclick="setJournalView('log')" style="flex:1;padding:11px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">The Log</button>
+    </div>
     <div id="journalList"></div>
+    <div id="journalLogView" style="display:none;">
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-title">The Log</div>
+        <div class="card-sub" style="margin-bottom:12px;">Your journey, not your trades. Thoughts, goals, vents, wins — nothing here is scored.</div>
+        <button onclick="openLogEntry()" class="btn-gold" style="width:100%;">+ Write an Entry</button>
+      </div>
+      <div id="logFilterRow" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;"></div>
+      <div id="logList" style="display:flex;flex-direction:column;gap:9px;"></div>
+    </div>
   </div>
 
   <!-- LEARN -->
@@ -5742,6 +5787,163 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
 function rtcStorageUsage() { return RTCStore.usage(); }
 
 // ═══════════════════════════════════════════════════════
+// THE LOG — personal journal, deliberately separate from trades.
+// Trades get notes and reviews; days get logs. Nothing here is scored.
+// Stored globally (not per-account): your head isn't split by account.
+// ═══════════════════════════════════════════════════════
+var RTC_LOG_TYPES = [
+  { id:'reflection', name:'Reflection', color:'var(--gold)',   prompt:'How did today actually go?' },
+  { id:'vent',       name:'Vent',       color:'var(--red)',    prompt:'Get it out. Nobody is grading this.' },
+  { id:'goal',       name:'Goal',       color:'var(--orange)', prompt:'What are you building toward?' },
+  { id:'win',        name:'Win',        color:'var(--green)',  prompt:'What went right that had nothing to do with money?' },
+  { id:'lesson',     name:'Lesson',     color:'var(--text2)',  prompt:'What did this teach you?' }
+];
+var rtcLogType = 'reflection';
+var rtcLogEditId = null;
+
+function getLog() {
+  try {
+    var l = JSON.parse(RTCStore.get('rtc_log') || '[]');
+    return Array.isArray(l) ? l : [];
+  } catch(e) { rtcWarn(e); return []; }
+}
+function saveLog(l) {
+  rtcSet('rtc_log', JSON.stringify(l));
+  try { renderLogList(); } catch(e) { rtcWarn(e); }
+  try { renderCalendar(); } catch(e) { rtcWarn(e); }
+}
+function rtcLogTypeMeta(id) {
+  for (var i = 0; i < RTC_LOG_TYPES.length; i++) if (RTC_LOG_TYPES[i].id === id) return RTC_LOG_TYPES[i];
+  return RTC_LOG_TYPES[0];
+}
+function rtcLogGrow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.max(130, el.scrollHeight) + 'px';
+  try { if (!rtcLogEditId) rtcSet('rtc_log_draft', el.value); } catch(e) {}
+}
+function renderLogTypeRow() {
+  var row = document.getElementById('logTypeRow'); if (!row) return;
+  row.innerHTML = RTC_LOG_TYPES.map(function(t) {
+    var on = t.id === rtcLogType;
+    return '<div onclick="setLogType(\'' + t.id + '\')" style="padding:9px 4px;text-align:center;background:' + (on ? 'rgba(var(--gold-rgb),0.1)' : 'var(--bg3)')
+      + ';border:1.5px solid ' + (on ? 'var(--gold)' : 'var(--border2)') + ';border-radius:var(--r-sm);cursor:pointer;font-size:11px;font-weight:700;color:'
+      + (on ? 'var(--gold)' : 'var(--text2)') + ';transition:all .15s;">' + t.name + '</div>';
+  }).join('');
+}
+function setLogType(id) {
+  rtcLogType = id;
+  renderLogTypeRow();
+  var ta = document.getElementById('logText');
+  if (ta && !ta.value.trim()) ta.placeholder = rtcLogTypeMeta(id).prompt;
+  playSound('tick');
+}
+function openLogEntry(entryId, dateStr) {
+  var ov = document.getElementById('logOverlay'); if (!ov) return;
+  var ta = document.getElementById('logText');
+  var del = document.getElementById('logDeleteBtn');
+  rtcLogEditId = entryId || null;
+  var when = dateStr || new Date().toDateString();
+
+  if (rtcLogEditId) {
+    var e = getLog().filter(function(x){ return String(x.id) === String(rtcLogEditId); })[0];
+    if (e) { rtcLogType = e.type || 'reflection'; if (ta) ta.value = e.text || ''; when = e.date; }
+    if (del) del.style.display = 'block';
+  } else {
+    rtcLogType = 'reflection';
+    if (ta) ta.value = (RTCStore.get('rtc_log_draft') || '');
+    if (del) del.style.display = 'none';
+  }
+  ov.dataset.date = when;
+  var dl = document.getElementById('logSheetDate');
+  if (dl) dl.textContent = new Date(when).toLocaleDateString('en-US',{ weekday:'long', month:'long', day:'numeric' }).toUpperCase();
+  renderLogTypeRow();
+  if (ta) { ta.placeholder = rtcLogTypeMeta(rtcLogType).prompt; rtcLogGrow(ta); }
+  ov.style.display = 'flex';
+  setTimeout(function(){ if (ta) ta.focus(); }, 60);
+}
+function closeLogEntry() {
+  var ov = document.getElementById('logOverlay'); if (ov) ov.style.display = 'none';
+  var sh = document.getElementById('logSheet'); if (sh) sh.style.maxWidth = '560px';
+  rtcLogEditId = null;
+}
+function toggleLogExpand() {
+  var sh = document.getElementById('logSheet'); if (!sh) return;
+  var big = sh.style.maxWidth === '900px';
+  sh.style.maxWidth = big ? '560px' : '900px';
+  var ta = document.getElementById('logText');
+  if (ta) { ta.style.minHeight = big ? '130px' : '52vh'; rtcLogGrow(ta); }
+}
+function saveLogEntry() {
+  var ta = document.getElementById('logText'); if (!ta) return;
+  var text = ta.value.trim();
+  if (!text) { closeLogEntry(); return; }
+  var ov = document.getElementById('logOverlay');
+  var when = (ov && ov.dataset.date) || new Date().toDateString();
+  var l = getLog();
+  if (rtcLogEditId) {
+    for (var i = 0; i < l.length; i++) if (String(l[i].id) === String(rtcLogEditId)) { l[i].text = text; l[i].type = rtcLogType; l[i].edited = Date.now(); }
+  } else {
+    l.unshift({ id: Date.now(), date: when, ts: Date.now(), type: rtcLogType, text: text });
+  }
+  saveLog(l);
+  try { RTCStore.remove('rtc_log_draft'); } catch(e) {}
+  ta.value = '';
+  closeLogEntry();
+  playSound('chime');
+}
+function deleteLogEntry() {
+  if (!rtcLogEditId) return;
+  if (!window.confirm('Delete this entry? This cannot be undone.')) return;
+  saveLog(getLog().filter(function(x){ return String(x.id) !== String(rtcLogEditId); }));
+  closeLogEntry();
+}
+
+function setJournalView(v) {
+  var trades = document.getElementById('journalList');
+  var log    = document.getElementById('journalLogView');
+  var tb = document.getElementById('jvTradesBtn'), lb = document.getElementById('jvLogBtn');
+  var onLog = v === 'log';
+  if (trades) trades.style.display = onLog ? 'none' : 'block';
+  if (log)    log.style.display    = onLog ? 'block' : 'none';
+  [[tb, !onLog], [lb, onLog]].forEach(function(p) {
+    if (!p[0]) return;
+    p[0].style.borderColor = p[1] ? 'var(--gold)' : 'var(--border2)';
+    p[0].style.color       = p[1] ? 'var(--gold)' : 'var(--muted)';
+  });
+  if (onLog) renderLogList();
+  playSound('tick');
+}
+
+var rtcLogFilter = 'all';
+function setLogFilter(f) { rtcLogFilter = f; renderLogList(); playSound('tick'); }
+function renderLogList() {
+  var el = document.getElementById('logList'); if (!el) return;
+  var chips = document.getElementById('logFilterRow');
+  if (chips) {
+    chips.innerHTML = [{id:'all',name:'All'}].concat(RTC_LOG_TYPES).map(function(t) {
+      var on = rtcLogFilter === t.id;
+      return '<div onclick="setLogFilter(\'' + t.id + '\')" style="padding:5px 12px;border:1px solid ' + (on ? 'var(--gold)' : 'var(--border2)') + ';border-radius:20px;cursor:pointer;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:' + (on ? 'var(--gold)' : 'var(--muted)') + ';">' + t.name + '</div>';
+    }).join('');
+  }
+  var list = getLog().filter(function(e){ return rtcLogFilter === 'all' || e.type === rtcLogFilter; });
+  if (!list.length) {
+    el.innerHTML = '<div style="padding:26px 16px;text-align:center;font-size:13px;color:var(--muted);line-height:1.8;">Nothing written yet.<br><span style="font-size:12px;">Tap the pen button any time — good day, bad day, no trading at all.</span></div>';
+    return;
+  }
+  el.innerHTML = list.map(function(e) {
+    var m = rtcLogTypeMeta(e.type);
+    var d = new Date(e.date);
+    var when = isNaN(d) ? e.date : d.toLocaleDateString('en-US',{ weekday:'short', month:'short', day:'numeric', year:'numeric' });
+    return '<div onclick="openLogEntry(' + e.id + ')" style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid ' + m.color + ';padding:12px 14px;cursor:pointer;transition:border-color .15s;" onmouseenter="this.style.borderColor=\'var(--border3)\';this.style.borderLeftColor=\'' + m.color + '\'" onmouseleave="this.style.borderColor=\'var(--border)\';this.style.borderLeftColor=\'' + m.color + '\'">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'
+      + '<span style="font-size:10px;font-weight:800;letter-spacing:1.5px;color:' + m.color + ';">' + m.name.toUpperCase() + '</span>'
+      + '<span style="font-size:10px;color:var(--muted);">' + _esc(when) + '</span></div>'
+      + '<div style="font-size:14px;color:var(--text2);line-height:1.8;white-space:pre-wrap;">' + _esc(e.text) + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
 // DISCIPLINE CALENDAR — money on the tile, rules on the ring
 // Day titles come from two axes only: money outcome × rules adherence.
 // Sleep / stress / mood are context glyphs, never categories.
@@ -5805,6 +6007,12 @@ function renderCalendar() {
     });
   }
   try {
+    getLog().forEach(function(e) {
+      var d = rtcCalParseDate(e.date);
+      if (d && d.getFullYear() === y && d.getMonth() === m) day(d.getDate()).logs = (day(d.getDate()).logs || 0) + 1;
+    });
+  } catch(e) { rtcWarn(e); }
+  try {
     JSON.parse(RTCStore.get('rtc_killlog_' + getActiveIdx()) || '[]').forEach(function(ds) {
       var d = new Date(ds);
       if (!isNaN(d) && d.getFullYear() === y && d.getMonth() === m) day(d.getDate()).killFired = true;
@@ -5854,7 +6062,12 @@ function renderCalendar() {
     var future = isCurrentMonth && dnum > now.getDate();
     var o = days[dnum];
     if (future || !o) {
-      html += '<div class="cal-cell" style="background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:6px 8px;opacity:' + (future ? '.35' : '.6') + ';"><div class="cal-dnum">' + dnum + '</div></div>';
+      var eDate = new Date(y, m, dnum).toDateString();
+      var eLogs = (o && o.logs) || 0;
+      html += '<div class="cal-cell"' + (future ? '' : ' onclick="openLogEntry(null,\'' + eDate + '\')" title="Write about this day"')
+        + ' style="background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:6px 8px;opacity:' + (future ? '.35' : '.6') + ';' + (future ? '' : 'cursor:pointer;') + '">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;"><span class="cal-dnum">' + dnum + '</span>'
+        + (eLogs ? '<span class="cal-flags" style="color:var(--gold);">&#9998;</span>' : '') + '</div></div>';
       continue;
     }
     var c = classify(o), t = TYPE[c.type];
@@ -5867,7 +6080,9 @@ function renderCalendar() {
     if (o.checkin && typeof o.checkin.sleepHours === 'number') sub.push(o.checkin.sleepHours + 'h');
     var flagStr = c.flags.map(function(f){ return '<span title="' + _esc(f[1]) + '">' + f[0] + '</span>'; }).join('');
     var tipParts = [t.name].concat(c.flags.map(function(f){ return f[1]; }));
-    html += '<div class="cal-cell" title="' + _esc(tipParts.filter(Boolean).join(' · ')) + '" style="background:' + (t.bg || 'var(--bg2)') + ';border:2px solid ' + t.ring + ';border-radius:5px;padding:6px 8px;">'
+    if (o.logs) flagStr += '<span style="color:var(--gold);" title="' + o.logs + ' log entr' + (o.logs > 1 ? 'ies' : 'y') + '">&#9998;</span>';
+    var cDate = new Date(y, m, dnum).toDateString();
+    html += '<div class="cal-cell" onclick="openLogEntry(null,\'' + cDate + '\')" title="' + _esc(tipParts.filter(Boolean).join(' · ')) + ' — tap to write" style="cursor:pointer;background:' + (t.bg || 'var(--bg2)') + ';border:2px solid ' + t.ring + ';border-radius:5px;padding:6px 8px;">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px;"><span class="cal-dnum">' + dnum + '</span><span class="cal-flags">' + flagStr + '</span></div>'
       + pnlStr
       + '<div class="cal-sub">' + sub.join(' · ') + '</div>'
@@ -5925,7 +6140,7 @@ function renderCalendar() {
     }).join('');
   }
   var lg = document.getElementById('rtcCalLegend');
-  if (lg) lg.innerHTML = 'RING &nbsp;<span style="color:var(--green);">green = rules kept</span> &nbsp;&middot;&nbsp; <span style="color:var(--red);">red = rules broken</span> &nbsp;&middot;&nbsp; <span style="color:var(--gold);">&bull; discipline day &mdash; no trade was the trade</span><br>FLAGS &nbsp;<b>!</b> overtraded &nbsp;&middot;&nbsp; <b>X</b> ran the red &nbsp;&middot;&nbsp; <b>S</b> saved by the switch &nbsp;&middot;&nbsp; <b>1</b> sniper &nbsp;&middot;&nbsp; <b>Z</b> low fuel &nbsp;&middot;&nbsp; <b>P</b> pressure day';
+  if (lg) lg.innerHTML = 'RING &nbsp;<span style="color:var(--green);">green = rules kept</span> &nbsp;&middot;&nbsp; <span style="color:var(--red);">red = rules broken</span> &nbsp;&middot;&nbsp; <span style="color:var(--gold);">&bull; discipline day &mdash; no trade was the trade</span><br>FLAGS &nbsp;<b>!</b> overtraded &nbsp;&middot;&nbsp; <b>X</b> ran the red &nbsp;&middot;&nbsp; <b>S</b> saved by the switch &nbsp;&middot;&nbsp; <b>1</b> sniper &nbsp;&middot;&nbsp; <b>Z</b> low fuel &nbsp;&middot;&nbsp; <b>P</b> pressure day &nbsp;&middot;&nbsp; <span style="color:var(--gold);">&#9998; log entry &mdash; tap any day to write</span>';
 }
 
 
@@ -6841,11 +7056,27 @@ function closeKillTakeover() {
   if (takeover) takeover.style.display = 'none';
 }
 
+// The Time field tracks the clock while the checklist is open, so it's always
+// correct at the moment of entry. It stops the instant the trader edits it.
+function rtcTickChecklistTime() {
+  var f = document.getElementById('cl-time');
+  if (!f || f.dataset.touched || document.activeElement === f) return;
+  f.value = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+}
+setInterval(rtcTickChecklistTime, 1000);
+rtcOnReady(function(){ setTimeout(rtcTickChecklistTime, 300); });
+
 function resetChecklist() {
   document.querySelectorAll('.cl-item,.kill-item').forEach(el => el.classList.remove('on'));
   ['cl-ticker','cl-time','cl-dir','cl-entry','cl-notes'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
+  // Hand the clock back
+  var _tf = document.getElementById('cl-time');
+  if (_tf) delete _tf.dataset.touched;
+  var _tl = document.getElementById('cl-time-live');
+  if (_tl) _tl.style.display = '';
+  rtcTickChecklistTime();
   resetTags();
   const saveBtn = document.getElementById('saveTickerBtn');
   if (saveBtn) saveBtn.style.opacity = '0';
@@ -6862,7 +7093,7 @@ function saveTrade() {
   const t = {
     id:        Date.now(),
     date:      new Date().toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' }),
-    time:      new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }),
+    time:      (function(){ var f=document.getElementById('cl-time'); return (f && f.dataset.touched && f.value.trim()) ? f.value.trim() : new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }); })(),
     ticker:    (document.getElementById('cl-ticker') || {}).value || '—',
     direction: (document.getElementById('cl-dir')    || {}).value || '—',
     entry:     (document.getElementById('cl-entry')  || {}).value || '—',
