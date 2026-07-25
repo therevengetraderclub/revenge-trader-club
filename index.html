@@ -83,7 +83,7 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
 #rtcCalGrid, #rtcCalDow{ gap:6px !important; }
 #rtcCalDow > div{ font-size:11px !important; letter-spacing:2px !important; font-weight:700; color:var(--muted) !important; }
 .cal-cell{
-  min-height:78px; display:flex; flex-direction:column;
+  min-height:104px; display:flex; flex-direction:column;
   font-family:'Inter',sans-serif;
 }
 .cal-dnum{ font-size:12px; font-weight:700; color:var(--text2); line-height:1.2; }
@@ -91,19 +91,50 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
   font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:800;
   letter-spacing:2px; color:var(--warn); line-height:1.2; white-space:nowrap;
 }
-.cal-pnl{ font-size:17px; font-weight:900; letter-spacing:-0.3px; margin-top:6px; line-height:1.1; }
+.cal-pnl{ font-size:19px; font-weight:900; letter-spacing:-0.3px; margin-top:5px; line-height:1.1; }
 .cal-sub{
   font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
-  color:var(--text2); margin-top:auto; padding-top:4px; letter-spacing:0.3px;
+  color:var(--text2); margin-top:3px; letter-spacing:0.2px; line-height:1.5;
+}
+.cal-chips{ display:flex; flex-wrap:wrap; gap:3px; margin-top:auto; padding-top:5px; }
+.cal-chip{
+  font-family:'IBM Plex Mono',monospace; font-size:8.5px; font-weight:800; letter-spacing:1px;
+  border:1px solid currentColor; border-radius:3px; padding:1px 4px; line-height:1.5; opacity:.9;
+}
+/* Seal badges — same circular language as the pledge seal and brand crest */
+.seal-card{
+  padding:14px 10px; background:var(--bg2); border:1px solid var(--border);
+  border-radius:10px; text-align:center; display:flex; flex-direction:column; align-items:center;
+}
+.seal-card.earned{ background:rgba(var(--gold-rgb),0.06); border-color:var(--gold-dim); }
+.seal-card.rare{ border-width:2px; border-color:var(--gold); }
+.seal-ring{
+  width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:22px; color:var(--muted); border:2px dashed var(--border2); margin-bottom:9px;
+}
+.seal-ring.earned{
+  color:var(--gold); border:2px solid var(--gold);
+  background:rgba(var(--gold-rgb),0.10); box-shadow:0 0 0 3px rgba(var(--gold-rgb),0.08);
+}
+.seal-name{ font-size:12px; font-weight:800; color:var(--text2); letter-spacing:.3px; }
+.seal-card.earned .seal-name{ color:var(--gold); }
+.seal-sub{ font-size:10.5px; color:var(--muted); line-height:1.5; margin-top:3px; }
+.seal-bar{ width:100%; height:4px; background:var(--bg4); border-radius:2px; overflow:hidden; margin-top:9px; }
+.seal-bar i{ display:block; height:100%; background:var(--gold-dim); }
+.seal-note{ font-size:9.5px; color:var(--muted); margin-top:5px; letter-spacing:.5px; }
+.seal-note.earned{ color:var(--gold); font-weight:800; letter-spacing:2px; margin-top:9px; }
+@media (max-width:600px){
+  .seal-ring{ width:42px; height:42px; font-size:18px; }
+  .cal-chip{ font-size:7.5px; }
 }
 #rtcCalSummary{ font-size:14px !important; }
 #rtcCalLegend{ font-size:11px !important; line-height:2 !important; }
 @media (min-width:1100px){
-  .cal-cell{ min-height:92px; }
+  .cal-cell{ min-height:118px; }
   .cal-pnl{ font-size:19px; }
 }
 @media (max-width:600px){
-  .cal-cell{ min-height:62px; padding:4px 5px !important; }
+  .cal-cell{ min-height:78px; padding:4px 5px !important; }
   .cal-pnl{ font-size:13px; margin-top:3px; }
   .cal-sub, .cal-flags{ font-size:9px; }
   .cal-dnum{ font-size:10px; }
@@ -3585,8 +3616,8 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--page)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
   </button>
 
-  <!-- LOG BUTTON — capture a thought from anywhere, any screen -->
-  <button id="logFabBtn" onclick="openLogEntry()" title="Write in your log" style="position:fixed;bottom:236px;right:max(18px, calc(50% - 604px));z-index:491;width:44px;height:44px;border-radius:12px;background:var(--bg2);border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.35);transition:all .2s;" onmouseenter="this.style.transform='scale(1.08)';this.style.borderColor='var(--gold)'" onmouseleave="this.style.transform='scale(1)';this.style.borderColor='var(--border2)'">
+  <!-- JOURNAL BUTTON — capture a thought from anywhere, any screen -->
+  <button id="logFabBtn" onclick="openLogEntry()" title="Write in your journal" style="position:fixed;bottom:236px;right:max(18px, calc(50% - 604px));z-index:491;width:44px;height:44px;border-radius:12px;background:var(--bg2);border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.35);transition:all .2s;" onmouseenter="this.style.transform='scale(1.08)';this.style.borderColor='var(--gold)'" onmouseleave="this.style.transform='scale(1)';this.style.borderColor='var(--border2)'">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
   </button>
 
@@ -3665,12 +3696,12 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
   </div>
 
-<!-- ══ THE LOG — personal capture overlay ══ -->
+<!-- ══ MY JOURNAL — personal capture overlay ══ -->
 <div id="logOverlay" onclick="if(event.target===this)closeLogEntry()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:100001;align-items:flex-start;justify-content:center;padding:6vh 18px 24px;overflow-y:auto;">
   <div id="logSheet" onclick="event.stopPropagation()" style="width:100%;max-width:560px;background:var(--bg);border:1px solid var(--gold-dim);border-radius:12px;box-shadow:0 18px 60px rgba(0,0,0,0.45);overflow:hidden;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);">
       <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--gold);line-height:1;">THE LOG</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--gold);line-height:1;">MY JOURNAL</div>
         <div id="logSheetDate" style="font-size:10px;letter-spacing:1px;color:var(--muted);margin-top:3px;">—</div>
       </div>
       <div style="display:flex;gap:8px;">
@@ -4798,12 +4829,12 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   <div class="tab-body" id="tab-journal" style="display:none;">
     <div style="display:flex;gap:8px;margin-bottom:14px;">
       <button class="btn-plain" id="jvTradesBtn" onclick="setJournalView('trades')" style="flex:1;padding:11px;background:var(--bg3);border:1.5px solid var(--gold);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">Trades</button>
-      <button class="btn-plain" id="jvLogBtn" onclick="setJournalView('log')" style="flex:1;padding:11px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">The Log</button>
+      <button class="btn-plain" id="jvLogBtn" onclick="setJournalView('log')" style="flex:1;padding:11px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">My Journal</button>
     </div>
     <div id="journalList"></div>
     <div id="journalLogView" style="display:none;">
       <div class="card" style="margin-bottom:12px;">
-        <div class="card-title">The Log</div>
+        <div class="card-title">My Journal</div>
         <div class="card-sub" style="margin-bottom:12px;">Your journey, not your trades. Thoughts, goals, vents, wins — nothing here is scored.</div>
         <button onclick="openLogEntry()" class="btn-gold" style="width:100%;">+ Write an Entry</button>
       </div>
@@ -5787,7 +5818,7 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
 function rtcStorageUsage() { return RTCStore.usage(); }
 
 // ═══════════════════════════════════════════════════════
-// THE LOG — personal journal, deliberately separate from trades.
+// MY JOURNAL — personal journal, deliberately separate from trades.
 // Trades get notes and reviews; days get logs. Nothing here is scored.
 // Stored globally (not per-account): your head isn't split by account.
 // ═══════════════════════════════════════════════════════
@@ -6033,12 +6064,13 @@ function renderCalendar() {
     } else {
       r.type = clean ? 'cleanloss' : 'tilt';
     }
-    if (over) r.flags.push(['!','Overtraded — ' + o.trades + ' trades, your rule is ' + rules.maxTrades]);
-    if (ranRed) r.flags.push(['X','Ran the Red — traded through an active kill switch']);
-    if (o.killFired && !ranRed) r.flags.push(['S','Saved by the Switch — the kill switch fired and you walked away']);
-    if (o.trades === 1 && (o.pnl || 0) > 0 && clean) r.flags.push(['1','Sniper — one trade, one win']);
-    if (o.checkin && typeof o.checkin.sleepHours === 'number' && o.checkin.sleepHours <= 5) r.flags.push(['Z','Low Fuel — traded on ' + o.checkin.sleepHours + 'h sleep']);
-    if (o.checkin && o.checkin.stress === 'High') r.flags.push(['P','Pressure Day — high stress at check-in']);
+    // ['CHIP'|'INFO', label, color, tooltip] — only CHIP rows print on the tile
+    if (over) r.flags.push(['CHIP','OVERTRADED','var(--red)','Overtraded — ' + o.trades + ' trades, your rule is ' + rules.maxTrades]);
+    if (ranRed) r.flags.push(['CHIP','RAN THE RED','var(--red)','Ran the Red — traded through an active kill switch']);
+    if (o.killFired && !ranRed) r.flags.push(['INFO','SAVED','var(--green)','Saved by the Switch — the kill switch fired and you walked away']);
+    if (o.trades === 1 && (o.pnl || 0) > 0 && clean) r.flags.push(['INFO','SNIPER','var(--gold)','Sniper — one trade, one win']);
+    if (o.checkin && typeof o.checkin.sleepHours === 'number' && o.checkin.sleepHours <= 5) r.flags.push(['INFO','LOW FUEL','var(--warn)','Low Fuel — traded on ' + o.checkin.sleepHours + 'h sleep']);
+    if (o.checkin && o.checkin.stress === 'High') r.flags.push(['INFO','PRESSURE','var(--warn)','Pressure Day — high stress at check-in']);
     return r;
   }
   var TYPE = {
@@ -6065,29 +6097,44 @@ function renderCalendar() {
       var eDate = new Date(y, m, dnum).toDateString();
       var eLogs = (o && o.logs) || 0;
       html += '<div class="cal-cell"' + (future ? '' : ' onclick="openLogEntry(null,\'' + eDate + '\')" title="Write about this day"')
-        + ' style="background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:6px 8px;opacity:' + (future ? '.35' : '.6') + ';' + (future ? '' : 'cursor:pointer;') + '">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;"><span class="cal-dnum">' + dnum + '</span>'
-        + (eLogs ? '<span class="cal-flags" style="color:var(--gold);">&#9998;</span>' : '') + '</div></div>';
+        + ' style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;opacity:' + (future ? '.35' : '.72') + ';' + (future ? '' : 'cursor:pointer;') + '">'
+        + '<div class="cal-dnum">' + dnum + '</div>'
+        + (eLogs ? '<div class="cal-chips"><span class="cal-chip" style="color:var(--gold);border-color:var(--gold-dim);">JOURNAL</span></div>' : '') + '</div>';
       continue;
     }
     var c = classify(o), t = TYPE[c.type];
     var pnlStr = (o.pnl === null) ? '' :
       '<div class="cal-pnl" style="color:' + ((o.pnl >= 0) ? 'var(--green)' : 'var(--red)') + ';">' + (o.pnl >= 0 ? '+' : '−') + curSym() + Math.abs(o.pnl).toLocaleString(undefined,{maximumFractionDigits:0}) + '</div>';
     if (c.type === 'discipline') pnlStr = '<div class="cal-pnl" style="color:var(--gold);">&bull;</div>';
-    var sub = [];
-    if (o.trades) sub.push(o.trades + 't');
-    if (c.avg !== null) sub.push(c.avg + '%');
-    if (o.checkin && typeof o.checkin.sleepHours === 'number') sub.push(o.checkin.sleepHours + 'h');
-    var flagStr = c.flags.map(function(f){ return '<span title="' + _esc(f[1]) + '">' + f[0] + '</span>'; }).join('');
-    var tipParts = [t.name].concat(c.flags.map(function(f){ return f[1]; }));
-    if (o.logs) flagStr += '<span style="color:var(--gold);" title="' + o.logs + ' log entr' + (o.logs > 1 ? 'ies' : 'y') + '">&#9998;</span>';
+    // Words, not micro-icons: the tile must be legible in a social screenshot.
+    var lineTrades = o.trades ? (o.trades + ' trade' + (o.trades !== 1 ? 's' : '') + (c.avg !== null ? '  &middot;  ' + c.avg + '%' : '')) : '';
+    var lineBody = '';
+    if (o.checkin) {
+      var bits = [];
+      if (typeof o.checkin.sleepHours === 'number') bits.push(o.checkin.sleepHours + 'h sleep');
+      if (o.checkin.mood) bits.push(String(o.checkin.mood).toLowerCase());
+      lineBody = bits.join('  &middot;  ');
+    }
+    var MOODC = { 'Locked In':'var(--green)', 'Good':'var(--green)', 'Neutral':'var(--muted)', 'Overconfident':'var(--orange)', 'Frustrated':'var(--warn)', 'Anxious':'var(--warn)', 'Defeated':'var(--red)' };
+    var moodCol = (o.checkin && MOODC[o.checkin.mood]) || 'var(--muted)';
+    // Flags become readable word chips — only the two that change the story sit on the tile
+    var chips = '';
+    c.flags.forEach(function(f) {
+      if (f[0] !== 'CHIP') return;
+      chips += '<span class="cal-chip" style="color:' + f[2] + ';border-color:' + f[2] + ';">' + f[1] + '</span>';
+    });
+    if (o.logs) chips += '<span class="cal-chip" style="color:var(--gold);border-color:var(--gold-dim);">JOURNAL</span>';
+    var tipParts = [t.name].concat(c.flags.map(function(f){ return f[3] || f[1]; }));
     var cDate = new Date(y, m, dnum).toDateString();
-    html += '<div class="cal-cell" onclick="openLogEntry(null,\'' + cDate + '\')" title="' + _esc(tipParts.filter(Boolean).join(' · ')) + ' — tap to write" style="cursor:pointer;background:' + (t.bg || 'var(--bg2)') + ';border:2px solid ' + t.ring + ';border-radius:5px;padding:6px 8px;">'
-      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px;"><span class="cal-dnum">' + dnum + '</span><span class="cal-flags">' + flagStr + '</span></div>'
+    html += '<div class="cal-cell" onclick="openLogEntry(null,\'' + cDate + '\')" title="' + _esc(tipParts.filter(Boolean).join(' · ')) + ' — tap to write" style="cursor:pointer;background:' + (t.bg || 'var(--bg2)') + ';border:2px solid ' + t.ring + ';border-radius:6px;padding:7px 9px;">'
+      + '<div class="cal-dnum">' + dnum + '</div>'
       + pnlStr
-      + '<div class="cal-sub">' + sub.join(' · ') + '</div>'
+      + (lineTrades ? '<div class="cal-sub">' + lineTrades + '</div>' : '')
+      + (lineBody ? '<div class="cal-sub" style="color:' + moodCol + ';">' + lineBody + '</div>' : '')
+      + (chips ? '<div class="cal-chips">' + chips + '</div>' : '')
       + '</div>';
   }
+
   grid.innerHTML = html;
 
   // ── month summary + badges ──
@@ -6119,28 +6166,50 @@ function renderCalendar() {
     var dw = new Date(y, m, wd2).getDay();
     if (dw !== 0 && dw !== 6) { weekdaysElapsed++; if (days[wd2] && days[wd2].checkin) weekdaysCheckedIn++; }
   }
+  var cleanDays = tradedDays.filter(function(o){ return o.scores.length && (o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length) >= 85; }).length;
+  var slips = tradedDays.filter(function(o){ return o.trades > rules.maxTrades || o.killedTrade; }).length;
+  var avgSleep = sleepVals.length ? (sleepVals.reduce(function(a,b){return a+b;},0)/sleepVals.length) : 0;
   var badges = [
-    { name:'Clean Month',      sub:'Every traded day 85+',      icon:'&#10003;', earned: tradedDays.length > 0 && tradedDays.every(function(o){ return o.scores.length && (o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length) >= 85; }) },
-    { name:'Iron Discipline',  sub:'Never over max trades',     icon:'&#9635;', earned: tradedDays.length > 0 && tradedDays.every(function(o){ return o.trades <= rules.maxTrades && !o.killedTrade; }) },
-    { name:'Green Month',      sub:'Positive P&L',              icon:'&#9650;', earned: (tradedDays.length > 0 || checkinDays > 0) && monthNet > 0 },
-    { name:'The Full Stack',   sub:'Clean + green together',    icon:'&#9819;', earned: false },
-    { name:'Perfect Attendance', sub:'Checked in every weekday', icon:'&#9776;', earned: weekdaysElapsed > 0 && weekdaysCheckedIn === weekdaysElapsed },
-    { name:'Well Rested',      sub:'Averaged 7+ hours',         icon:'&#9790;', earned: sleepVals.length >= 5 && (sleepVals.reduce(function(a,b){return a+b;},0)/sleepVals.length) >= 7 }
+    { name:'Clean Month',  sub:'Followed your rules every trading day', icon:'&#10003;',
+      earned: tradedDays.length > 0 && cleanDays === tradedDays.length,
+      pct: tradedDays.length ? Math.round(cleanDays / tradedDays.length * 100) : 0,
+      note: tradedDays.length ? cleanDays + ' of ' + tradedDays.length + ' days clean' : 'No trades yet' },
+    { name:'Iron Discipline', sub:'Never went over your trade limit', icon:'&#9635;',
+      earned: tradedDays.length > 0 && slips === 0,
+      pct: tradedDays.length ? Math.round((tradedDays.length - slips) / tradedDays.length * 100) : 0,
+      note: slips === 0 ? (tradedDays.length ? 'No slips yet' : 'No trades yet') : slips + ' slip' + (slips > 1 ? 's' : '') + ' this month' },
+    { name:'Green Month',  sub:'Finished the month profitable', icon:'&#9650;',
+      earned: (tradedDays.length > 0 || checkinDays > 0) && monthNet > 0,
+      pct: monthNet > 0 ? 100 : 0,
+      note: (monthNet >= 0 ? '+' : '\u2212') + curSym() + Math.abs(monthNet).toLocaleString(undefined,{maximumFractionDigits:0}) + ' so far' },
+    { name:'The Full Stack', sub:'Clean and profitable \u2014 the rare one', icon:'&#9819;',
+      earned: false, pct: 0, note: 'Needs Clean Month + Green Month', rare: true },
+    { name:'Perfect Attendance', sub:'Checked in every trading day', icon:'&#9776;',
+      earned: weekdaysElapsed > 0 && weekdaysCheckedIn === weekdaysElapsed,
+      pct: weekdaysElapsed ? Math.round(weekdaysCheckedIn / weekdaysElapsed * 100) : 0,
+      note: weekdaysCheckedIn + ' of ' + weekdaysElapsed + ' days' },
+    { name:'Well Rested',  sub:'Averaged 7+ hours of sleep', icon:'&#9790;',
+      earned: sleepVals.length >= 5 && avgSleep >= 7,
+      pct: avgSleep ? Math.min(100, Math.round(avgSleep / 7 * 100)) : 0,
+      note: sleepVals.length ? avgSleep.toFixed(1) + ' hr average' : 'Log sleep at check-in' }
   ];
   badges[3].earned = badges[0].earned && badges[2].earned;
+  badges[3].pct = Math.round(((badges[0].earned ? 50 : 0) + (badges[2].earned ? 50 : 0)));
   var bEl = document.getElementById('rtcCalBadges');
   if (bEl) {
     bEl.innerHTML = badges.map(function(bg) {
       var on = bg.earned;
-      return '<div style="padding:10px;background:' + (on ? 'rgba(var(--gold-rgb),0.07)' : 'var(--bg2)') + ';border:1px solid ' + (on ? 'var(--gold-dim)' : 'var(--border)') + ';border-radius:var(--r-sm);text-align:center;' + (on ? '' : 'opacity:.45;') + '">'
-        + '<div style="font-size:16px;color:' + (on ? 'var(--gold)' : 'var(--muted)') + ';">' + bg.icon + '</div>'
-        + '<div style="font-size:11px;font-weight:700;color:' + (on ? 'var(--gold)' : 'var(--text2)') + ';margin-top:3px;">' + bg.name + '</div>'
-        + '<div style="font-size:9px;color:var(--muted);margin-top:1px;">' + (on ? bg.sub : 'Not earned yet') + '</div>'
+      return '<div class="seal-card' + (on ? ' earned' : '') + (bg.rare && on ? ' rare' : '') + '">'
+        + '<div class="seal-ring' + (on ? ' earned' : '') + '">' + bg.icon + '</div>'
+        + '<div class="seal-name">' + bg.name + '</div>'
+        + '<div class="seal-sub">' + bg.sub + '</div>'
+        + (on ? '<div class="seal-note earned">EARNED</div>'
+              : '<div class="seal-bar"><i style="width:' + Math.max(2, Math.min(100, bg.pct)) + '%;"></i></div><div class="seal-note">' + bg.note + '</div>')
         + '</div>';
     }).join('');
   }
   var lg = document.getElementById('rtcCalLegend');
-  if (lg) lg.innerHTML = 'RING &nbsp;<span style="color:var(--green);">green = rules kept</span> &nbsp;&middot;&nbsp; <span style="color:var(--red);">red = rules broken</span> &nbsp;&middot;&nbsp; <span style="color:var(--gold);">&bull; discipline day &mdash; no trade was the trade</span><br>FLAGS &nbsp;<b>!</b> overtraded &nbsp;&middot;&nbsp; <b>X</b> ran the red &nbsp;&middot;&nbsp; <b>S</b> saved by the switch &nbsp;&middot;&nbsp; <b>1</b> sniper &nbsp;&middot;&nbsp; <b>Z</b> low fuel &nbsp;&middot;&nbsp; <b>P</b> pressure day &nbsp;&middot;&nbsp; <span style="color:var(--gold);">&#9998; log entry &mdash; tap any day to write</span>';
+  if (lg) lg.innerHTML = 'Every day is judged two ways. <strong style="color:var(--green);">Green border = you followed your rules.</strong> <strong style="color:var(--red);">Red border = you broke them.</strong> The dollar figure is just the money.';
 }
 
 
@@ -13244,7 +13313,7 @@ function renderJournal() {
         // Header
         '<div class="jc-hdr" style="cursor:pointer;">'
         + '<div style="display:flex;align-items:center;gap:10px;">'
-        + '<span class="jc-caret" style="font-size:10px;color:var(--faint);display:inline-block;transition:transform .2s;transform:' + (isExpanded ? 'rotate(0)' : 'rotate(-90deg)') + ';">\u2228</span>'
+        + '<span class="jc-caret" style="font-size:13px;font-weight:800;color:var(--gold);display:inline-block;transition:transform .2s;transform:' + (isExpanded ? 'rotate(0)' : 'rotate(-90deg)') + ';">\u2228</span>'
         + '<span class="jc-ticker">' + (t.ticker||'\u2014') + '</span>'
         + (t.direction && t.direction!=='\u2014' ? '<span class="jc-dir ' + (t.direction==='Long'?'long':'short') + '">' + t.direction + '</span>' : '')
         + '<span class="jc-time">' + (t.time||'') + '</span>'
@@ -13253,6 +13322,7 @@ function renderJournal() {
         + pnlChip
         + '<span style="font-size:11px;font-weight:800;color:' + scoreColor + ';background:rgba(255,255,255,0.04);padding:3px 8px;border-radius:4px;border:1px solid ' + scoreColor + '33;">' + scoreLabel + ' \u00b7 ' + (t.pct||0) + '%</span>'
         + '<span class="jc-score">' + (t.score||0) + ' pts</span>'
+        + '<span class="jc-hint" style="font-size:9px;letter-spacing:1px;color:var(--faint);text-transform:uppercase;">' + (isExpanded ? 'Hide' : 'Details') + '</span>'
         + '<button onclick="openEditTradeModal(\'' + t.id + '\')" title="Edit" style="background:transparent;border:none;cursor:pointer;color:var(--muted);padding:2px;display:flex;align-items:center;justify-content:center;opacity:.7;transition:opacity .15s,color .15s;" onmouseenter="this.style.opacity=\'1\';this.style.color=\'var(--gold)\'" onmouseleave="this.style.opacity=\'.7\';this.style.color=\'var(--muted)\'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
         + '</div></div>'
         // Collapsible detail body — compact single-line rows keep the page short
@@ -13284,6 +13354,8 @@ function renderJournal() {
             journalExpandedTrades[tradeId] = !open;
             const cv = hdrEl.querySelector('.jc-caret');
             if (cv) cv.style.transform = open ? 'rotate(-90deg)' : 'rotate(0)';
+            const hn = hdrEl.querySelector('.jc-hint');
+            if (hn) hn.textContent = open ? 'Details' : 'Hide';
           };
         }
       })(t.id);
