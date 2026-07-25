@@ -6966,7 +6966,7 @@ function openFullScreen(tradeId) {
 
   // Overlay
   const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:9999;display:flex;flex-direction:column;align-items:center;overflow-y:auto;padding:20px 20px 40px;';
+  overlay.style.cssText = 'position:fixed;inset:0;background:var(--page);z-index:9999;display:flex;flex-direction:column;align-items:center;overflow-y:auto;padding:20px 20px 40px;';
 
   // Close button
   const closeBtn = document.createElement('button');
@@ -6975,7 +6975,7 @@ function openFullScreen(tradeId) {
   closeBtn.onclick = () => overlay.remove();
 
   // Trade header info
-  const scoreColor = (trade.pct||0) >= 85 ? '#00d084' : (trade.pct||0) >= 70 ? '#4dcc6e' : (trade.pct||0) >= 50 ? 'var(--gold)' : '#ff6b35';
+  const scoreColor = (trade.pct||0) >= 70 ? 'var(--green)' : (trade.pct||0) >= 50 ? 'var(--gold)' : 'var(--warn)';
   const scoreLabel = (trade.pct||0) >= 85 ? 'A+' : (trade.pct||0) >= 70 ? 'A' : (trade.pct||0) >= 50 ? 'B' : 'C';
 
   const header = document.createElement('div');
@@ -6983,14 +6983,14 @@ function openFullScreen(tradeId) {
   header.innerHTML =
     '<div style="display:flex;align-items:center;gap:10px;">'
     + '<span style="font-family:Inter,sans-serif;font-size:22px;font-weight:700;color:var(--white);">' + (trade.ticker || '—') + '</span>'
-    + '<span style="font-size:11px;font-weight:800;color:' + (trade.direction==='Long'?'#00d084':'#e53935') + ';letter-spacing:1.5px;text-transform:uppercase;">' + (trade.direction || '—') + '</span>'
+    + '<span style="font-size:11px;font-weight:800;color:' + (trade.direction==='Long'?'var(--green)':'var(--red)') + ';letter-spacing:1.5px;text-transform:uppercase;">' + (trade.direction || '—') + '</span>'
     + '<span style="font-size:11px;font-weight:800;color:' + scoreColor + ';padding:3px 8px;border-radius:4px;border:1px solid ' + scoreColor + '44;">' + scoreLabel + ' · ' + (trade.pct||0) + '%</span>'
     + '</div>'
     + '<span style="font-size:12px;color:var(--faint);letter-spacing:1px;">' + _esc(trade.date||'') + ' · ' + _esc(trade.time||'') + (trade.entry && trade.entry!=='—' ? ' · Entry: ' + _esc(trade.entry) : '') + '</span>';
 
   // Chart image — double click/tap to go true fullscreen
   const imgWrap = document.createElement('div');
-  imgWrap.style.cssText = 'width:100%;max-width:800px;border-radius:4px;border:1px solid rgba(255,255,255,0.06);margin-bottom:20px;overflow:hidden;position:relative;background:#000;';
+  imgWrap.style.cssText = 'width:100%;max-width:800px;border-radius:4px;border:1px solid var(--border2);margin-bottom:20px;overflow:hidden;position:relative;background:#000;';
 
   const img = document.createElement('img');
   RTCShots.url(shots[currentShotIndex]).then(function(u){ if (u) img.src = u; });
@@ -6998,7 +6998,7 @@ function openFullScreen(tradeId) {
 
   // Hint label
   const zoomHint = document.createElement('div');
-  zoomHint.style.cssText = 'position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.65);padding:5px 10px;border-radius:6px;font-size:11px;color:var(--muted);pointer-events:none;letter-spacing:.5px;';
+  zoomHint.style.cssText = 'position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.65);padding:5px 10px;border-radius:6px;font-size:11px;color:rgba(255,255,255,0.85);pointer-events:none;letter-spacing:.5px;';
   zoomHint.textContent = 'Double tap to expand';
 
   // Double click — desktop
@@ -7027,16 +7027,16 @@ function openFullScreen(tradeId) {
 
     const prevBtn = document.createElement('button');
     prevBtn.innerHTML = '‹';
-    prevBtn.style.cssText = 'width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.15);color:var(--white);font-size:20px;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;';
+    prevBtn.style.cssText = 'width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:20px;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;';
     prevBtn.onclick = function(e) { e.stopPropagation(); shiftShot(-1); };
 
     counterLabel = document.createElement('div');
-    counterLabel.style.cssText = 'background:rgba(0,0,0,0.6);padding:5px 12px;border-radius:4px;font-size:11px;color:var(--text2);pointer-events:all;letter-spacing:.5px;';
+    counterLabel.style.cssText = 'background:rgba(0,0,0,0.6);padding:5px 12px;border-radius:4px;font-size:11px;color:rgba(255,255,255,0.85);pointer-events:all;letter-spacing:.5px;';
     counterLabel.textContent = (currentShotIndex+1) + ' / ' + shots.length;
 
     const nextBtn = document.createElement('button');
     nextBtn.innerHTML = '›';
-    nextBtn.style.cssText = 'width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.15);color:var(--white);font-size:20px;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;';
+    nextBtn.style.cssText = 'width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:20px;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;';
     nextBtn.onclick = function(e) { e.stopPropagation(); shiftShot(1); };
 
     navBar.appendChild(prevBtn);
@@ -7053,30 +7053,39 @@ function openFullScreen(tradeId) {
 
   // Notes section
   const notesWrap = document.createElement('div');
-  notesWrap.style.cssText = 'width:100%;max-width:800px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:20px 24px;';
+  notesWrap.style.cssText = 'width:100%;max-width:800px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px 24px;';
 
-  let notesHTML = '<div style="font-size:10px;font-weight:700;color:rgba(var(--gold-rgb),0.7);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;">Trade Notes</div>';
+  let notesHTML = '<div style="font-size:10px;font-weight:700;color:rgba(var(--gold-rgb),0.85);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;">Trade Notes</div>';
 
+  // Notes live in two places: the thesis typed when logging (trade.notes) and
+  // anything added later in the post-trade review (trade.review.notes). Show both.
+  const reviewNotes = trade.review && trade.review.notes;
   if (trade.notes) {
     notesHTML += '<div style="font-size:15px;color:var(--text2);line-height:1.8;font-weight:300;font-style:italic;">"' + _esc(trade.notes) + '"</div>';
-  } else {
+  }
+  if (reviewNotes) {
+    notesHTML += '<div style="' + (trade.notes ? 'margin-top:12px;' : '') + '">'
+      + '<div style="font-size:9px;font-weight:700;color:var(--faint);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">Post-Trade Review</div>'
+      + '<div style="font-size:14px;color:var(--text2);line-height:1.8;font-weight:300;font-style:italic;">"' + _esc(reviewNotes) + '"</div></div>';
+  }
+  if (!trade.notes && !reviewNotes) {
     notesHTML += '<div style="font-size:13px;color:var(--muted);font-style:italic;">No notes recorded for this trade.</div>';
   }
 
   // Score bar in notes
-  notesHTML += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);">'
+  notesHTML += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">'
     + '<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
     + '<span style="font-size:11px;color:var(--faint);letter-spacing:1px;text-transform:uppercase;">Discipline Score</span>'
     + '<span style="font-size:11px;font-weight:700;color:' + scoreColor + ';">' + (trade.pct||0) + '%</span>'
     + '</div>'
-    + '<div style="background:rgba(255,255,255,0.05);border-radius:4px;height:6px;overflow:hidden;">'
+    + '<div style="background:var(--bg4);border-radius:4px;height:6px;overflow:hidden;">'
     + '<div style="width:' + (trade.pct||0) + '%;height:100%;border-radius:4px;background:' + scoreColor + ';"></div>'
     + '</div>'
     + '</div>';
 
   // Mood & sleep
   if (trade.mood || trade.sleep) {
-    notesHTML += '<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:16px;flex-wrap:wrap;">';
+    notesHTML += '<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap;">';
     if (trade.mood) notesHTML += '<div style="font-size:12px;color:var(--faint);">Mood: <span style="color:var(--muted);">' + trade.mood + '</span></div>';
     if (trade.sleep) notesHTML += '<div style="font-size:12px;color:var(--faint);">Sleep: <span style="color:var(--muted);">' + trade.sleep + '</span></div>';
     notesHTML += '</div>';
@@ -7955,7 +7964,7 @@ function addScreenshotFile(file) {
   reader.onload = function(e) {
     const dataUrl = e.target.result;
     if (file.size > 1500000) {
-      compressImage(dataUrl, 0.7, function(compressed) { addScreenshotToList(compressed); });
+      compressImage(dataUrl, 0.85, function(compressed) { addScreenshotToList(compressed); });
     } else {
       addScreenshotToList(dataUrl);
     }
@@ -7967,11 +7976,15 @@ function compressImage(dataUrl, quality, callback) {
   const img = new Image();
   img.onload = function() {
     const canvas = document.createElement('canvas');
-    const maxW = 1200;
+    // 2000px / high quality: charts carry fine text. Cheap now that screenshots
+    // live in Supabase Storage (5MB/file) instead of the 5MB localStorage total.
+    const maxW = 2000;
     const scale = Math.min(1, maxW / img.width);
     canvas.width  = img.width  * scale;
     canvas.height = img.height * scale;
     const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     callback(canvas.toDataURL('image/jpeg', quality));
   };
@@ -9997,7 +10010,7 @@ function handleEditScreenshotUpload(files) {
     reader.onload = function(e) {
       const dataUrl = e.target.result;
       if (file.size > 1500000) {
-        compressImage(dataUrl, 0.7, function(compressed) { addEditScreenshot(compressed); });
+        compressImage(dataUrl, 0.85, function(compressed) { addEditScreenshot(compressed); });
       } else {
         addEditScreenshot(dataUrl);
       }
@@ -11691,7 +11704,7 @@ function handleTmScreenshot(input) {
     reader.onload = function(e) {
       const dataUrl = e.target.result;
       if (file.size > 1500000) {
-        compressImage(dataUrl, 0.7, function(compressed) { addTmScreenshot(compressed); });
+        compressImage(dataUrl, 0.85, function(compressed) { addTmScreenshot(compressed); });
       } else {
         addTmScreenshot(dataUrl);
       }
