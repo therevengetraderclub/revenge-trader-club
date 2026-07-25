@@ -3661,7 +3661,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
         <div id="tmTradesCard" style="background:var(--bg2);border:1px solid #2a2a2a;border-radius:4px;padding:12px 8px;text-align:center;transition:all .4s ease;">
           <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Trades Left</div>
           <div id="tmTradesLeft" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--white);line-height:1;">—</div>
-          <div style="font-size:9px;color:var(--faint);margin-top:2px;">of 3 today</div>
+          <div id="tmTradesOf" style="font-size:9px;color:var(--faint);margin-top:2px;">of 3 today</div>
         </div>
 
         <div id="tmDrawdownCard" style="background:var(--bg2);border:1px solid #2a2a2a;border-radius:4px;padding:12px 8px;text-align:center;transition:all .4s ease;">
@@ -4355,16 +4355,16 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg3);border-radius:var(--r-sm);border:1px solid var(--border);">
             <div>
               <div style="font-size:13px;font-weight:700;color:var(--white);">Daily Max Loss</div>
-              <div style="font-size:12px;color:var(--text2);margin-top:3px;">Balance ÷ 7 — stop trading if you hit this</div>
+              <div id="psDivisorNote" style="font-size:12px;color:var(--text2);margin-top:3px;">Balance ÷ 7 — stop trading if you hit this</div>
             </div>
             <div style="font-size:20px;font-weight:900;color:var(--white);font-family:'Inter',sans-serif;" id="psDailyMax">$0</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg3);border-radius:var(--r-sm);border:1px solid var(--border);">
             <div>
               <div style="font-size:13px;font-weight:700;color:var(--white);">Max Trades Per Day</div>
-              <div style="font-size:12px;color:var(--text2);margin-top:3px;">3 trades maximum — then you are done</div>
+              <div id="psMaxTradesNote" style="font-size:12px;color:var(--text2);margin-top:3px;">3 trades maximum — then you are done</div>
             </div>
-            <div style="font-size:20px;font-weight:900;color:var(--white);font-family:'Inter',sans-serif;">3</div>
+            <div id="psMaxTradesVal" style="font-size:20px;font-weight:900;color:var(--white);font-family:'Inter',sans-serif;">3</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(229,57,53,0.06);border-radius:var(--r-sm);border:1px solid #2a1212;">
             <div>
@@ -4599,6 +4599,24 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
   <!-- PERFORMANCE -->
   <div class="tab-body" id="tab-perf" style="display:none;">
+
+    <!-- DISCIPLINE CALENDAR — the flex with a conscience -->
+    <div class="card" id="rtcCalCard" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+        <div class="card-title" style="margin-bottom:0;">Discipline Calendar</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn-plain" onclick="rtcCalNav(-1)" aria-label="Previous month" style="width:30px;height:30px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;font-size:15px;line-height:1;">‹</button>
+          <div id="rtcCalMonthLbl" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1.5px;color:var(--gold);min-width:110px;text-align:center;text-transform:uppercase;">—</div>
+          <button class="btn-plain" onclick="rtcCalNav(1)" aria-label="Next month" style="width:30px;height:30px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;font-size:15px;line-height:1;">›</button>
+        </div>
+      </div>
+      <div class="card-sub">The number says what happened. The ring says whether you followed your rules.</div>
+      <div id="rtcCalDow" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:5px;"></div>
+      <div id="rtcCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;"></div>
+      <div id="rtcCalSummary" style="margin-top:12px;font-size:12px;color:var(--text2);"></div>
+      <div id="rtcCalBadges" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px;"></div>
+      <div id="rtcCalLegend" style="margin-top:12px;font-size:10px;color:var(--muted);line-height:1.9;"></div>
+    </div>
 
     <!-- THE MIRROR — self-knowledge surface, rendered by renderMirror() -->
     <div id="mirrorSection" style="display:none;margin-bottom:16px;"></div>
@@ -4843,6 +4861,88 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
         <div class="theme-opt" data-theme="light" onclick="setTheme('light')">
           <div class="theme-swatch" style="background:#f2f0e9;border-color:#ddd9cd;"><span style="background:#9c7b2a;"></span></div>
           <div class="theme-name">Light</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Market</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">What this account trades — sets the session status and market hours in the gutter.</div>
+      <div id="marketPickerRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;">
+        <div class="market-opt" data-market="futures" onclick="setAccMarket('futures')" style="padding:12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
+          <div style="font-size:12px;font-weight:700;color:var(--white);">Futures</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">NQ · ES · GC</div>
+        </div>
+        <div class="market-opt" data-market="stocks" onclick="setAccMarket('stocks')" style="padding:12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
+          <div style="font-size:12px;font-weight:700;color:var(--white);">Stocks</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">NYSE · Nasdaq</div>
+        </div>
+        <div class="market-opt" data-market="crypto" onclick="setAccMarket('crypto')" style="padding:12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
+          <div style="font-size:12px;font-weight:700;color:var(--white);">Crypto</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">24/7</div>
+        </div>
+        <div class="market-opt" data-market="forex" onclick="setAccMarket('forex')" style="padding:12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
+          <div style="font-size:12px;font-weight:700;color:var(--white);">Forex</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Currency pairs</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Risk Rules</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Set your rules once — the whole app holds you to them. Tighter applies now; looser waits until tomorrow.</div>
+      <div class="risk-lbl2" style="margin-bottom:8px;">Max Trades Per Day</div>
+      <div id="rrTradesRow" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;">
+        <div class="rr-opt" data-kind="maxTrades" data-val="1" onclick="setAccRiskRule('maxTrades',1)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">1</div>
+        <div class="rr-opt" data-kind="maxTrades" data-val="2" onclick="setAccRiskRule('maxTrades',2)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">2</div>
+        <div class="rr-opt" data-kind="maxTrades" data-val="3" onclick="setAccRiskRule('maxTrades',3)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">3</div>
+        <div class="rr-opt" data-kind="maxTrades" data-val="4" onclick="setAccRiskRule('maxTrades',4)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">4</div>
+        <div class="rr-opt" data-kind="maxTrades" data-val="5" onclick="setAccRiskRule('maxTrades',5)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">5</div>
+      </div>
+      <div class="risk-lbl2" style="margin-bottom:8px;">Daily Max Loss</div>
+      <div id="rrDivRow" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+        <div class="rr-opt" data-kind="divisor" data-val="5" onclick="setAccRiskRule('divisor',5)" style="padding:10px 4px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
+          <div style="font-size:14px;font-weight:800;color:var(--white);">÷ 5</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Aggressive</div>
+        </div>
+        <div class="rr-opt" data-kind="divisor" data-val="7" onclick="setAccRiskRule('divisor',7)" style="padding:10px 4px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
+          <div style="font-size:14px;font-weight:800;color:var(--white);">÷ 7</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Standard</div>
+        </div>
+        <div class="rr-opt" data-kind="divisor" data-val="10" onclick="setAccRiskRule('divisor',10)" style="padding:10px 4px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
+          <div style="font-size:14px;font-weight:800;color:var(--white);">÷ 10</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Conservative</div>
+        </div>
+      </div>
+      <div id="rrReadout" style="font-size:12px;color:var(--text2);line-height:1.7;"></div>
+      <div id="rrPendingNote" style="display:none;margin-top:10px;padding:9px 12px;background:rgba(var(--gold-rgb),0.07);border:1px solid rgba(var(--gold-rgb),0.3);border-radius:var(--r-sm);font-size:11px;color:var(--gold);line-height:1.6;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Your Creed</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">The words in your gutter, on every screen, 24/7. One line per row — up to 6 lines, 22 characters each. Your last line gets the gold.</div>
+      <textarea id="creedInput" rows="6" spellcheck="false" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-left:2px solid var(--gold-dim);border-radius:var(--r-sm);padding:12px 14px;color:var(--white);font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;line-height:1.9;resize:vertical;"></textarea>
+      <div style="display:flex;gap:10px;margin-top:10px;">
+        <button onclick="resetCreed()" class="btn-plain" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">Reset to Default</button>
+        <button id="creedSaveBtn" onclick="saveCreed()" class="btn-gold" style="flex:1;">Set My Creed</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Currency</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">How this account's numbers display. No conversion — just your symbol.</div>
+      <div id="currencyRow" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <div class="ccy-opt" data-ccy="$" onclick="setAccCurrency('$')" style="padding:12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
+          <div style="font-size:16px;font-weight:800;color:var(--white);">$</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Dollar</div>
+        </div>
+        <div class="ccy-opt" data-ccy="€" onclick="setAccCurrency('€')" style="padding:12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
+          <div style="font-size:16px;font-weight:800;color:var(--white);">€</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Euro</div>
+        </div>
+        <div class="ccy-opt" data-ccy="£" onclick="setAccCurrency('£')" style="padding:12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
+          <div style="font-size:16px;font-weight:800;color:var(--white);">£</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Pound</div>
         </div>
       </div>
     </div>
@@ -5572,21 +5672,231 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
     var rc=HALF[d]?13:16;
     return (wk(wd)&&t>=9.5&&t<rc)?'RTH':'OPEN';
   }
+  // Per-market session state — the gutter speaks the trader's language
+  function marketState(mkt){
+    if(mkt==='crypto') return 'OPEN247';
+    if(mkt==='stocks'){
+      var d=etDate();
+      if(HOLUS[d]||HOLG[d])return 'HOLIDAY';
+      var z=zoneNow('America/New_York');
+      if(!wk(z.wd))return 'CLOSED';
+      var rc=HALF[d]?13:16;
+      return (z.t>=9.5&&z.t<rc)?'RTH':'CLOSED';
+    }
+    if(mkt==='forex'){
+      var zf=zoneNow('America/New_York'),wd=zf.wd,t=zf.t,open;
+      if(wd==='Sat')open=false;else if(wd==='Sun')open=t>=17;else if(wd==='Fri')open=t<17;else open=true;
+      return open?'OPEN':'CLOSED';
+    }
+    return futuresState();
+  }
+  var MKT_LABEL={futures:'FUTURES',stocks:'STOCKS',crypto:'CRYPTO',forex:'FOREX'};
   var LABEL={tokyo:'TOKYO',london:'LONDON',ny:'NY'};
   function tick(){
     var els=document.querySelectorAll('#hudClock [data-tz]');
     for(var i=0;i<els.length;i++){var z=els[i].getAttribute('data-tz');try{els[i].textContent=new Date().toLocaleTimeString('en-US',{hour12:false,timeZone:z});}catch(e){els[i].textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}}
     var openCities=[];
     Object.keys(CITY).forEach(function(k){var on=false;try{on=CITY[k]();}catch(e){ rtcWarn(e); }var row=document.querySelector('#hudClock .wc[data-city="'+k+'"]');if(row){row.classList.toggle('open',on);var st=row.querySelector('.wc-s');if(st)st.textContent=on?'● LIVE':'';}if(on)openCities.push(LABEL[k]);});
-    var fs='CLOSED';try{fs=futuresState();}catch(e){ rtcWarn(e); }
+    var mkt='futures';try{if(typeof getAccMarket==='function'&&typeof getActiveAcc==='function')mkt=getAccMarket(getActiveAcc());}catch(e){ rtcWarn(e); }
+    var mkEl=document.querySelector('#hudClock .wc-fut .wc-k');
+    if(mkEl&&mkEl.textContent!==MKT_LABEL[mkt])mkEl.textContent=MKT_LABEL[mkt]||'FUTURES';
+    var fs='CLOSED';try{fs=marketState(mkt);}catch(e){ rtcWarn(e); }
     var fEl=document.getElementById('futStatus');
-    if(fEl){var map={RTH:'● OPEN · RTH',OPEN:'● OPEN',HALT:'○ HALT',CLOSED:'○ CLOSED',HOLIDAY:'○ HOLIDAY'};fEl.textContent=map[fs]||fs;fEl.className='wc-v st-'+fs.toLowerCase();}
+    if(fEl){var map={RTH:'● OPEN · RTH',OPEN:'● OPEN',OPEN247:'● OPEN · 24/7',HALT:'○ HALT',CLOSED:'○ CLOSED',HOLIDAY:'○ HOLIDAY'};fEl.textContent=map[fs]||fs;fEl.className='wc-v st-'+(fs==='OPEN247'?'open':fs.toLowerCase());}
+    var isOpen=(fs==='OPEN'||fs==='OPEN247');
     var sessEl=document.getElementById('hudSess'),sessTxt=document.getElementById('hudSessTxt');
-    if(sessEl&&sessTxt){var label;if(openCities.length)label=openCities.join(' + ');else if(fs==='HOLIDAY')label='MARKET HOLIDAY';else if(fs==='OPEN')label='FUTURES · OVERNIGHT';else if(fs==='HALT')label='DAILY HALT';else label='MARKETS CLOSED';sessTxt.textContent=label;sessEl.classList.toggle('closed',!openCities.length&&fs!=='OPEN');}
+    if(sessEl&&sessTxt){var label;if(openCities.length)label=openCities.join(' + ');else if(fs==='HOLIDAY')label='MARKET HOLIDAY';else if(fs==='OPEN')label=(mkt==='forex'?'FOREX · OPEN':'FUTURES · OVERNIGHT');else if(fs==='OPEN247')label='CRYPTO · 24/7';else if(fs==='HALT')label='DAILY HALT';else label='MARKETS CLOSED';sessTxt.textContent=label;sessEl.classList.toggle('closed',!openCities.length&&!isOpen);}
   }
   setInterval(tick,1000);tick();
 })();
 function rtcStorageUsage() { return RTCStore.usage(); }
+
+// ═══════════════════════════════════════════════════════
+// DISCIPLINE CALENDAR — money on the tile, rules on the ring
+// Day titles come from two axes only: money outcome × rules adherence.
+// Sleep / stress / mood are context glyphs, never categories.
+// ═══════════════════════════════════════════════════════
+var rtcCalOffset = 0;
+function rtcCalNav(d) {
+  if (rtcCalOffset + d > 0) return;   // no future months
+  rtcCalOffset += d;
+  renderCalendar();
+  playSound('tick');
+}
+
+function rtcCalParseDate(raw) {
+  if (!raw) return null;
+  var d = new Date(raw);
+  if (!isNaN(d) && d.getFullYear() < 2010) d = new Date(raw + ', ' + new Date().getFullYear());
+  return isNaN(d) ? null : d;
+}
+
+function renderCalendar() {
+  var grid = document.getElementById('rtcCalGrid');
+  if (!grid) return;
+  var acc = getActiveAcc();
+  var rules = getAccRules(acc);
+  var now = new Date();
+  var view = new Date(now.getFullYear(), now.getMonth() + rtcCalOffset, 1);
+  var y = view.getFullYear(), m = view.getMonth();
+  var isCurrentMonth = (y === now.getFullYear() && m === now.getMonth());
+
+  var lbl = document.getElementById('rtcCalMonthLbl');
+  if (lbl) lbl.textContent = view.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+
+  // ── gather the month's raw material, keyed by day-of-month ──
+  var days = {};
+  function day(n) { return days[n] || (days[n] = { trades:0, pnl:null, scores:[], killedTrade:false, checkin:null, killFired:false, manual:0 }); }
+
+  getTrades().forEach(function(t) {
+    var d = rtcCalParseDate(t.date);
+    if (!d || d.getFullYear() !== y || d.getMonth() !== m) return;
+    var o = day(d.getDate());
+    o.trades++;
+    if (typeof t.tradePnl === 'number') o.pnl = (o.pnl || 0) + t.tradePnl;
+    if (t.pct) o.scores.push(t.pct);
+    if (t.killed) o.killedTrade = true;
+  });
+  getCheckins().forEach(function(c) {
+    var d = rtcCalParseDate(c.date);
+    if (!d || d.getFullYear() !== y || d.getMonth() !== m) return;
+    var o = day(d.getDate());
+    if (!o.checkin) o.checkin = c;
+  });
+  // Manual goal P&L (year-less dates — only trustworthy for the current year)
+  if (y === now.getFullYear()) {
+    (typeof pnlLog !== 'undefined' && pnlLog ? pnlLog : []).forEach(function(e) {
+      if (!e || e.src === 'trade') return;
+      var d = rtcCalParseDate(e.date);
+      if (!d || d.getMonth() !== m) return;
+      var o = day(d.getDate());
+      o.manual += (e.pnl || 0);
+      o.pnl = (o.pnl || 0) + (e.pnl || 0);
+    });
+  }
+  try {
+    JSON.parse(RTCStore.get('rtc_killlog_' + getActiveIdx()) || '[]').forEach(function(ds) {
+      var d = new Date(ds);
+      if (!isNaN(d) && d.getFullYear() === y && d.getMonth() === m) day(d.getDate()).killFired = true;
+    });
+  } catch(e) { rtcWarn(e); }
+
+  // ── classify each day ──
+  function classify(o) {
+    var avg = o.scores.length ? Math.round(o.scores.reduce(function(a,b){return a+b;},0) / o.scores.length) : null;
+    var over = o.trades > rules.maxTrades;
+    var ranRed = o.killedTrade;
+    var clean = (avg === null || avg >= 70) && !over && !ranRed;
+    var r = { avg: avg, flags: [] };
+    if (o.trades === 0) {
+      r.type = o.checkin ? 'discipline' : 'empty';
+    } else if ((o.pnl || 0) >= 0) {
+      r.type = clean ? 'cleanwin' : 'dirtywin';
+    } else {
+      r.type = clean ? 'cleanloss' : 'tilt';
+    }
+    if (over) r.flags.push(['⚠','Overtraded — ' + o.trades + ' trades, your rule is ' + rules.maxTrades]);
+    if (ranRed) r.flags.push(['⊘','Ran the Red — traded through an active kill switch']);
+    if (o.killFired && !ranRed) r.flags.push(['✋','Saved by the Switch — the kill switch fired and you walked away']);
+    if (o.trades === 1 && (o.pnl || 0) > 0 && clean) r.flags.push(['◎','Sniper — one trade, one win']);
+    if (o.checkin && typeof o.checkin.sleepHours === 'number' && o.checkin.sleepHours <= 5) r.flags.push(['☾','Low Fuel — traded on ' + o.checkin.sleepHours + 'h sleep']);
+    if (o.checkin && o.checkin.stress === 'High') r.flags.push(['⚡','Pressure Day — high stress at check-in']);
+    return r;
+  }
+  var TYPE = {
+    cleanwin:  { ring:'var(--green)', name:'Clean Win'  },
+    dirtywin:  { ring:'var(--red)',   name:'Dirty Win'  },
+    cleanloss: { ring:'var(--green)', name:'Clean Loss' },
+    tilt:      { ring:'var(--red)',   name:'Tilt Day', bg:'rgba(229,57,53,0.10)' },
+    discipline:{ ring:'var(--gold-dim)', name:'Discipline Day' },
+    empty:     { ring:'var(--border)', name:'' }
+  };
+
+  // ── draw ──
+  var dow = document.getElementById('rtcCalDow');
+  if (dow && !dow.childNodes.length) dow.innerHTML = ['S','M','T','W','T','F','S'].map(function(c){ return '<div style="text-align:center;font-size:9px;letter-spacing:1px;color:var(--faint);">' + c + '</div>'; }).join('');
+
+  var firstDow = new Date(y, m, 1).getDay();
+  var nDays = new Date(y, m + 1, 0).getDate();
+  var html = '';
+  for (var b = 0; b < firstDow; b++) html += '<div></div>';
+  for (var dnum = 1; dnum <= nDays; dnum++) {
+    var future = isCurrentMonth && dnum > now.getDate();
+    var o = days[dnum];
+    if (future || !o) {
+      html += '<div style="min-height:52px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:4px 6px;opacity:' + (future ? '.35' : '.6') + ';"><div style="font-size:9px;color:var(--faint);">' + dnum + '</div></div>';
+      continue;
+    }
+    var c = classify(o), t = TYPE[c.type];
+    var pnlStr = (o.pnl === null) ? '' :
+      '<div style="font-size:12px;font-weight:800;color:' + ((o.pnl >= 0) ? 'var(--green)' : 'var(--red)') + ';">' + (o.pnl >= 0 ? '+' : '−') + curSym() + Math.abs(o.pnl).toLocaleString(undefined,{maximumFractionDigits:0}) + '</div>';
+    if (c.type === 'discipline') pnlStr = '<div style="font-size:11px;color:var(--gold);">●</div>';
+    var sub = [];
+    if (o.trades) sub.push(o.trades + 't');
+    if (c.avg !== null) sub.push(c.avg + '%');
+    if (o.checkin && typeof o.checkin.sleepHours === 'number') sub.push(o.checkin.sleepHours + 'h');
+    var flagStr = c.flags.map(function(f){ return '<span title="' + _esc(f[1]) + '">' + f[0] + '</span>'; }).join('');
+    var tipParts = [t.name].concat(c.flags.map(function(f){ return f[1]; }));
+    html += '<div title="' + _esc(tipParts.filter(Boolean).join(' · ')) + '" style="min-height:52px;background:' + (t.bg || 'var(--bg2)') + ';border:1.5px solid ' + t.ring + ';border-radius:4px;padding:4px 6px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:9px;color:var(--faint);">' + dnum + '</span><span style="font-size:9px;color:var(--warn);letter-spacing:1px;">' + flagStr + '</span></div>'
+      + pnlStr
+      + '<div style="font-size:8.5px;font-family:\'IBM Plex Mono\',monospace;color:var(--muted);margin-top:1px;">' + sub.join('·') + '</div>'
+      + '</div>';
+  }
+  grid.innerHTML = html;
+
+  // ── month summary + badges ──
+  var tradedDays = [], monthNet = 0, checkinDays = 0, sleepVals = [];
+  Object.keys(days).forEach(function(k) {
+    var o = days[k];
+    if (o.trades > 0) tradedDays.push(o);
+    if (o.pnl !== null) monthNet += o.pnl;
+    if (o.checkin) { checkinDays++; if (typeof o.checkin.sleepHours === 'number') sleepVals.push(o.checkin.sleepHours); }
+  });
+  var allAvgs = tradedDays.map(function(o){ return o.scores.length ? o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length : 0; });
+  var monthAvg = allAvgs.length ? Math.round(allAvgs.reduce(function(a,b){return a+b;},0)/allAvgs.length) : null;
+
+  var sm = document.getElementById('rtcCalSummary');
+  if (sm) {
+    if (tradedDays.length || checkinDays) {
+      sm.innerHTML = 'Month: <strong style="color:' + (monthNet >= 0 ? 'var(--green)' : 'var(--red)') + ';">' + (monthNet >= 0 ? '+' : '−') + curSym() + Math.abs(monthNet).toLocaleString(undefined,{maximumFractionDigits:0}) + '</strong>'
+        + (monthAvg !== null ? ' &middot; avg discipline <strong style="color:var(--gold);">' + monthAvg + '%</strong>' : '')
+        + ' &middot; ' + tradedDays.length + ' traded day' + (tradedDays.length !== 1 ? 's' : '') + ' &middot; ' + checkinDays + ' check-in' + (checkinDays !== 1 ? 's' : '');
+    } else {
+      sm.textContent = 'Nothing logged this month yet.';
+    }
+  }
+
+  // Weekdays elapsed (for attendance)
+  var lastDay = isCurrentMonth ? now.getDate() : nDays;
+  var weekdaysElapsed = 0, weekdaysCheckedIn = 0;
+  for (var wd2 = 1; wd2 <= lastDay; wd2++) {
+    var dw = new Date(y, m, wd2).getDay();
+    if (dw !== 0 && dw !== 6) { weekdaysElapsed++; if (days[wd2] && days[wd2].checkin) weekdaysCheckedIn++; }
+  }
+  var badges = [
+    { name:'Clean Month',      sub:'Every traded day 85+',      icon:'✓', earned: tradedDays.length > 0 && tradedDays.every(function(o){ return o.scores.length && (o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length) >= 85; }) },
+    { name:'Iron Discipline',  sub:'Never over max trades',     icon:'▣', earned: tradedDays.length > 0 && tradedDays.every(function(o){ return o.trades <= rules.maxTrades && !o.killedTrade; }) },
+    { name:'Green Month',      sub:'Positive P&L',              icon:'▲', earned: (tradedDays.length > 0 || checkinDays > 0) && monthNet > 0 },
+    { name:'The Full Stack',   sub:'Clean + green together',    icon:'♛', earned: false },
+    { name:'Perfect Attendance', sub:'Checked in every weekday', icon:'☰', earned: weekdaysElapsed > 0 && weekdaysCheckedIn === weekdaysElapsed },
+    { name:'Well Rested',      sub:'Averaged 7+ hours',         icon:'☾', earned: sleepVals.length >= 5 && (sleepVals.reduce(function(a,b){return a+b;},0)/sleepVals.length) >= 7 }
+  ];
+  badges[3].earned = badges[0].earned && badges[2].earned;
+  var bEl = document.getElementById('rtcCalBadges');
+  if (bEl) {
+    bEl.innerHTML = badges.map(function(bg) {
+      var on = bg.earned;
+      return '<div style="padding:10px;background:' + (on ? 'rgba(var(--gold-rgb),0.07)' : 'var(--bg2)') + ';border:1px solid ' + (on ? 'var(--gold-dim)' : 'var(--border)') + ';border-radius:var(--r-sm);text-align:center;' + (on ? '' : 'opacity:.45;') + '">'
+        + '<div style="font-size:16px;color:' + (on ? 'var(--gold)' : 'var(--muted)') + ';">' + bg.icon + '</div>'
+        + '<div style="font-size:11px;font-weight:700;color:' + (on ? 'var(--gold)' : 'var(--text2)') + ';margin-top:3px;">' + bg.name + '</div>'
+        + '<div style="font-size:9px;color:var(--muted);margin-top:1px;">' + (on ? bg.sub : 'Not earned yet') + '</div>'
+        + '</div>';
+    }).join('');
+  }
+  var lg = document.getElementById('rtcCalLegend');
+  if (lg) lg.innerHTML = 'Ring: <span style="color:var(--green);">green = rules kept</span> &middot; <span style="color:var(--red);">red = rules broken</span> &middot; <span style="color:var(--gold);">● discipline day (no trade was the trade)</span><br>Flags: ⚠ overtraded &middot; ⊘ ran the red &middot; ✋ saved by the switch &middot; ◎ sniper &middot; ☾ low fuel &middot; ⚡ pressure day';
+}
 
 
 // ── EMPTY STATES WITH PERSONALITY ───────────────────────
@@ -6487,6 +6797,13 @@ function triggerKillTakeover() {
   const takeover = document.getElementById('killTakeover');
   if (takeover) takeover.style.display = 'flex';
   playSound('alert');
+  // Record the day for the calendar: walking away after this = Saved by the Switch
+  try {
+    var kk = 'rtc_killlog_' + getActiveIdx();
+    var kl = JSON.parse(RTCStore.get(kk) || '[]');
+    var ds = new Date().toDateString();
+    if (kl.indexOf(ds) === -1) { kl.push(ds); rtcSet(kk, JSON.stringify(kl)); }
+  } catch(e) { rtcWarn(e); }
 }
 
 function closeKillTakeover() {
@@ -6521,6 +6838,7 @@ function saveTrade() {
     entry:     (document.getElementById('cl-entry')  || {}).value || '—',
     score:     Math.round((pct/100) * (clTotalPts||38)),
     pct:       pct,
+    killed:    !!document.querySelector('.kill-item.on'),   // traded through an active kill switch
     notes:     (document.getElementById('cl-notes')  || {}).value || '',
     mood:      currentMood,
     sleep:     currentSleep,
@@ -6943,6 +7261,7 @@ function renderMirror(){
 
 function renderPerf() {
   checkPerfEmptyStates();
+  try { renderCalendar(); } catch(e) { rtcWarn(e); }
   const trades   = getTrades();
   const checkins = getCheckins();
   const set = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
@@ -7136,6 +7455,13 @@ function renderSettings() {
   set('settingsTrades',  getTrades().length);
   set('settingsCheckins',getCheckins().length);
   set('settingsAccCount', String(accs.length).padStart(2,'0'));
+  try { renderMarketPicker(); } catch(e) { rtcWarn(e); }
+  try { renderRiskRules(); } catch(e) { rtcWarn(e); }
+  try { renderCurrencyPicker(); } catch(e) { rtcWarn(e); }
+  try {
+    var _ct = document.getElementById('creedInput');
+    if (_ct && document.activeElement !== _ct) _ct.value = getCreed().join('\n');
+  } catch(e) { rtcWarn(e); }
   // Show the Log Out button whenever there's a live cloud session (robust, not tied to login timing)
   try {
     var _lo = document.getElementById('logoutRow');
@@ -7162,6 +7488,117 @@ function renderSettings() {
 }
 
 // ── ACCOUNT MANAGEMENT ──────────────────────────────────────────
+// ── CURRENCY (per account, display only) ────────────────
+function curSym() {
+  try { var a = getActiveAcc(); return (a && a.currency) || '$'; } catch(e) { return '$'; }
+}
+function setAccCurrency(sym) {
+  var accs = getAccounts(), i = getActiveIdx();
+  if (!accs[i]) return;
+  accs[i].currency = sym;
+  saveAccounts(accs);
+  try { renderCurrencyPicker(); } catch(e) { rtcWarn(e); }
+  try { renderHudData(); renderSessionStrip(); renderJournal(); renderRiskRules(); updateRiskRemaining(); } catch(e) { rtcWarn(e); }
+  playSound('tick');
+}
+function renderCurrencyPicker() {
+  var cur = curSym();
+  document.querySelectorAll('#currencyRow .ccy-opt').forEach(function(el) {
+    var on = el.dataset.ccy === cur;
+    el.style.borderColor = on ? 'var(--gold)' : 'var(--border2)';
+    el.style.background  = on ? 'rgba(var(--gold-rgb),0.08)' : 'var(--bg3)';
+  });
+}
+
+// ── CUSTOM CREED (gutter mantra) ────────────────────────
+// Their own words, in their face 24/7. Rendered bottom-up (column-reverse),
+// so the LAST line a user writes lands in the gold anchor spot.
+var RTC_DEFAULT_CREED = ['DONE LOSING','PROTECT CAPITAL','MASTER YOURSELF','TRUST THE PROCESS','STAY DISCIPLINED','NO EXCUSES'];
+function getCreed() {
+  try {
+    var c = JSON.parse(RTCStore.get('rtc_creed') || 'null');
+    if (Array.isArray(c) && c.length) return c.slice(0, 6);
+  } catch(e) { rtcWarn(e); }
+  return RTC_DEFAULT_CREED;
+}
+function renderCreed() {
+  var lines = getCreed();
+  document.querySelectorAll('.hud-mantra').forEach(function(el) {
+    el.innerHTML = lines.slice().reverse().map(function(l) {
+      return '<span>' + _esc(String(l).toUpperCase()) + '</span>';
+    }).join('');
+  });
+}
+function saveCreed() {
+  var ta = document.getElementById('creedInput'); if (!ta) return;
+  var lines = ta.value.split('\n')
+    .map(function(l){ return l.trim(); })
+    .filter(Boolean)
+    .slice(0, 6)
+    .map(function(l){ return l.slice(0, 22); });
+  if (!lines.length) { resetCreed(); return; }
+  rtcSet('rtc_creed', JSON.stringify(lines));
+  ta.value = lines.join('\n');
+  renderCreed();
+  playSound('chime');
+  var btn = document.getElementById('creedSaveBtn');
+  if (btn) { var o = btn.textContent; btn.textContent = '✓ Creed Set'; setTimeout(function(){ btn.textContent = o; }, 1800); }
+}
+function resetCreed() {
+  RTCStore.remove('rtc_creed');
+  var ta = document.getElementById('creedInput'); if (ta) ta.value = RTC_DEFAULT_CREED.join('\n');
+  renderCreed();
+  playSound('tick');
+}
+
+// ── MARKET PICKER (Settings) ────────────────────────────
+function setAccMarket(m) {
+  var accs = getAccounts(), i = getActiveIdx();
+  if (!accs[i]) return;
+  accs[i].market = m;
+  saveAccounts(accs);
+  renderMarketPicker();
+  playSound('tick');
+}
+function renderMarketPicker() {
+  var cur = getAccMarket(getActiveAcc());
+  document.querySelectorAll('#marketPickerRow .market-opt').forEach(function(el) {
+    var on = el.dataset.market === cur;
+    el.style.borderColor = on ? 'var(--gold)' : 'var(--border2)';
+    el.style.background  = on ? 'rgba(var(--gold-rgb),0.08)' : 'var(--bg3)';
+  });
+}
+
+function renderRiskRules() {
+  var acc = getActiveAcc();
+  if (!acc) return;
+  var rules = getAccRules(acc);
+  document.querySelectorAll('.rr-opt').forEach(function(el) {
+    var on = parseInt(el.dataset.val, 10) === (el.dataset.kind === 'maxTrades' ? rules.maxTrades : rules.divisor);
+    el.style.borderColor = on ? 'var(--gold)' : 'var(--border2)';
+    el.style.background  = on ? 'rgba(var(--gold-rgb),0.08)' : 'var(--bg3)';
+  });
+  var out = document.getElementById('rrReadout');
+  if (out) {
+    var bal = rtcLiveBalance(acc);
+    if (bal > 0) {
+      var daily = bal / rules.divisor, per = daily / rules.maxTrades;
+      out.innerHTML = 'Right now: daily max loss <strong style="color:var(--red);">-' + curSym() + daily.toFixed(0)
+        + '</strong> &middot; risk per trade <strong style="color:var(--gold);">' + curSym() + per.toFixed(0)
+        + '</strong> across ' + rules.maxTrades + ' trade' + (rules.maxTrades !== 1 ? 's' : '') + '.';
+    } else { out.textContent = 'Set your account balance and the numbers appear here.'; }
+  }
+  var note = document.getElementById('rrPendingNote');
+  if (note) {
+    var p = acc.pendingRules;
+    if (p && p.setOn === new Date().toDateString()) {
+      note.style.display = 'block';
+      note.innerHTML = '&#128274; Looser rules locked until tomorrow: ' + p.maxTrades + ' trades &middot; &divide;' + p.divisor
+        + '. Today you trade on your current rules — no mid-session loosening.';
+    } else { note.style.display = 'none'; }
+  }
+}
+
 function selectNewAccStyle(el) {
   document.querySelectorAll('.new-acc-style').forEach(e => {
     e.classList.remove('selected');
@@ -7263,6 +7700,7 @@ rtcOnReady(function() {
   // Always render on page load
   setTimeout(renderMindset, 200);
   setTimeout(renderNewsCalendar, 200);
+  setTimeout(function(){ try{ renderCreed(); }catch(e){ rtcWarn(e); } }, 150);
   setTimeout(function(){ try{renderWarmup();}catch(e){ rtcWarn(e); } }, 300);
 });
 
@@ -8309,12 +8747,22 @@ function calcRiskPerTrade() {
   const result   = document.getElementById('psResult');
   if (!balance || balance <= 0) { if (result) result.style.display = 'none'; return; }
 
-  const dailyMax  = balance / 7;
-  const perTrade  = dailyMax / 3;
+  const _rules    = getAccRules(getActiveAcc());
+  const dailyMax  = balance / _rules.divisor;
+  const perTrade  = dailyMax / _rules.maxTrades;
+  // Keep the explainer copy in sync with the personal rules
+  (function(){
+    var dn = document.getElementById('psDivisorNote');
+    if (dn) dn.textContent = 'Balance ÷ ' + _rules.divisor + ' — stop trading if you hit this';
+    var mn = document.getElementById('psMaxTradesNote');
+    if (mn) mn.textContent = _rules.maxTrades + ' trade' + (_rules.maxTrades !== 1 ? 's' : '') + ' maximum — then you are done';
+    var mv = document.getElementById('psMaxTradesVal');
+    if (mv) mv.textContent = _rules.maxTrades;
+  })();
 
   if (result) result.style.display = 'block';
 
-  const fmt = (n) => '$' + n.toFixed(2);
+  const fmt = (n) => curSym() + n.toFixed(2);
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
 
   set('psPerTrade',      fmt(perTrade));
@@ -8344,7 +8792,8 @@ function updateRiskRemaining() {
   var bal = parseFloat((document.getElementById('psBalance') || {}).value) || 0;
   if (!bal || bal <= 0) { var acc = getActiveAcc(); bal = (acc && acc.balance) || 0; }
   if (!bal || bal <= 0) { wrap.style.display = 'none'; return; }
-  var dailyMax = bal / 7;
+  var rules = getAccRules(getActiveAcc());
+  var dailyMax = bal / rules.divisor;
 
   var todayStr = new Date().toDateString(), net = 0, count = 0;
   var trades = getTrades();
@@ -8362,19 +8811,19 @@ function updateRiskRemaining() {
   } catch(e) { rtcWarn(e); }
 
   var left = Math.max(0, dailyMax + Math.min(0, net));   // net-based, like a prop-firm daily loss limit
-  var tradesLeft = Math.max(0, 3 - count);
+  var tradesLeft = Math.max(0, rules.maxTrades - count);
   var pct = dailyMax ? left / dailyMax : 0;
   var col = (left <= 0 || pct < 0.34) ? 'var(--red)' : pct < 0.67 ? 'var(--orange)' : 'var(--green)';
 
   var amtEl = document.getElementById('psLeftAmt');
   var trEl  = document.getElementById('psLeftTrades');
   var note  = document.getElementById('psLeftNote');
-  if (amtEl) { amtEl.textContent = '$' + left.toFixed(2); amtEl.style.color = col; }
+  if (amtEl) { amtEl.textContent = curSym() + left.toFixed(2); amtEl.style.color = col; }
   wrap.style.borderLeftColor = col;
   if (trEl) { trEl.textContent = tradesLeft; trEl.style.color = tradesLeft === 0 ? 'var(--red)' : tradesLeft === 1 ? 'var(--orange)' : 'var(--white)'; }
   if (note) {
     if (left <= 0 || tradesLeft === 0) { note.textContent = 'DONE for today — close the platform. No revenge.'; note.style.color = 'var(--red)'; note.style.fontWeight = '700'; }
-    else if (net < 0) { note.textContent = '$' + Math.abs(net).toFixed(2) + ' in losses already deducted today'; note.style.color = 'var(--muted)'; note.style.fontWeight = '400'; }
+    else if (net < 0) { note.textContent = curSym() + Math.abs(net).toFixed(2) + ' in losses already deducted today'; note.style.color = 'var(--muted)'; note.style.fontWeight = '400'; }
     else { note.textContent = 'Auto-deducts your logged losses — no math needed'; note.style.color = 'var(--muted)'; note.style.fontWeight = '400'; }
   }
   wrap.style.display = 'flex';
@@ -11540,7 +11989,8 @@ function populateTradingMode() {
     const ddData = JSON.parse(RTCStore.get(ddKey) || '{}');
     const bal = ddData.balance || (acc && acc.balance) || 0;
     if (bal > 0) {
-      riskEl.textContent = '$' + Math.round(bal / 7 / 3).toLocaleString();
+      const _r = getAccRules(acc);
+      riskEl.textContent = curSym() + Math.round(bal / _r.divisor / _r.maxTrades).toLocaleString();
       riskEl.style.color = goalHit ? 'var(--gold)' : 'var(--gold)';
     } else {
       riskEl.textContent = '\u2014';
@@ -11550,8 +12000,11 @@ function populateTradingMode() {
   // ── TRADES LEFT TODAY ────────────────────────────────
   const tradesLeftEl = document.getElementById('tmTradesLeft');
   if (tradesLeftEl) {
-    const left = Math.max(0, 3 - todayTrades.length);
+    const _mr = getAccRules(acc).maxTrades;
+    const left = Math.max(0, _mr - todayTrades.length);
     tradesLeftEl.textContent = left;
+    const _ofEl = document.getElementById('tmTradesOf');
+    if (_ofEl) _ofEl.textContent = 'of ' + _mr + ' today';
     tradesLeftEl.style.color = goalHit ? 'var(--gold)' : left === 0 ? 'var(--red)' : left === 1 ? 'var(--orange)' : 'var(--white)';
   }
 
@@ -11573,7 +12026,7 @@ function populateTradingMode() {
   const pnlEl = document.getElementById('tmPnl');
   if (pnlEl) {
     if (todayPnl !== null) {
-      pnlEl.textContent = (todayPnl >= 0 ? '+$' : '-$') + Math.abs(todayPnl).toFixed(0);
+      pnlEl.textContent = (todayPnl >= 0 ? '+' : '-') + curSym() + Math.abs(todayPnl).toFixed(0);
       pnlEl.style.color = goalHit ? 'var(--gold)' : todayPnl >= 0 ? 'var(--green)' : 'var(--red)';
     } else {
       pnlEl.textContent = '\u2014';
@@ -11861,6 +12314,7 @@ function saveTmTrade() {
     ticker:    ticker.trim() || '\u2014',
     direction: direction || '\u2014',
     entry:     '\u2014',
+    killed:    (typeof tmKillChecked !== 'undefined' && [].concat(tmKillChecked).some(Boolean)),
     notes:     notes,
     tags:      tmSelectedTags.slice(),
     screenshots: [],           // filled in below once uploaded — never base64 in storage
@@ -12430,7 +12884,7 @@ function renderJournal() {
       var yBadges = '<div style="display:flex;align-items:center;gap:10px;">'
         + '<span style="font-size:11px;color:var(--muted);background:var(--bg3);padding:3px 10px;border-radius:4px;border:1px solid var(--border2);">' + yrTrades.length + ' trade' + (yrTrades.length !== 1 ? 's' : '') + '</span>'
         + (yrScores.length ? '<span style="font-size:11px;font-weight:700;color:var(--gold);">Avg ' + Math.round(yrScores.reduce(function(a,b){return a+b;},0)/yrScores.length) + '%</span>' : '')
-        + (yrPnl.length ? '<span style="font-size:12px;font-weight:800;color:' + (yrNet > 0 ? 'var(--green)' : yrNet < 0 ? 'var(--red)' : 'var(--muted)') + ';">' + (yrNet > 0 ? '+' : yrNet < 0 ? '−' : '') + '$' + Math.abs(yrNet).toLocaleString(undefined,{maximumFractionDigits:0}) + '</span>' : '')
+        + (yrPnl.length ? '<span style="font-size:12px;font-weight:800;color:' + (yrNet > 0 ? 'var(--green)' : yrNet < 0 ? 'var(--red)' : 'var(--muted)') + ';">' + (yrNet > 0 ? '+' : yrNet < 0 ? '−' : '') + curSym() + Math.abs(yrNet).toLocaleString(undefined,{maximumFractionDigits:0}) + '</span>' : '')
         + '<span style="font-size:14px;color:var(--muted);transition:transform .2s;display:inline-block;transform:' + (yCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)') + ';">∨</span>'
         + '</div>';
       yHdr.innerHTML = '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:24px;letter-spacing:5px;color:var(--gold);">' + yr + '</div>' + yBadges;
@@ -12478,7 +12932,7 @@ function renderJournal() {
       const net = pnlTrades.reduce(function(s,t){ return s + t.tradePnl; }, 0);
       const pnlBadge = document.createElement('div');
       pnlBadge.style.cssText = 'font-size:12px;font-weight:800;color:' + (net > 0 ? 'var(--green)' : net < 0 ? 'var(--red)' : 'var(--muted)') + ';';
-      pnlBadge.textContent = (net > 0 ? '+' : net < 0 ? '−' : '') + '$' + Math.abs(net).toLocaleString(undefined,{maximumFractionDigits:0});
+      pnlBadge.textContent = (net > 0 ? '+' : net < 0 ? '−' : '') + curSym() + Math.abs(net).toLocaleString(undefined,{maximumFractionDigits:0});
       rightSide.appendChild(pnlBadge);
     }
 
@@ -12522,7 +12976,7 @@ function renderJournal() {
         ? journalExpandedTrades[t.id] === true
         : (groupIdx === 0 && cardIdx === 0);   // newest trade starts open, rest compact
       const pnlChip = (typeof t.tradePnl === 'number')
-        ? '<span style="font-size:12px;font-weight:800;color:' + (t.tradePnl > 0 ? 'var(--green)' : t.tradePnl < 0 ? 'var(--red)' : 'var(--muted)') + ';">' + (t.tradePnl > 0 ? '+' : t.tradePnl < 0 ? '\u2212' : '') + '$' + Math.abs(t.tradePnl).toLocaleString(undefined,{maximumFractionDigits:0}) + '</span>'
+        ? '<span style="font-size:12px;font-weight:800;color:' + (t.tradePnl > 0 ? 'var(--green)' : t.tradePnl < 0 ? 'var(--red)' : 'var(--muted)') + ';">' + (t.tradePnl > 0 ? '+' : t.tradePnl < 0 ? '\u2212' : '') + curSym() + Math.abs(t.tradePnl).toLocaleString(undefined,{maximumFractionDigits:0}) + '</span>'
         : '';
 
       card.innerHTML =
@@ -13135,7 +13589,8 @@ function recPace() {
 function recHalfSizeNums() {
   var acc = getActiveAcc();
   var bal = acc && acc.balance ? parseFloat(acc.balance) : 0;
-  var normal = bal > 0 ? (bal / 7) / 3 : 0;
+  var _rr = getAccRules(acc);
+  var normal = bal > 0 ? (bal / _rr.divisor) / _rr.maxTrades : 0;
   return { normal: normal, half: normal / 2 };
 }
 
@@ -13282,6 +13737,55 @@ function rtcLiveBalance(acc) {
   return base + net;
 }
 
+// ── PERSONAL RISK RULES ─────────────────────────────────
+// Per-account: max trades/day (1–5) and daily-loss divisor (÷5/÷7/÷10).
+// One-way door: tightening applies instantly; loosening waits until the next
+// day (stored in pendingRules) so a tilted trader can't raise limits mid-session.
+function getAccRules(acc) {
+  var mt = 3, dv = 7;
+  if (acc) {
+    mt = acc.maxTrades || 3;
+    dv = acc.divisor   || 7;
+    var p = acc.pendingRules;
+    if (p && p.setOn && p.setOn !== new Date().toDateString()) {
+      mt = p.maxTrades || mt;
+      dv = p.divisor   || dv;
+    }
+  }
+  return { maxTrades: mt, divisor: dv };
+}
+function setAccRiskRule(kind, val) {
+  var accs = getAccounts(), i = getActiveIdx(), a = accs[i];
+  if (!a) return;
+  var cur  = getAccRules(a);
+  var next = { maxTrades: cur.maxTrades, divisor: cur.divisor };
+  next[kind] = val;
+  var looser = next.maxTrades > cur.maxTrades || next.divisor < cur.divisor;
+  if (looser) {
+    a.maxTrades = cur.maxTrades; a.divisor = cur.divisor;   // today keeps current rules
+    a.pendingRules = { maxTrades: next.maxTrades, divisor: next.divisor, setOn: new Date().toDateString() };
+  } else {
+    a.maxTrades = next.maxTrades; a.divisor = next.divisor;
+    delete a.pendingRules;
+  }
+  saveAccounts(accs);
+  try { renderRiskRules(); } catch(e) { rtcWarn(e); }
+  try { updateRiskRemaining(); } catch(e) { rtcWarn(e); }
+  try { renderHudData(); renderSessionStrip(); } catch(e) { rtcWarn(e); }
+  playSound(looser ? 'warn' : 'tick');
+}
+
+// Which market this account trades. Explicit choice wins; otherwise inferred
+// from the trading style picked at signup (Crypto Trader → crypto, etc.).
+function getAccMarket(acc) {
+  if (acc && acc.market) return acc.market;
+  var st = ((acc && acc.style) || '').toLowerCase();
+  if (st.indexOf('crypto') >= 0) return 'crypto';
+  if (st.indexOf('forex') >= 0) return 'forex';
+  if (st.indexOf('options') >= 0) return 'stocks';
+  return 'futures';
+}
+
 function renderHudData() {
   var el = document.getElementById('hudDataL');
   if (!el) return;
@@ -13296,14 +13800,14 @@ function renderHudData() {
     var acc = getActiveAcc();
     var now = new Date();
     var bal = rtcLiveBalance(acc);   // moves with every logged win/loss
-    var maxLoss = bal > 0 ? bal / 7 : 0;
+    var maxLoss = bal > 0 ? bal / getAccRules(acc).divisor : 0;
     var rec = (typeof getRecState === 'function') ? getRecState() : null;
     var rows = [];
     rows.push(['SESSION', '#' + String(getSessionNo()).padStart(3,'0'), '']);
     rows.push(['DATE', now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase(), '']);
     if (acc && acc.name) rows.push(['ACCOUNT', acc.name.toUpperCase(), '']);
-    rows.push(['BALANCE', bal > 0 ? '$' + bal.toLocaleString() : '—', bal>0?'pos':'']);
-    rows.push(['MAX LOSS', maxLoss > 0 ? '-$' + maxLoss.toFixed(0) : '—', maxLoss>0?'neg':'']);
+    rows.push(['BALANCE', bal > 0 ? curSym() + bal.toLocaleString() : '—', bal>0?'pos':'']);
+    rows.push(['MAX LOSS', maxLoss > 0 ? '-' + curSym() + maxLoss.toFixed(0) : '—', maxLoss>0?'neg':'']);
     if (typeof goalData !== 'undefined' && goalData) {
       var tKey = now.toLocaleDateString('en-US',{ month:'short', day:'numeric' });
       var todayPnl = (typeof pnlLog!=='undefined' && pnlLog ? pnlLog : [])
@@ -13326,13 +13830,13 @@ function renderSessionStrip() {
     var acc = getActiveAcc();
     var now = new Date();
     var bal = rtcLiveBalance(acc);   // moves with every logged win/loss
-    var maxLoss = bal > 0 ? bal / 7 : 0;
+    var maxLoss = bal > 0 ? bal / getAccRules(acc).divisor : 0;
     var rec = (typeof getRecState === 'function') ? getRecState() : null;
     var parts = [];
     parts.push('<span style="color:var(--gold);">&gt;_ SESSION ' + String(getSessionNo()).padStart(3,'0') + '</span>');
     parts.push('<span>' + now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase() + '</span>');
-    if (bal > 0) parts.push('<span>BAL <span style="color:var(--text2);">$' + bal.toLocaleString() + '</span></span>');
-    if (maxLoss > 0) parts.push('<span>MAX LOSS <span style="color:#f08a8a;">-$' + maxLoss.toFixed(0) + '</span></span>');
+    if (bal > 0) parts.push('<span>BAL <span style="color:var(--text2);">' + curSym() + bal.toLocaleString() + '</span></span>');
+    if (maxLoss > 0) parts.push('<span>MAX LOSS <span style="color:#f08a8a;">-' + curSym() + maxLoss.toFixed(0) + '</span></span>');
     if (rec && rec.active) parts.push('<span style="color:var(--orange);">[RECOVERY MODE]</span>');
     else parts.push('<span style="color:var(--green);">[SYSTEM READY]</span>');
     el.innerHTML = parts.join('<span class="ss-sep">//</span>');
