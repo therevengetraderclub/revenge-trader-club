@@ -5129,6 +5129,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
         <button onclick="closeEditTradeModal()" style="flex:1;padding:13px;background:transparent;border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;text-transform:uppercase;">Cancel</button>
         <button id="saveEditTradeBtn" class="btn-gold" style="flex:1;">Save Changes</button>
       </div>
+      <button onclick="deleteCurrentTrade()" class="btn-plain" style="width:100%;margin-top:10px;padding:11px;background:transparent;border:1px solid rgba(229,57,53,0.35);border-radius:var(--r-sm);color:var(--red);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">Delete This Trade</button>
     </div>
   </div>
 
@@ -7227,6 +7228,16 @@ function closeModal() {
 function executeReset() {
   const i = getActiveIdx();
   if (pendingResetType === 'journal') {
+    // Delete the chart files BEFORE the trade records that reference them —
+    // otherwise the refs are gone and the images orphan in storage forever.
+    try {
+      var _refs = [];
+      getTrades().forEach(function(t){
+        if (t.screenshots) _refs = _refs.concat(t.screenshots);
+        if (t.screenshot)  _refs.push(t.screenshot);
+      });
+      RTCShots.removeMany(_refs);
+    } catch(e) { rtcWarn(e); }
     RTCStore.remove(tradeKey(i));
   } else if (pendingResetType === 'goal') {
     RTCStore.remove(goalKey(i));
@@ -7234,7 +7245,11 @@ function executeReset() {
     goalData = null; pnlLog = [];
   } else if (pendingResetType === 'all') {
     closeModal();
-    RTCStore.clearNamespace().then(function () { location.reload(); });  // wait for async deletes
+    // Storage files first, then every data key, then a clean restart.
+    RTCShots.removeAllMine()
+      .catch(function(e){ rtcWarn(e); })
+      .then(function(){ return RTCStore.clearNamespace(); })
+      .then(function () { location.reload(); });
     return;
   }
   closeModal();
@@ -7936,6 +7951,30 @@ var RTCShots = (function () {
     return c.storage.from(BUCKET).remove([ref]).catch(function(e){ console.error('[RTC] screenshot delete failed:', e); });
   }
 
+  // Batch delete — used when a trade or the whole journal is deleted.
+  function removeMany(refs){
+    var paths = (refs || []).filter(function(r){ return r && !isData(r); });
+    var c = client();
+    if (!c || !paths.length) return Promise.resolve();
+    return c.storage.from(BUCKET).remove(paths).catch(function(e){ console.error('[RTC] screenshot batch delete failed:', e); });
+  }
+
+  // Nuclear option — deletes EVERY file this user owns in the bucket.
+  // Called on "Wipe everything" so no images outlive the account data.
+  function removeAllMine(){
+    var c = client();
+    if (!c) return Promise.resolve();
+    return currentUid().then(function(id){
+      if (!id) return;
+      return c.storage.from(BUCKET).list(id, { limit: 1000 }).then(function(res){
+        var files = (res && res.data) || [];
+        if (!files.length) return;
+        var paths = files.map(function(f){ return id + '/' + f.name; });
+        return c.storage.from(BUCKET).remove(paths);
+      });
+    }).catch(function(e){ console.error('[RTC] storage wipe failed:', e); });
+  }
+
   // Resolve every <img data-shot="ref"> under root into a real src
   function hydrate(root){
     var scope = root || document;
@@ -7948,7 +7987,7 @@ var RTCShots = (function () {
     });
   }
 
-  return { put: put, putAll: putAll, url: url, remove: remove, hydrate: hydrate, isData: isData };
+  return { put: put, putAll: putAll, url: url, remove: remove, removeMany: removeMany, removeAllMine: removeAllMine, hydrate: hydrate, isData: isData };
 })();
 
 let currentScreenshots = []; // base64 held in memory while editing; uploaded on save
@@ -8000,7 +8039,24 @@ function compressImage(dataUrl, quality, callback) {
   img.src = dataUrl;
 }
 
+// Per-user screenshot cap: protects the shared storage pool from any one account
+// filling it. 200 charts ≈ months of active journaling.
+var RTC_SHOT_CAP = 200;
+function rtcShotCount() {
+  try {
+    return getTrades().reduce(function(n, t) {
+      return n + (t.screenshots ? t.screenshots.length : (t.screenshot ? 1 : 0));
+    }, 0);
+  } catch(e) { return 0; }
+}
+function rtcShotCapReached(extra) {
+  if (rtcShotCount() + (extra || 0) < RTC_SHOT_CAP) return false;
+  alert('Screenshot limit reached (' + RTC_SHOT_CAP + ' charts). Delete old trades or their screenshots to free up space.');
+  return true;
+}
+
 function addScreenshotToList(dataUrl) {
+  if (rtcShotCapReached(currentScreenshots.length)) return;
   currentScreenshots.push(dataUrl);
   renderScreenshotThumbStrip();
 }
@@ -9973,6 +10029,34 @@ function openEditTradeModal(tradeId) {
   if (modal) modal.style.display = 'flex';
 }
 
+// Permanently delete the trade being edited: record, goal P&L it posted, and its
+// chart files in storage — nothing left behind anywhere.
+function deleteCurrentTrade() {
+  if (!currentEditTradeId) return;
+  if (!window.confirm('Delete this trade permanently? Its screenshots are deleted too. This cannot be undone.')) return;
+  const trades = getTrades();
+  const idx = trades.findIndex(t => String(t.id) === String(currentEditTradeId));
+  if (idx === -1) return;
+  const t = trades[idx];
+  // Reverse any P&L this trade rolled into the goal, so totals stay honest
+  if (typeof t.pnlPosted === 'number' && t.pnlPosted !== 0) {
+    try { applyTradePnlToGoal(-t.pnlPosted, false); } catch(e) { rtcWarn(e); }
+  }
+  // Storage files
+  try {
+    var refs = (t.screenshots || []).slice();
+    if (t.screenshot) refs.push(t.screenshot);
+    RTCShots.removeMany(refs);
+  } catch(e) { rtcWarn(e); }
+  trades.splice(idx, 1);
+  saveTrades(trades);
+  closeEditTradeModal();
+  renderJournal();
+  try { renderHudData(); } catch(e) { rtcWarn(e); }
+  try { renderNavDots(); } catch(e) { rtcWarn(e); }
+  try { renderPerf(); } catch(e) { rtcWarn(e); }
+}
+
 function closeEditTradeModal() {
   const modal = document.getElementById('editTradeModal');
   if (modal) modal.style.display = 'none';
@@ -10029,6 +10113,7 @@ function handleEditScreenshotUpload(files) {
 }
 
 function addEditScreenshot(dataUrl) {
+  if (rtcShotCapReached(0)) return;
   editScreenshots.push(dataUrl);
   renderEditScreenshotThumbStrip();
 }
@@ -10092,6 +10177,13 @@ function saveEditedTrade() {
   // Save the rest of the edit immediately; upload any new images and patch after.
   const _editShots = editScreenshots.slice();
   const _editId    = trades[idx].id;
+  // Any previously-uploaded ref the user removed in this edit must also be
+  // deleted from storage, or it orphans there forever.
+  try {
+    var _oldRefs = (trades[idx].screenshots || []).concat(trades[idx].screenshot ? [trades[idx].screenshot] : []);
+    var _dropped = _oldRefs.filter(function(r){ return r && r.indexOf('data:') !== 0 && _editShots.indexOf(r) === -1; });
+    if (_dropped.length) RTCShots.removeMany(_dropped);
+  } catch(e) { rtcWarn(e); }
   if (!_editShots.length) delete trades[idx].screenshots;
   delete trades[idx].screenshot; // clear legacy single-image field, fully migrated to array
 
