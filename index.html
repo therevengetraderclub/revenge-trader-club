@@ -5591,6 +5591,8 @@ function rtcStorageUsage() { return RTCStore.usage(); }
 
 // ── EMPTY STATES WITH PERSONALITY ───────────────────────
 let journalCollapsedMonths = {};
+let journalCollapsedYears  = {};   // past years collapse to one summary line
+let journalExpandedTrades  = {};   // per-trade expand state — compact rows by default
 
 const EMPTY_STATE_MESSAGES = {
   journal: [
@@ -5933,13 +5935,13 @@ function getTrades() {
   _tradesMemo = { raw: raw, val: parsed };
   return parsed;
 }
-function saveTrades(t) { rtcSet(tradeKey(getActiveIdx()),   JSON.stringify(t)); try{ updateRiskRemaining(); }catch(e){ /* risk panel may not be mounted yet */ } }
+function saveTrades(t) { rtcSet(tradeKey(getActiveIdx()),   JSON.stringify(t)); try{ updateRiskRemaining(); }catch(e){ /* risk panel may not be mounted yet */ } try{ renderHudData(); renderSessionStrip(); }catch(e){ /* pre-boot */ } }
 function getCheckins() { return JSON.parse(RTCStore.get(checkinKey(getActiveIdx())) || '[]'); }
 function saveCheckins(c){ rtcSet(checkinKey(getActiveIdx()), JSON.stringify(c)); }
 function getGoal()     { return JSON.parse(RTCStore.get(goalKey(getActiveIdx()))    || 'null'); }
 function saveGoal(g)   { rtcSet(goalKey(getActiveIdx()),    JSON.stringify(g)); }
 function getPnl()      { return JSON.parse(RTCStore.get(pnlKey(getActiveIdx()))     || '[]'); }
-function savePnl(p)    { rtcSet(pnlKey(getActiveIdx()),     JSON.stringify(p)); try{ updateRiskRemaining(); }catch(e){ /* risk panel may not be mounted yet */ } }
+function savePnl(p)    { rtcSet(pnlKey(getActiveIdx()),     JSON.stringify(p)); try{ updateRiskRemaining(); }catch(e){ /* risk panel may not be mounted yet */ } try{ renderHudData(); renderSessionStrip(); }catch(e){ /* pre-boot */ } }
 function getCustomItems(){ return JSON.parse(RTCStore.get(customKey()) || '[]'); }
 function saveCustomItems(items){ rtcSet(customKey(), JSON.stringify(items)); }
 
@@ -12378,35 +12380,81 @@ function renderJournal() {
     return;
   }
 
-  // Group trades by Month Year
-  const groups = {};
-  const groupOrder = [];
+  // Group trades by Year → Month. No render cap: collapsed months cost one line
+  // each, so the full history stays scrollable without the page growing long.
+  const groups = {};       // monthKey -> trades
+  const groupOrder = [];   // month keys, newest first
+  const monthYear = {};    // monthKey -> year string
+  const yearOrder = [];    // years, newest first
 
-  trades.slice(0, 50).forEach(function(t) {
+  trades.forEach(function(t) {
     let d = t.date ? new Date(t.date) : new Date();
     // If year parsed as pre-2010 the date was stored without a year — use current year
     if (!isNaN(d) && d.getFullYear() < 2010) {
       d = new Date(t.date + ', ' + new Date().getFullYear());
     }
     const key = isNaN(d) ? 'Unknown' : d.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+    const yr  = isNaN(d) ? 'Unknown' : String(d.getFullYear());
     if (!groups[key]) {
       groups[key] = [];
       groupOrder.push(key);
+      monthYear[key] = yr;
+      if (yearOrder.indexOf(yr) === -1) yearOrder.push(yr);
     }
     groups[key].push(t);
   });
 
   el.innerHTML = '';
 
+  // Year tier only appears once history spans more than one year
+  const multiYear = yearOrder.length > 1;
+  const renderedYears = {};
+
   groupOrder.forEach(function(monthKey, groupIdx) {
+    const yr   = monthYear[monthKey];
+    const yIdx = yearOrder.indexOf(yr);
+
+    if (multiYear && !renderedYears[yr]) {
+      renderedYears[yr] = true;
+      const yrTrades = groupOrder.filter(function(k){ return monthYear[k] === yr; })
+        .reduce(function(a,k){ return a.concat(groups[k]); }, []);
+      const yrScores = yrTrades.filter(function(t){ return t.pct; }).map(function(t){ return t.pct; });
+      const yrPnl    = yrTrades.filter(function(t){ return typeof t.tradePnl === 'number'; });
+      const yrNet    = yrPnl.reduce(function(s,t){ return s + t.tradePnl; }, 0);
+      const yCollapsed = Object.prototype.hasOwnProperty.call(journalCollapsedYears, yr)
+        ? journalCollapsedYears[yr] === true : yIdx !== 0;
+
+      const yHdr = document.createElement('div');
+      yHdr.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:16px 4px 10px;cursor:pointer;margin-bottom:2px;border-bottom:2px solid var(--gold-dim);';
+      yHdr.onclick = function(){ journalCollapsedYears[yr] = !yCollapsed; renderJournal(); };
+      var yBadges = '<div style="display:flex;align-items:center;gap:10px;">'
+        + '<span style="font-size:11px;color:var(--muted);background:var(--bg3);padding:3px 10px;border-radius:4px;border:1px solid var(--border2);">' + yrTrades.length + ' trade' + (yrTrades.length !== 1 ? 's' : '') + '</span>'
+        + (yrScores.length ? '<span style="font-size:11px;font-weight:700;color:var(--gold);">Avg ' + Math.round(yrScores.reduce(function(a,b){return a+b;},0)/yrScores.length) + '%</span>' : '')
+        + (yrPnl.length ? '<span style="font-size:12px;font-weight:800;color:' + (yrNet > 0 ? 'var(--green)' : yrNet < 0 ? 'var(--red)' : 'var(--muted)') + ';">' + (yrNet > 0 ? '+' : yrNet < 0 ? '−' : '') + '$' + Math.abs(yrNet).toLocaleString(undefined,{maximumFractionDigits:0}) + '</span>' : '')
+        + '<span style="font-size:14px;color:var(--muted);transition:transform .2s;display:inline-block;transform:' + (yCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)') + ';">∨</span>'
+        + '</div>';
+      yHdr.innerHTML = '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:24px;letter-spacing:5px;color:var(--gold);">' + yr + '</div>' + yBadges;
+      el.appendChild(yHdr);
+    }
+
+    // Everything in a collapsed year stays hidden (its months included)
+    if (multiYear) {
+      const yCollapsedNow = Object.prototype.hasOwnProperty.call(journalCollapsedYears, yr)
+        ? journalCollapsedYears[yr] === true : yIdx !== 0;
+      if (yCollapsedNow) return;
+    }
     const monthTrades = groups[monthKey];
-    const isCollapsed = journalCollapsedMonths[monthKey] === true;
+    // Newest month open by default; older months start collapsed to one summary line.
+    // A user's explicit toggle always wins.
+    const isCollapsed = Object.prototype.hasOwnProperty.call(journalCollapsedMonths, monthKey)
+      ? journalCollapsedMonths[monthKey] === true
+      : groupIdx !== 0;
 
     // Month header
     const monthHeader = document.createElement('div');
     monthHeader.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 4px 8px;cursor:pointer;margin-bottom:2px;border-bottom:1px solid var(--border);';
     monthHeader.onclick = function() {
-      journalCollapsedMonths[monthKey] = !journalCollapsedMonths[monthKey];
+      journalCollapsedMonths[monthKey] = !isCollapsed;
       renderJournal();
     };
 
@@ -12423,6 +12471,16 @@ function renderJournal() {
     countBadge.style.cssText = 'font-size:11px;color:var(--muted);background:var(--bg3);padding:3px 10px;border-radius:4px;border:1px solid var(--border2);';
     countBadge.textContent = monthTrades.length + ' trade' + (monthTrades.length !== 1 ? 's' : '');
     rightSide.appendChild(countBadge);
+
+    // Month net P&L — the month reads like a statement line even when collapsed
+    const pnlTrades = monthTrades.filter(function(t){ return typeof t.tradePnl === 'number'; });
+    if (pnlTrades.length) {
+      const net = pnlTrades.reduce(function(s,t){ return s + t.tradePnl; }, 0);
+      const pnlBadge = document.createElement('div');
+      pnlBadge.style.cssText = 'font-size:12px;font-weight:800;color:' + (net > 0 ? 'var(--green)' : net < 0 ? 'var(--red)' : 'var(--muted)') + ';';
+      pnlBadge.textContent = (net > 0 ? '+' : net < 0 ? '−' : '') + '$' + Math.abs(net).toLocaleString(undefined,{maximumFractionDigits:0});
+      rightSide.appendChild(pnlBadge);
+    }
 
     // Avg score for the month
     const scores = monthTrades.filter(function(t) { return t.pct; }).map(function(t) { return t.pct; });
@@ -12460,19 +12518,30 @@ function renderJournal() {
       card.dataset.tradeid = t.id;
       card.style.cssText = 'margin-bottom:0;opacity:0;transform:translateY(10px);transition:opacity .35s ease,transform .35s cubic-bezier(.2,.8,.3,1);';
 
+      const isExpanded = Object.prototype.hasOwnProperty.call(journalExpandedTrades, t.id)
+        ? journalExpandedTrades[t.id] === true
+        : (groupIdx === 0 && cardIdx === 0);   // newest trade starts open, rest compact
+      const pnlChip = (typeof t.tradePnl === 'number')
+        ? '<span style="font-size:12px;font-weight:800;color:' + (t.tradePnl > 0 ? 'var(--green)' : t.tradePnl < 0 ? 'var(--red)' : 'var(--muted)') + ';">' + (t.tradePnl > 0 ? '+' : t.tradePnl < 0 ? '\u2212' : '') + '$' + Math.abs(t.tradePnl).toLocaleString(undefined,{maximumFractionDigits:0}) + '</span>'
+        : '';
+
       card.innerHTML =
         // Header
-        '<div class="jc-hdr">'
+        '<div class="jc-hdr" style="cursor:pointer;">'
         + '<div style="display:flex;align-items:center;gap:10px;">'
+        + '<span class="jc-caret" style="font-size:10px;color:var(--faint);display:inline-block;transition:transform .2s;transform:' + (isExpanded ? 'rotate(0)' : 'rotate(-90deg)') + ';">\u2228</span>'
         + '<span class="jc-ticker">' + (t.ticker||'\u2014') + '</span>'
         + (t.direction && t.direction!=='\u2014' ? '<span class="jc-dir ' + (t.direction==='Long'?'long':'short') + '">' + t.direction + '</span>' : '')
         + '<span class="jc-time">' + (t.time||'') + '</span>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:8px;">'
+        + pnlChip
         + '<span style="font-size:11px;font-weight:800;color:' + scoreColor + ';background:rgba(255,255,255,0.04);padding:3px 8px;border-radius:4px;border:1px solid ' + scoreColor + '33;">' + scoreLabel + ' \u00b7 ' + (t.pct||0) + '%</span>'
         + '<span class="jc-score">' + (t.score||0) + ' pts</span>'
         + '<button onclick="openEditTradeModal(\'' + t.id + '\')" title="Edit" style="background:transparent;border:none;cursor:pointer;color:var(--muted);padding:2px;display:flex;align-items:center;justify-content:center;opacity:.7;transition:opacity .15s,color .15s;" onmouseenter="this.style.opacity=\'1\';this.style.color=\'var(--gold)\'" onmouseleave="this.style.opacity=\'.7\';this.style.color=\'var(--muted)\'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
         + '</div></div>'
+        // Collapsible detail body — compact single-line rows keep the page short
+        + '<div class="jc-body"' + (isExpanded ? '' : ' style="display:none;"') + '>'
         // Date
         + '<div style="font-size:11px;color:var(--muted);padding:6px 16px;border-bottom:1px solid var(--border);">' + (function(){ if(!t.date) return ''; var d=new Date(t.date); if(!isNaN(d)&&d.getFullYear()<2010){d=new Date(t.date+', '+new Date().getFullYear());} return isNaN(d)?t.date:d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}); })() + '</div>'
         // Tags
@@ -12485,7 +12554,24 @@ function renderJournal() {
         + '<div style="display:flex;gap:8px;padding:10px 16px;">'
         + '<button class="btn-plain" onclick="openReviewModal(\'' + t.id + '\')" style="flex:1;padding:8px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:\'Inter\',sans-serif;letter-spacing:.5px;">'
         + (t.review ? '\u2713 Reviewed' : 'Review Trade') + '</button>'
-        + '</div>';
+        + '</div>'
+        + '</div>';   // close .jc-body
+
+      // Tap the header row to expand/collapse the details (edit button excluded)
+      (function(tradeId){
+        const hdrEl  = card.querySelector('.jc-hdr');
+        const bodyEl = card.querySelector('.jc-body');
+        if (hdrEl && bodyEl) {
+          hdrEl.onclick = function(e) {
+            if (e.target && e.target.closest && e.target.closest('button')) return;
+            const open = bodyEl.style.display !== 'none';
+            bodyEl.style.display = open ? 'none' : 'block';
+            journalExpandedTrades[tradeId] = !open;
+            const cv = hdrEl.querySelector('.jc-caret');
+            if (cv) cv.style.transform = open ? 'rotate(-90deg)' : 'rotate(0)';
+          };
+        }
+      })(t.id);
 
       tradesWrap.appendChild(card);
 
@@ -13182,6 +13268,20 @@ function getSessionNo() {
   return n;
 }
 
+// Live balance: starting balance plus every dollar of logged P&L — trade reviews
+// and manual goal entries (trade-sourced goal entries excluded; already counted).
+function rtcLiveBalance(acc) {
+  var base = acc && acc.balance ? parseFloat(acc.balance) : 0;
+  var net = 0;
+  try { getTrades().forEach(function(t){ if (typeof t.tradePnl === 'number') net += t.tradePnl; }); } catch(e) { rtcWarn(e); }
+  try {
+    (typeof pnlLog !== 'undefined' && pnlLog ? pnlLog : []).forEach(function(e){
+      if (e && e.src !== 'trade') net += (e.pnl || 0);
+    });
+  } catch(e) { rtcWarn(e); }
+  return base + net;
+}
+
 function renderHudData() {
   var el = document.getElementById('hudDataL');
   if (!el) return;
@@ -13195,7 +13295,7 @@ function renderHudData() {
     if (!member || onIntake) { el.innerHTML = ''; return; }
     var acc = getActiveAcc();
     var now = new Date();
-    var bal = acc && acc.balance ? parseFloat(acc.balance) : 0;
+    var bal = rtcLiveBalance(acc);   // moves with every logged win/loss
     var maxLoss = bal > 0 ? bal / 7 : 0;
     var rec = (typeof getRecState === 'function') ? getRecState() : null;
     var rows = [];
@@ -13225,7 +13325,7 @@ function renderSessionStrip() {
   try {
     var acc = getActiveAcc();
     var now = new Date();
-    var bal = acc && acc.balance ? parseFloat(acc.balance) : 0;
+    var bal = rtcLiveBalance(acc);   // moves with every logged win/loss
     var maxLoss = bal > 0 ? bal / 7 : 0;
     var rec = (typeof getRecState === 'function') ? getRecState() : null;
     var parts = [];
