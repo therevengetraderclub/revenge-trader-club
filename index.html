@@ -4156,7 +4156,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           </div>
         </div>
       </div>
-      <div class="info-field"><div class="info-label">Entry Price <span style="font-size:9px;letter-spacing:1px;color:var(--faint);">OPTIONAL</span></div><input class="info-input" id="cl-entry" placeholder="Skip it — your chart has it"></div>
+      <div class="info-field"><div class="info-label">Entry Price <span style="font-size:9px;letter-spacing:1px;color:var(--faint);">OPTIONAL</span></div><input class="info-input" id="cl-entry" placeholder="21,420.25"></div>
     </div>
 
     <!-- Dynamic checklist rendered by JS based on trading style -->
@@ -4317,8 +4317,38 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
 
     <div class="card">
-      <div class="card-title">Divide By 7 Calculator</div>
-      <div class="card-sub">Enter your current balance to calculate your limits for today.</div>
+      <div class="card-title">Risk Rules</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Divide by 7 is the standard — one bad day can only cost a seventh of your account. Tighten to 10 for funded rules, loosen to 5 if you are aggressive. Whatever you pick, the whole app holds you to it. Tighter applies now; looser waits until tomorrow.</div>
+      <div class="risk-lbl2" style="margin-bottom:8px;">Max Trades Per Day</div>
+      <div id="rrTradesRow" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;">
+        <div class="rr-opt" data-kind="maxTrades" data-val="1" onclick="setAccRiskRule('maxTrades',1)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">1</div>
+        <div class="rr-opt" data-kind="maxTrades" data-val="2" onclick="setAccRiskRule('maxTrades',2)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">2</div>
+        <div class="rr-opt" data-kind="maxTrades" data-val="3" onclick="setAccRiskRule('maxTrades',3)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">3</div>
+        <div class="rr-opt" data-kind="maxTrades" data-val="4" onclick="setAccRiskRule('maxTrades',4)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">4</div>
+        <div class="rr-opt" data-kind="maxTrades" data-val="5" onclick="setAccRiskRule('maxTrades',5)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">5</div>
+      </div>
+      <div class="risk-lbl2" style="margin-bottom:8px;">Daily Max Loss</div>
+      <div id="rrDivRow" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+        <div class="rr-opt" data-kind="divisor" data-val="5" onclick="setAccRiskRule('divisor',5)" style="padding:10px 4px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
+          <div style="font-size:14px;font-weight:800;color:var(--white);">÷ 5</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Aggressive</div>
+        </div>
+        <div class="rr-opt" data-kind="divisor" data-val="7" onclick="setAccRiskRule('divisor',7)" style="padding:10px 4px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
+          <div style="font-size:14px;font-weight:800;color:var(--white);">÷ 7</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Standard</div>
+        </div>
+        <div class="rr-opt" data-kind="divisor" data-val="10" onclick="setAccRiskRule('divisor',10)" style="padding:10px 4px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
+          <div style="font-size:14px;font-weight:800;color:var(--white);">÷ 10</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Conservative</div>
+        </div>
+      </div>
+      <div id="rrReadout" style="font-size:12px;color:var(--text2);line-height:1.7;"></div>
+      <div id="rrPendingNote" style="display:none;margin-top:10px;padding:9px 12px;background:rgba(var(--gold-rgb),0.07);border:1px solid rgba(var(--gold-rgb),0.3);border-radius:var(--r-sm);font-size:11px;color:var(--gold);line-height:1.6;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">The Divide Rule <span id="d7TitleNum" style="color:var(--gold);">&divide; 7</span></div>
+      <div class="card-sub">Enter your current balance to calculate your limits for today. <span id="d7RuleNote"></span></div>
       <!-- Animated division visual -->
       <div id="d7DivisionVisual" style="display:none;align-items:center;justify-content:center;gap:14px;margin-bottom:16px;padding:18px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);">
         <div id="d7VisBalance" style="font-size:22px;font-weight:800;color:var(--white);">$0</div>
@@ -4997,36 +5027,6 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div style="font-size:10px;color:var(--muted);margin-top:2px;">Currency pairs</div>
         </div>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Risk Rules</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Set your rules once — the whole app holds you to them. Tighter applies now; looser waits until tomorrow.</div>
-      <div class="risk-lbl2" style="margin-bottom:8px;">Max Trades Per Day</div>
-      <div id="rrTradesRow" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;">
-        <div class="rr-opt" data-kind="maxTrades" data-val="1" onclick="setAccRiskRule('maxTrades',1)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">1</div>
-        <div class="rr-opt" data-kind="maxTrades" data-val="2" onclick="setAccRiskRule('maxTrades',2)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">2</div>
-        <div class="rr-opt" data-kind="maxTrades" data-val="3" onclick="setAccRiskRule('maxTrades',3)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">3</div>
-        <div class="rr-opt" data-kind="maxTrades" data-val="4" onclick="setAccRiskRule('maxTrades',4)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">4</div>
-        <div class="rr-opt" data-kind="maxTrades" data-val="5" onclick="setAccRiskRule('maxTrades',5)" style="padding:10px 0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;font-size:14px;font-weight:800;color:var(--white);transition:all .15s;">5</div>
-      </div>
-      <div class="risk-lbl2" style="margin-bottom:8px;">Daily Max Loss</div>
-      <div id="rrDivRow" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
-        <div class="rr-opt" data-kind="divisor" data-val="5" onclick="setAccRiskRule('divisor',5)" style="padding:10px 4px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
-          <div style="font-size:14px;font-weight:800;color:var(--white);">÷ 5</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Aggressive</div>
-        </div>
-        <div class="rr-opt" data-kind="divisor" data-val="7" onclick="setAccRiskRule('divisor',7)" style="padding:10px 4px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
-          <div style="font-size:14px;font-weight:800;color:var(--white);">÷ 7</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Standard</div>
-        </div>
-        <div class="rr-opt" data-kind="divisor" data-val="10" onclick="setAccRiskRule('divisor',10)" style="padding:10px 4px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
-          <div style="font-size:14px;font-weight:800;color:var(--white);">÷ 10</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Conservative</div>
-        </div>
-      </div>
-      <div id="rrReadout" style="font-size:12px;color:var(--text2);line-height:1.7;"></div>
-      <div id="rrPendingNote" style="display:none;margin-top:10px;padding:9px 12px;background:rgba(var(--gold-rgb),0.07);border:1px solid rgba(var(--gold-rgb),0.3);border-radius:var(--r-sm);font-size:11px;color:var(--gold);line-height:1.6;"></div>
     </div>
 
     <div class="card">
@@ -6312,7 +6312,7 @@ const CHECKLISTS = {
       { title: 'Risk Rules', items: [
         'My stop loss is set before I enter',
         'My reward is at least 2x my risk',
-        'My risk is within the Divide by 7 daily max',
+        'My risk is within my daily max loss',
         'I am not oversizing because I feel confident'
       ]},
       { title: 'Market Conditions', items: [
@@ -6345,7 +6345,7 @@ const CHECKLISTS = {
       ]},
       { title: 'Risk & Leverage', items: [
         'My stop is placed in the platform — not a mental stop',
-        'My position size respects the Divide by 7 daily max loss',
+        'My position size respects my daily max loss',
         'I know exactly how many ticks I can lose before hitting my daily limit',
         'I am not adding contracts just because the trade looks good'
       ]},
@@ -6484,7 +6484,7 @@ const CHECKLISTS = {
       { title: 'Risk Rules', items: [
         'My stop is below the order block — not inside it',
         'My target is the opposing liquidity — not a random number',
-        'My risk is within the Divide by 7 daily max',
+        'My risk is within my daily max loss',
         'I am not overleveraging because the setup looks perfect'
       ]},
       { title: 'Market Conditions', items: [
@@ -6554,7 +6554,7 @@ const CHECKLISTS = {
       { title: 'Risk Rules', items: [
         'I have accounted for the spread — my stop is not eaten by transaction cost',
         'My position size is correct for the pip value of this specific pair',
-        'My risk is within the Divide by 7 daily max',
+        'My risk is within my daily max loss',
         'I am not using excessive leverage because the margin allows it'
       ]},
       { title: 'Market Conditions', items: [
@@ -7299,7 +7299,8 @@ function renderCustomItemsList() {
 function calcD7() {
   const bal = parseFloat((document.getElementById('d7Input') || {}).value);
   if (!bal || bal <= 0) return;
-  const maxRisk = bal / 7, perTrade = maxRisk / 3;
+  const _dr = getAccRules(getActiveAcc());
+  const maxRisk = bal / _dr.divisor, perTrade = maxRisk / _dr.maxTrades;
   const result = document.getElementById('d7Result');
   const card   = document.getElementById('d7BreakCard');
   const amt    = document.getElementById('d7Amt');
@@ -7325,13 +7326,13 @@ function calcD7() {
 
   if (result) result.style.display = 'block';
   if (amt) animateDollarCountUp(amt, maxRisk, 200);
-  if (sub) setTimeout(() => { sub.textContent = 'Per trade: $' + perTrade.toFixed(2) + ' (3 max trades)'; }, 400);
+  if (sub) setTimeout(() => { sub.textContent = 'Per trade: ' + curSym() + perTrade.toFixed(2) + ' (' + _dr.maxTrades + ' max trade' + (_dr.maxTrades !== 1 ? 's' : '') + ')'; }, 400);
   if (card) card.style.display = 'block';
 
   if (rows) {
     let rowsHtml = '', b = bal;
     for (let i = 1; i <= 7; i++) {
-      const r = b / 7;
+      const r = b / _dr.divisor;
       rowsHtml += `<div class="d7-row${i===1?' now':''}" style="opacity:0;transform:translateX(-8px);transition:opacity .35s ease, transform .35s cubic-bezier(.2,.8,.3,1);"><div class="d7-day">Day ${i} <span>&middot; $${b.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div><div class="d7-amt"><span class="rk-mini">Max Risk</span>$${r.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>`;
       b -= r;
     }
@@ -7946,11 +7947,30 @@ function renderRiskRules() {
   var acc = getActiveAcc();
   if (!acc) return;
   var rules = getAccRules(acc);
+  var pend = acc.pendingRules && acc.pendingRules.setOn === new Date().toDateString() ? acc.pendingRules : null;
   document.querySelectorAll('.rr-opt').forEach(function(el) {
-    var on = parseInt(el.dataset.val, 10) === (el.dataset.kind === 'maxTrades' ? rules.maxTrades : rules.divisor);
-    el.style.borderColor = on ? 'var(--gold)' : 'var(--border2)';
+    var v = parseInt(el.dataset.val, 10);
+    var isMax = el.dataset.kind === 'maxTrades';
+    var on = v === (isMax ? rules.maxTrades : rules.divisor);
+    var queued = pend && v === (isMax ? pend.maxTrades : pend.divisor) && !on;
+    el.style.borderStyle = queued ? 'dashed' : 'solid';
+    el.style.borderColor = on ? 'var(--gold)' : queued ? 'var(--gold-dim)' : 'var(--border2)';
     el.style.background  = on ? 'rgba(var(--gold-rgb),0.08)' : 'var(--bg3)';
+    el.style.opacity     = queued ? '.85' : '1';
+    var tag = el.querySelector('.rr-tag');
+    if (tag) tag.remove();
+    if (queued) {
+      var t = document.createElement('div');
+      t.className = 'rr-tag';
+      t.style.cssText = 'font-size:8px;letter-spacing:1px;color:var(--gold-dim);margin-top:3px;';
+      t.textContent = 'TOMORROW';
+      el.appendChild(t);
+    }
   });
+  var tn = document.getElementById('d7TitleNum');
+  if (tn) tn.innerHTML = '&divide; ' + rules.divisor;
+  var rn = document.getElementById('d7RuleNote');
+  if (rn) rn.textContent = 'Using your rule: \u00f7' + rules.divisor + ' across ' + rules.maxTrades + ' trade' + (rules.maxTrades !== 1 ? 's' : '') + '.';
   var out = document.getElementById('rrReadout');
   if (out) {
     var bal = rtcLiveBalance(acc);
@@ -7966,8 +7986,9 @@ function renderRiskRules() {
     var p = acc.pendingRules;
     if (p && p.setOn === new Date().toDateString()) {
       note.style.display = 'block';
-      note.innerHTML = '&#128274; Looser rules locked until tomorrow: ' + p.maxTrades + ' trades &middot; &divide;' + p.divisor
-        + '. Today you trade on your current rules — no mid-session loosening.';
+      note.innerHTML = '&#128274; You already traded today, so looser rules start tomorrow: <strong>' + p.maxTrades + ' trades &middot; &divide;' + p.divisor
+        + '</strong>. Today you finish on the rules you started with.'
+        + ' <span onclick="cancelPendingRules()" style="text-decoration:underline;cursor:pointer;white-space:nowrap;">Cancel change</span>';
     } else { note.style.display = 'none'; }
   }
 }
@@ -9684,7 +9705,7 @@ function renderPatternAlerts() {
   const today = new Date().toDateString();
   const todayTrades = trades.filter(t => t.date && new Date(t.date).toDateString() === today);
   if (todayTrades.length >= 4) {
-    alerts.push({ type:'danger', title:'Overtrading Today', msg:'You have taken ' + todayTrades.length + ' trades today. The Divide by 7 system allows 3 max. More trades means more risk and less discipline.', icon:'🚫' });
+    alerts.push({ type:'danger', title:'Overtrading Today', msg:'You have taken ' + todayTrades.length + ' trades today. Your rule allows ' + getAccRules(getActiveAcc()).maxTrades + ' max. More trades means more risk and less discipline.', icon:'🚫' });
   }
 
   // Pattern 6: High performer
@@ -14130,6 +14151,20 @@ function getAccRules(acc) {
   }
   return { maxTrades: mt, divisor: dv };
 }
+function rtcTradedToday() {
+  try {
+    var td = new Date().toDateString();
+    return getTrades().some(function(t){ return t.date && new Date(t.date).toDateString() === td; });
+  } catch(e) { return false; }
+}
+function cancelPendingRules() {
+  var accs = getAccounts(), i = getActiveIdx();
+  if (!accs[i]) return;
+  delete accs[i].pendingRules;
+  saveAccounts(accs);
+  try { renderRiskRules(); } catch(e) { rtcWarn(e); }
+  playSound('tick');
+}
 function setAccRiskRule(kind, val) {
   var accs = getAccounts(), i = getActiveIdx(), a = accs[i];
   if (!a) return;
@@ -14137,12 +14172,15 @@ function setAccRiskRule(kind, val) {
   var next = { maxTrades: cur.maxTrades, divisor: cur.divisor };
   next[kind] = val;
   var looser = next.maxTrades > cur.maxTrades || next.divisor < cur.divisor;
-  if (looser) {
+  // The guardrail exists to stop mid-session loosening — not to stop setup.
+  // Before the day's first trade, any change applies immediately.
+  if (looser && rtcTradedToday()) {
     a.maxTrades = cur.maxTrades; a.divisor = cur.divisor;   // today keeps current rules
     a.pendingRules = { maxTrades: next.maxTrades, divisor: next.divisor, setOn: new Date().toDateString() };
   } else {
     a.maxTrades = next.maxTrades; a.divisor = next.divisor;
     delete a.pendingRules;
+    looser = false;
   }
   saveAccounts(accs);
   try { renderRiskRules(); } catch(e) { rtcWarn(e); }
