@@ -69,6 +69,9 @@ html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-br{ border-colo
 html:is([data-theme="light"],[data-theme="rose"]) #killTakeover{
   background:radial-gradient(ellipse at center, rgba(229,57,53,0.15) 0%, rgba(229,57,53,0) 58%), var(--page) !important;
 }
+html:is([data-theme="light"],[data-theme="rose"]) #limitTakeover{
+  background:radial-gradient(ellipse at center, rgba(229,57,53,0.15) 0%, rgba(229,57,53,0) 58%), var(--page) !important;
+}
 html:is([data-theme="light"],[data-theme="rose"]) #aPlusTakeover{
   background:radial-gradient(ellipse at center, rgba(10,158,99,0.15) 0%, rgba(10,158,99,0) 58%), var(--page) !important;
 }
@@ -128,6 +131,17 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
 .seal-ring.ontrack{ color:var(--gold-dim); border:2px solid var(--gold-dim); background:transparent; }
 .seal-card.ontrack .seal-name{ color:var(--text2); }
 .seal-note.ontrack{ color:var(--gold-dim); font-weight:700; }
+.mark-card{
+  padding:12px 10px; background:rgba(229,57,53,0.06); border:1px solid rgba(229,57,53,0.35);
+  border-radius:10px; text-align:center; display:flex; flex-direction:column; align-items:center;
+}
+.mark-ring{
+  width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:19px; color:var(--red); border:2px solid var(--red); margin-bottom:8px;
+}
+.mark-name{ font-size:12px; font-weight:800; color:var(--red); letter-spacing:.3px; }
+.mark-sub{ font-size:10.5px; color:var(--text2); line-height:1.5; margin-top:3px; }
+.mark-note{ font-size:9.5px; color:var(--muted); margin-top:6px; letter-spacing:.5px; }
 .seal-card.ontrack .seal-bar i{ background:var(--gold); }
 @media (max-width:600px){
   .seal-ring{ width:42px; height:42px; font-size:18px; }
@@ -2644,9 +2658,10 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   border-bottom:2px solid transparent !important;
 }
 .nav-tab:hover{ color:var(--white) !important; }
+/* The animated #navSlider draws the active underline — a border here doubles it */
 .nav-tab.active{
   color:var(--gold) !important;
-  border-bottom-color:var(--gold) !important;
+  border-bottom-color:transparent !important;
 }
 @media(max-width:480px){
   .nav-tab{ font-size:11px !important; padding:12px 12px !important; }
@@ -3716,6 +3731,21 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
   </div>
 
+<!-- ══ PAST-LIMIT TAKEOVER — the app's last honest word before an override ══ -->
+<div id="limitTakeover" style="display:none;position:fixed;inset:0;z-index:100002;background:radial-gradient(ellipse at center, rgba(229,57,53,0.18) 0%, rgba(229,57,53,0) 58%), var(--page);align-items:center;justify-content:center;padding:24px;overflow-y:auto;">
+  <div style="width:100%;max-width:560px;text-align:center;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--red);margin-bottom:14px;">// LIMIT BREACHED</div>
+    <div id="ltTitle" style="font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:2px;color:var(--red);line-height:1.05;margin-bottom:16px;">STOP.</div>
+    <div id="ltFacts" style="font-size:15px;color:var(--text2);line-height:1.9;margin-bottom:10px;"></div>
+    <div id="ltLine" style="font-size:14px;color:var(--white);line-height:1.8;font-weight:700;margin-bottom:26px;"></div>
+    <div style="display:flex;flex-direction:column;gap:10px;max-width:360px;margin:0 auto;">
+      <button onclick="rtcLimitStop()" class="btn-gold" style="width:100%;padding:15px;">I'm done for today</button>
+      <button class="btn-plain" onclick="rtcLimitOverride()" style="width:100%;padding:13px;background:transparent;border:1px solid rgba(229,57,53,0.4);border-radius:var(--r-sm);color:var(--red);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">Log it anyway — on my record</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:20px;line-height:1.8;">Whatever you choose, this day goes in the book exactly as it happened.</div>
+  </div>
+</div>
+
 <!-- ══ MY JOURNAL — personal capture overlay ══ -->
 <div id="logOverlay" onclick="if(event.target===this)closeLogEntry()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:100001;align-items:flex-start;justify-content:center;padding:6vh 18px 24px;overflow-y:auto;">
   <div id="logSheet" onclick="event.stopPropagation()" style="width:100%;max-width:560px;background:var(--bg);border:1px solid var(--gold-dim);border-radius:12px;box-shadow:0 18px 60px rgba(0,0,0,0.45);overflow:hidden;">
@@ -4758,6 +4788,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div id="rtcCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;"></div>
       <div id="rtcCalSummary" style="margin-top:12px;font-size:12px;color:var(--text2);"></div>
       <div id="rtcCalBadges" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px;"></div>
+      <div id="rtcCalMarks" style="display:none;"></div>
       <div id="rtcCalLegend" style="margin-top:12px;font-size:10px;color:var(--muted);line-height:1.9;"></div>
     </div>
 
@@ -5756,7 +5787,17 @@ function setTheme(name){
   try{ localStorage.setItem('rtc_theme', name||'dark'); }catch(e){ /* private mode / quota */ }
   try{ renderThemePicker(); }catch(e){ rtcWarn(e); }
 }
-function getTheme(){ try{ return RTCStore.get('rtc_theme') || 'dark'; }catch(e){ return 'dark'; } }
+// The document is the source of truth — the cloud cache can hydrate without the
+// theme key, which used to make the picker highlight the wrong swatch.
+function getTheme(){
+  try{
+    var live = document.documentElement.getAttribute('data-theme');
+    if (live) return live;
+    var saved = RTCStore.get('rtc_theme');
+    if (!saved) { try { saved = localStorage.getItem('rtc_theme'); } catch(e){} }
+    return saved || 'dark';
+  }catch(e){ return 'dark'; }
+}
 function renderThemePicker(){
   var cur = getTheme();
   var opts = document.querySelectorAll('#themePickerRow .theme-opt');
@@ -5836,6 +5877,62 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
   setInterval(tick,1000);tick();
 })();
 function rtcStorageUsage() { return RTCStore.usage(); }
+
+// ═══════════════════════════════════════════════════════
+// PAST-LIMIT INTERVENTION — the app can't lock the door, but nobody
+// walks through it by accident. Cold facts, two honest choices.
+// ═══════════════════════════════════════════════════════
+var _rtcPendingSave = null;
+function rtcLimitState() {
+  var acc = getActiveAcc(), rules = getAccRules(acc);
+  var bal = rtcLiveBalance(acc);
+  var dailyMax = bal > 0 ? bal / rules.divisor : 0;
+  var today = new Date().toDateString(), count = 0, net = 0;
+  getTrades().forEach(function(t) {
+    if (!t.date || new Date(t.date).toDateString() !== today) return;
+    count++;
+    if (typeof t.tradePnl === 'number') net += t.tradePnl;
+  });
+  try {
+    var tKey = new Date().toLocaleDateString('en-US',{ month:'short', day:'numeric' });
+    (typeof pnlLog !== 'undefined' && pnlLog ? pnlLog : []).forEach(function(e){ if (e && e.date === tKey && e.src !== 'trade') net += (e.pnl || 0); });
+  } catch(e) { rtcWarn(e); }
+  var lost = Math.max(0, -net);
+  return {
+    count: count, net: net, lost: lost, dailyMax: dailyMax, rules: rules,
+    overTrades: count >= rules.maxTrades,
+    pastLoss: dailyMax > 0 && lost >= dailyMax,
+    breached: (count >= rules.maxTrades) || (dailyMax > 0 && lost >= dailyMax)
+  };
+}
+function rtcShowLimitTakeover(next) {
+  var st = rtcLimitState();
+  _rtcPendingSave = next;
+  var el = document.getElementById('limitTakeover'); if (!el) { next(true); return; }
+  var facts = [];
+  if (st.overTrades) facts.push('This is trade <strong style="color:var(--red);">' + (st.count + 1) + '</strong> of the <strong>' + st.rules.maxTrades + '</strong> you allow yourself.');
+  if (st.pastLoss) facts.push('You are down <strong style="color:var(--red);">' + curSym() + st.lost.toFixed(0) + '</strong> today. Your limit was ' + curSym() + st.dailyMax.toFixed(0) + '.');
+  var t = document.getElementById('ltTitle');
+  if (t) t.textContent = st.pastLoss ? 'YOU ARE PAST YOUR LIMIT.' : 'YOU ARE OUT OF TRADES.';
+  var f = document.getElementById('ltFacts'); if (f) f.innerHTML = facts.join('<br>');
+  var l = document.getElementById('ltLine');
+  if (l) l.textContent = st.pastLoss
+    ? 'The setup is not the problem. This is the trade that turns a bad day into a bad month.'
+    : 'You set that number when you were thinking clearly. You are not thinking clearly now.';
+  el.style.display = 'flex';
+  playSound('alert');
+}
+function rtcLimitStop() {
+  var el = document.getElementById('limitTakeover'); if (el) el.style.display = 'none';
+  _rtcPendingSave = null;
+  playSound('warn');
+}
+function rtcLimitOverride() {
+  var el = document.getElementById('limitTakeover'); if (el) el.style.display = 'none';
+  var fn = _rtcPendingSave; _rtcPendingSave = null;
+  if (typeof fn === 'function') fn(true);
+}
+
 
 // ═══════════════════════════════════════════════════════
 // MY JOURNAL — personal journal, deliberately separate from trades.
@@ -6060,6 +6157,7 @@ function renderCalendar() {
     if (typeof t.tradePnl === 'number') o.pnl = (o.pnl || 0) + t.tradePnl;
     if (t.pct) o.scores.push(t.pct);
     if (t.killed) o.killedTrade = true;
+    if (t.revenge || t.pastLimit) o.revenge = true;
   });
   getCheckins().forEach(function(c) {
     var d = rtcCalParseDate(c.date);
@@ -6148,13 +6246,14 @@ function renderCalendar() {
       '<div class="cal-pnl" style="color:' + ((o.pnl >= 0) ? 'var(--green)' : 'var(--red)') + ';">' + (o.pnl >= 0 ? '+' : '−') + curSym() + Math.abs(o.pnl).toLocaleString(undefined,{maximumFractionDigits:0}) + '</div>';
     if (c.type === 'discipline') pnlStr = '<div class="cal-pnl" style="color:var(--gold);">&bull;</div>';
     // Words, not micro-icons: the tile must be legible in a social screenshot.
-    var lineTrades = o.trades ? (o.trades + ' trade' + (o.trades !== 1 ? 's' : '') + (c.avg !== null ? '  &middot;  discipline ' + c.avg + '%' : '')) : '';
+    var lineTrades = o.trades ? (o.trades + ' trade' + (o.trades !== 1 ? 's' : '')
+      + (c.avg !== null ? '<br><span style="white-space:nowrap;">discipline ' + c.avg + '%</span>' : '')) : '';
     var lineBody = '';
     if (o.checkin) {
       var bits = [];
       if (typeof o.checkin.sleepHours === 'number') bits.push('slept ' + o.checkin.sleepHours + 'h');
       if (o.checkin.mood) bits.push('mood ' + String(o.checkin.mood).toLowerCase());
-      lineBody = bits.join('  &middot;  ');
+      lineBody = bits.map(function(b){ return '<span style="white-space:nowrap;">' + b + '</span>'; }).join('<br>');
     }
     var MOODC = { 'Locked In':'var(--green)', 'Good':'var(--green)', 'Neutral':'var(--muted)', 'Overconfident':'var(--orange)', 'Frustrated':'var(--warn)', 'Anxious':'var(--warn)', 'Defeated':'var(--red)' };
     var moodCol = (o.checkin && MOODC[o.checkin.mood]) || 'var(--muted)';
@@ -6220,16 +6319,16 @@ function renderCalendar() {
   function seal(o) {
     // o: { met, pct, note, needs }
     if (!o.met)              return { state:'locked',  note:o.note };
-    if (!enoughVolume && o.needsVolume) return { state:'locked', note:'Needs ' + MIN_TRADED_DAYS + '+ traded days (' + tradedDays.length + ' so far)' };
+    if (!enoughVolume && o.needsVolume) return { state:'locked', note:'Needs ' + MIN_TRADED_DAYS + '+ traded days this month (' + tradedDays.length + ' so far)' };
     if (!monthOver)          return { state:'ontrack', note:'On track — ' + o.note };
     return { state:'earned', note:'' };
   }
 
   var defs = [
-    { name:'Clean Month', sub:'Followed your rules every trading day', icon:'&#10003;', needsVolume:true,
+    { name:'Clean Month', sub:'85%+ discipline on every day you traded', icon:'&#10003;', needsVolume:true,
       met: tradedDays.length > 0 && cleanDays === tradedDays.length,
       pct: tradedDays.length ? Math.round(cleanDays / tradedDays.length * 100) : 0,
-      note: tradedDays.length ? cleanDays + ' of ' + tradedDays.length + ' days clean' : 'No trades yet' },
+      note: tradedDays.length ? cleanDays + ' of ' + tradedDays.length + ' traded days clean' : 'No trades yet' },
     { name:'Iron Discipline', sub:'Never went over your trade limit', icon:'&#9635;', needsVolume:true,
       met: tradedDays.length > 0 && slips === 0,
       pct: tradedDays.length ? Math.round((tradedDays.length - slips) / tradedDays.length * 100) : 0,
@@ -6243,7 +6342,7 @@ function renderCalendar() {
     { name:'Perfect Attendance', sub:'Checked in every trading day', icon:'&#9776;', needsVolume:false,
       met: weekdaysElapsed > 0 && weekdaysCheckedIn === weekdaysElapsed,
       pct: weekdaysElapsed ? Math.round(weekdaysCheckedIn / weekdaysElapsed * 100) : 0,
-      note: weekdaysCheckedIn + ' of ' + weekdaysElapsed + ' days' },
+      note: weekdaysCheckedIn + ' of ' + weekdaysElapsed + ' weekdays checked in' },
     { name:'Well Rested', sub:'Averaged 7+ hours of sleep', icon:'&#9790;', needsVolume:false,
       met: sleepVals.length >= 5 && avgSleep >= 7,
       pct: avgSleep ? Math.min(100, Math.round(avgSleep / 7 * 100)) : 0,
@@ -6266,6 +6365,38 @@ function renderCalendar() {
               : '<div class="seal-bar"><i style="width:' + Math.max(2, Math.min(100, bg.pct)) + '%;"></i></div><div class="seal-note' + (track ? ' ontrack' : '') + '">' + st.note + '</div>')
         + '</div>';
     }).join('');
+  }
+  // ── MARKS AGAINST YOU ── the other half of an honest record.
+  // Only rendered when earned; the app doesn't nag about sins you haven't committed.
+  var overDays    = tradedDays.filter(function(o){ return o.trades > rules.maxTrades; }).length;
+  var redDays     = tradedDays.filter(function(o){ return o.killedTrade; }).length;
+  var revengeDays = tradedDays.filter(function(o){ return o.revenge; }).length;
+  var tiltDays    = tradedDays.filter(function(o){ return (o.pnl || 0) < 0 && (o.trades > rules.maxTrades || o.killedTrade); }).length;
+  var emptyDays   = tradedDays.filter(function(o){ return o.checkin && typeof o.checkin.sleepHours === 'number' && o.checkin.sleepHours <= 5; }).length;
+  var noCheckin   = tradedDays.length >= 5 && checkinDays === 0;
+  var marks = [
+    { name:'The Revenge Trader', sub:'Kept trading after blowing through your daily max', icon:'&#10006;', hit: revengeDays >= 1, note: revengeDays + ' day' + (revengeDays !== 1 ? 's' : '') },
+    { name:'The Overtrader', sub:'Went past your own trade limit', icon:'&#8942;', hit: overDays >= 2, note: overDays + ' days over' },
+    { name:'Ran The Red', sub:'Traded through an active kill switch', icon:'&#9210;', hit: redDays >= 1, note: redDays + ' day' + (redDays !== 1 ? 's' : '') },
+    { name:'Tilt Pattern', sub:'Lost money on days you broke your rules', icon:'&#9660;', hit: tiltDays >= 2, note: tiltDays + ' tilt days' },
+    { name:'Running On Empty', sub:'Traded on 5 hours of sleep or less', icon:'&#9788;', hit: emptyDays >= 3, note: emptyDays + ' days' },
+    { name:'Flying Blind', sub:'Traded all month without a single check-in', icon:'&#9711;', hit: noCheckin, note: tradedDays.length + ' days, 0 check-ins' }
+  ].filter(function(m){ return m.hit; });
+  var mWrap = document.getElementById('rtcCalMarks');
+  if (mWrap) {
+    if (!marks.length) { mWrap.innerHTML = ''; mWrap.style.display = 'none'; }
+    else {
+      mWrap.style.display = 'block';
+      mWrap.innerHTML = '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--red);margin:16px 0 8px;">// MARKS AGAINST YOU</div>'
+        + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;">'
+        + marks.map(function(m) {
+            return '<div class="mark-card"><div class="mark-ring">' + m.icon + '</div>'
+              + '<div class="mark-name">' + m.name + '</div>'
+              + '<div class="mark-sub">' + m.sub + '</div>'
+              + '<div class="mark-note">' + m.note + '</div></div>';
+          }).join('')
+        + '</div>';
+    }
   }
   var lg = document.getElementById('rtcCalLegend');
   if (lg) lg.innerHTML = 'Every day is judged two ways. <strong style="color:var(--green);">Green border = you followed your rules.</strong> <strong style="color:var(--red);">Red border = you broke them.</strong> The dollar figure is just the money.'
@@ -7222,9 +7353,14 @@ function resetChecklist() {
   updateScore();
 }
 
-function saveTrade() {
+function saveTrade(_override) {
   const btn = document.getElementById('saveTradeBtn');
   if (!btn || btn.disabled) return;
+  // Past your own limits? You get the cold facts before anything is recorded.
+  if (!_override) {
+    var _ls = rtcLimitState();
+    if (_ls.breached) { rtcShowLimitTakeover(saveTrade); return; }
+  }
   const pct = parseInt((document.getElementById('scorePct') || {}).textContent) || 0;
   const t = {
     id:        Date.now(),
@@ -7236,6 +7372,8 @@ function saveTrade() {
     score:     Math.round((pct/100) * (clTotalPts||38)),
     pct:       pct,
     killed:    !!document.querySelector('.kill-item.on'),   // traded through an active kill switch
+    pastLimit: !!_override,                                 // logged after the app warned them
+    revenge:   (function(){ try { return !!_override && rtcLimitState().pastLoss; } catch(e){ return false; } })(),
     notes:     (document.getElementById('cl-notes')  || {}).value || '',
     mood:      currentMood,
     sleep:     currentSleep,
@@ -14576,7 +14714,14 @@ rtcOnReady(function(){
       else { hideBootLoading(); }           // no session -> reveal the public home page
     }).catch(function(){ hideBootLoading(); });
     sb.auth.onAuthStateChange(function(evt,session){
-      if(session){ applied=false; applySession(session); }
+      // Supabase fires this on background token refresh too. Re-entering the app on
+      // those events reset the user's tab mid-session — ignore anything that isn't
+      // an actual sign-in or sign-out.
+      if(evt === 'TOKEN_REFRESHED' || evt === 'USER_UPDATED' || evt === 'INITIAL_SESSION') return;
+      if(session){
+        if(applied) return;              // already inside the app — don't re-route
+        applied=false; applySession(session);
+      }
       else { applied=false; hideBootLoading(); }   // signed out -> home is public, no forced gate
     });
   }
