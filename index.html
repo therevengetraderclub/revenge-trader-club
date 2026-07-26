@@ -4460,62 +4460,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
 
     <!-- DRAWDOWN ALARM -->
-    <div class="card" style="margin-top:4px;border-color:rgba(229,57,53,0.2);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-        <div class="card-title" style="margin-bottom:0;">Drawdown Alarm</div>
-        <div id="ddAlarmStatus" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;background:var(--bg3);color:var(--muted);letter-spacing:1px;">OFF</div>
-      </div>
-      <div class="card-sub" style="margin-bottom:14px;">Set your account max loss limit. The alarm warns you when you are getting close so you never blow through it.</div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-        <div>
-          <div class="risk-lbl2" style="margin-bottom:6px;">Account Max Loss Limit ($)</div>
-          <input class="risk-input" id="ddLimit" type="number" placeholder="1000" style="width:100%;" oninput="updateDrawdownAlarm()">
-        </div>
-        <div>
-          <div class="risk-lbl2" style="margin-bottom:6px;">Today's P&L ($)</div>
-          <input class="risk-input" id="ddPnl" type="number" placeholder="-350" style="width:100%;" oninput="updateDrawdownAlarm()">
-        </div>
-      </div>
-
-      <!-- Drawdown meter -->
-      <div id="ddMeter" style="display:none;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <div style="font-size:11px;color:var(--muted);">Drawdown Used</div>
-          <div style="font-size:11px;font-weight:700;" id="ddPctLabel">0%</div>
-        </div>
-        <div style="background:var(--bg4);border-radius:6px;height:12px;overflow:hidden;margin-bottom:8px;border:1px solid var(--border);">
-          <div id="ddBar" style="height:100%;border-radius:6px;background:var(--green);transition:width .5s,background .3s;width:0%;"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;">
-          <span>$0 lost</span>
-          <span id="ddRemaining" style="font-weight:700;color:var(--green);"></span>
-          <span id="ddLimitLabel">Limit: $0</span>
-        </div>
-
-        <!-- Quick stats row -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;">
-          <div style="background:var(--bg3);border-radius:4px;padding:10px;text-align:center;border:1px solid var(--border);">
-            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Today P&L</div>
-            <div style="font-size:16px;font-weight:800;" id="ddPnlDisplay" style="color:var(--white);">$0</div>
-          </div>
-          <div style="background:var(--bg3);border-radius:4px;padding:10px;text-align:center;border:1px solid var(--border);">
-            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Used</div>
-            <div style="font-size:16px;font-weight:800;" id="ddPctDisplay">0%</div>
-          </div>
-          <div style="background:var(--bg3);border-radius:4px;padding:10px;text-align:center;border:1px solid var(--border);">
-            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Remaining</div>
-            <div style="font-size:16px;font-weight:800;color:var(--green);" id="ddRemainingDisplay">$0</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Alert box -->
-      <div id="ddAlert" style="display:none;margin-top:10px;padding:14px 16px;border-radius:var(--r-sm);border:1px solid;">
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px;" id="ddAlertTitle"></div>
-        <div style="font-size:12px;line-height:1.6;" id="ddAlertMsg"></div>
-      </div>
-    </div>
+    <!-- Drawdown Alarm removed: duplicated the Risk Rules system and required manual entry of numbers the app already tracks. -->
 
     <!-- HOW MUCH CAN I RISK -->
     <div class="card" style="margin-top:4px;">
@@ -5902,6 +5847,52 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
 })();
 function rtcStorageUsage() { return RTCStore.usage(); }
 
+// ── DISCIPLINE STREAK ───────────────────────────────────
+// Consecutive days, walking back from today, where you either sat out or traded
+// inside your own rules. Breaking a rule ends the streak; not trading never does.
+function getDisciplineStreak() {
+  try {
+    var rules = getAccRules(getActiveAcc());
+    var byDay = {};
+    getTrades().forEach(function(t) {
+      if (!t.date) return;
+      var d = new Date(t.date); if (isNaN(d)) return;
+      var k = d.toDateString();
+      var o = byDay[k] || (byDay[k] = { n:0, bad:false, scores:[] });
+      o.n++;
+      if (t.killed || t.pastLimit) o.bad = true;
+      if (t.pct) o.scores.push(t.pct);
+    });
+    var streak = 0, cur = new Date();
+    for (var i = 0; i < 400; i++) {
+      var o = byDay[cur.toDateString()];
+      if (o) {
+        var avg = o.scores.length ? o.scores.reduce(function(a,b){return a+b;},0) / o.scores.length : 100;
+        if (o.bad || o.n > rules.maxTrades || avg < 70) break;   // rules broken -> streak ends
+        streak++;
+      }
+      cur.setDate(cur.getDate() - 1);
+    }
+    return streak;
+  } catch(e) { rtcWarn(e); return 0; }
+}
+
+
+// Onboarding risk-rule picker — writes straight through to the account rules
+function rtcObPickRule(el) {
+  var kind = el.dataset.kind, val = parseInt(el.dataset.val, 10);
+  setAccRiskRule(kind, val);
+  var r = getAccRules(getActiveAcc()), bal = rtcLiveBalance(getActiveAcc());
+  document.querySelectorAll('.ob-rule').forEach(function(o) {
+    var on = parseInt(o.dataset.val, 10) === (o.dataset.kind === 'maxTrades' ? r.maxTrades : r.divisor);
+    o.style.borderColor = on ? 'var(--gold)' : 'var(--border2)';
+    o.style.background  = on ? 'rgba(var(--gold-rgb),0.1)' : 'var(--bg3)';
+    var lab = o.firstChild; if (lab && lab.style) lab.style.color = on ? 'var(--gold)' : 'var(--white)';
+  });
+  var out = document.getElementById('obRuleOut');
+  if (out && bal > 0) out.innerHTML = 'Daily max loss <strong style="color:var(--red);">-' + curSym() + (bal / r.divisor).toFixed(0) + '</strong> &middot; per trade <strong style="color:var(--gold);">' + curSym() + (bal / r.divisor / r.maxTrades).toFixed(0) + '</strong>';
+}
+
 // ═══════════════════════════════════════════════════════
 // MONTH SHARE CARD — built from the same data as the calendar so the
 // numbers can never disagree. Sized and typed to survive a screenshot.
@@ -5926,16 +5917,20 @@ function openCalShare() {
     if (o && !future) {
       var c = d.classify(o), t = d.TYPE[c.type];
       bd = t.ring; col = 'var(--text2)';
-      if (c.type === 'cleanwin')       { bg = 'rgba(10,158,99,0.16)'; }
-      else if (c.type === 'cleanloss') { bg = 'rgba(10,158,99,0.07)'; }
-      else if (c.type === 'dirtywin')  { bg = 'rgba(229,57,53,0.10)'; }
-      else if (c.type === 'tilt')      { bg = 'rgba(229,57,53,0.20)'; }
-      else if (c.type === 'discipline'){ bg = 'rgba(var(--gold-rgb),0.12)'; }
-      if (o.pnl !== null && o.trades) mark = (o.pnl >= 0 ? '+' : '\u2212');
+      if (c.type === 'cleanwin')       { bg = 'rgba(34,197,94,0.16)'; bd = 'var(--green)'; }
+      else if (c.type === 'cleanloss') { bg = 'rgba(34,197,94,0.08)'; bd = 'var(--green)'; }
+      else if (c.type === 'dirtywin')  { bg = 'rgba(239,83,80,0.14)'; bd = 'var(--red)'; }
+      else if (c.type === 'tilt')      { bg = 'rgba(239,83,80,0.24)'; bd = 'var(--red)'; }
+      else if (c.type === 'discipline'){ bg = 'rgba(212,175,55,0.14)'; bd = 'var(--gold)'; }
+      if (o.pnl !== null && o.trades) {
+        var _a = Math.abs(o.pnl);
+        var _amt = _a >= 1000 ? (Math.round(_a / 100) / 10) + 'k' : String(Math.round(_a));
+        mark = (o.pnl >= 0 ? '+' : '\u2212') + _amt;
+      }
     }
-    cells += '<div style="aspect-ratio:1;background:' + bg + ';border:1.5px solid ' + bd + ';border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;">'
-      + '<span style="font-size:12px;font-weight:700;color:' + col + ';">' + n + '</span>'
-      + (mark ? '<span style="font-size:10px;font-weight:800;color:' + (mark === '+' ? 'var(--green)' : 'var(--red)') + ';margin-top:1px;">' + mark + '</span>' : '')
+    cells += '<div style="aspect-ratio:1;background:' + bg + ';border:1.5px solid ' + bd + ';border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;overflow:hidden;">'
+      + '<span style="font-size:11px;font-weight:700;color:' + col + ';">' + n + '</span>'
+      + (mark ? '<span style="font-size:9px;font-weight:800;letter-spacing:-0.2px;color:' + (o.pnl >= 0 ? 'var(--green)' : 'var(--red)') + ';margin-top:2px;">' + mark + '</span>' : '')
       + '</div>';
   }
 
@@ -5948,7 +5943,8 @@ function openCalShare() {
   };
 
   el.innerHTML =
-    '<div style="background:var(--bg);border:1px solid var(--gold-dim);border-radius:14px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">'
+    '<div style="--bg:#100f0c;--bg2:#161511;--bg3:#1d1b14;--bg4:#26231a;--border:#2b2820;--border2:#3a362a;--white:#f5f2ea;--text:#efece2;--text2:#cfc9ba;--muted:#8f8871;--faint:#6d675a;--gold:#d4af37;--gold2:#e2c26a;--gold-rgb:212,175,55;--gold-dim:#8a7434;--green:#22c55e;--red:#ef5350;'
+    + 'background:var(--bg);border:1px solid var(--gold-dim);border-radius:14px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.5);color:var(--text2);">'
     + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
       + (logoSrc ? '<img src="' + logoSrc + '" alt="" style="width:52px;height:52px;border-radius:50%;border:2px solid var(--gold);object-fit:cover;flex-shrink:0;">' : '')
       + '<div style="min-width:0;">'
@@ -5967,9 +5963,9 @@ function openCalShare() {
       + cells
     + '</div>'
     + '<div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;font-size:9.5px;color:var(--muted);letter-spacing:.5px;margin-bottom:14px;">'
-      + '<span><span style="display:inline-block;width:8px;height:8px;border:1.5px solid var(--green);border-radius:2px;vertical-align:-1px;"></span> rules kept</span>'
-      + '<span><span style="display:inline-block;width:8px;height:8px;border:1.5px solid var(--red);border-radius:2px;vertical-align:-1px;"></span> rules broken</span>'
-      + '<span><span style="display:inline-block;width:8px;height:8px;border:1.5px solid var(--gold-dim);border-radius:2px;vertical-align:-1px;"></span> no-trade discipline</span>'
+      + '<span><span style="display:inline-block;width:10px;height:10px;background:rgba(34,197,94,0.25);border:1.5px solid var(--green);border-radius:3px;vertical-align:-1px;"></span> rules kept</span>'
+      + '<span><span style="display:inline-block;width:10px;height:10px;background:rgba(239,83,80,0.25);border:1.5px solid var(--red);border-radius:3px;vertical-align:-1px;"></span> rules broken</span>'
+      + '<span><span style="display:inline-block;width:10px;height:10px;background:rgba(212,175,55,0.25);border:1.5px solid var(--gold);border-radius:3px;vertical-align:-1px;"></span> no-trade day</span>'
     + '</div>'
     + '<div style="display:flex;gap:7px;margin-bottom:14px;">'
       + stat(d.cleanDays + '/' + d.tradedDays, 'Clean Days', 'var(--green)')
@@ -7054,7 +7050,6 @@ function loadDash() {
   try { renderNewsCalendar(); } catch(e) { rtcWarn(e); }
   try { renderWarmup(); } catch(e) { rtcWarn(e); }
   try { prefillPSBalance(); } catch(e) { rtcWarn(e); }
-  try { loadDrawdownSettings(); } catch(e) { rtcWarn(e); }
   try { renderSoundToggle(); } catch(e) { rtcWarn(e); }
   try { initNavSlider(); } catch(e) { rtcWarn(e); }
   try { renderAccountBadge(); } catch(e) { rtcWarn(e); }
@@ -7952,8 +7947,8 @@ function renderPerf() {
   const checkins = getCheckins();
   const set = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
   set('p-trades', trades.length);
-  set('p-streak', trades.length);
-  animateCountUp('streakNum', trades.length);
+  set('p-streak', getDisciplineStreak());
+  animateCountUp('streakNum', getDisciplineStreak());
   const avg = trades.length ? Math.round(trades.reduce((a,t)=>a+t.pct,0)/trades.length) : 0;
   set('p-avg', trades.length ? avg+'%' : '—');
   const goodSleep = checkins.filter(c => c.sleep && c.sleep.includes('Well')).length;
@@ -8827,7 +8822,7 @@ function renderMindset() {
 
 function renderStreakBanner() {
   const trades = getTrades();
-  const streak = trades.length;
+  const streak = getDisciplineStreak();
   const banner = document.getElementById('streakProtectBanner');
   const numEl  = document.getElementById('streakBannerNum');
   if (!banner) return;
@@ -9501,7 +9496,7 @@ function calcRiskPerTrade() {
 function updateRiskRemaining() {
   var wrap = document.getElementById('psLeft'); if (!wrap) return;
   var bal = parseFloat((document.getElementById('psBalance') || {}).value) || 0;
-  if (!bal || bal <= 0) { var acc = getActiveAcc(); bal = (acc && acc.balance) || 0; }
+  if (!bal || bal <= 0) { bal = rtcLiveBalance(getActiveAcc()); }
   if (!bal || bal <= 0) { wrap.style.display = 'none'; return; }
   var rules = getAccRules(getActiveAcc());
   var dailyMax = bal / rules.divisor;
@@ -9543,144 +9538,14 @@ function updateRiskRemaining() {
 // Prefill balance from active account
 function prefillPSBalance() {
   const acc = getActiveAcc();
-  if (acc && acc.balance > 0) {
+  const bal = rtcLiveBalance(acc);   // starting balance + everything logged since
+  if (bal > 0) {
     const balEl = document.getElementById('psBalance');
-    if (balEl) { balEl.value = acc.balance; calcRiskPerTrade(); }
+    if (balEl) { balEl.value = Math.round(bal * 100) / 100; calcRiskPerTrade(); }
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// DRAWDOWN ALARM
-// ═══════════════════════════════════════════════════════
-
-function ddKey() { return 'rtc_dd_' + getActiveIdx(); }
-
-function saveDrawdownSettings(limit, pnl) {
-  rtcSet(ddKey(), JSON.stringify({ limit, pnl, date: new Date().toDateString() }));
-}
-
-function loadDrawdownSettings() {
-  const saved = JSON.parse(RTCStore.get(ddKey()) || 'null');
-  if (!saved) return;
-  // Reset P&L if it's a new day
-  const isToday = saved.date === new Date().toDateString();
-  const limitEl = document.getElementById('ddLimit');
-  const pnlEl   = document.getElementById('ddPnl');
-  if (limitEl && saved.limit) limitEl.value = saved.limit;
-  if (pnlEl)   pnlEl.value = isToday ? (saved.pnl || '') : '';
-  updateDrawdownAlarm();
-}
-
-function updateDrawdownAlarm() {
-  const limit  = parseFloat(document.getElementById('ddLimit')?.value) || 0;
-  const pnl    = parseFloat(document.getElementById('ddPnl')?.value) || 0;
-  const meter  = document.getElementById('ddMeter');
-  const alert  = document.getElementById('ddAlert');
-  const status = document.getElementById('ddAlarmStatus');
-  const bar    = document.getElementById('ddBar');
-  const pctLbl = document.getElementById('ddPctLabel');
-  const limLbl = document.getElementById('ddLimitLabel');
-  const aTitle = document.getElementById('ddAlertTitle');
-  const aMsg   = document.getElementById('ddAlertMsg');
-
-  if (!limit) {
-    if (meter)  meter.style.display  = 'none';
-    if (alert)  alert.style.display  = 'none';
-    if (status) { status.textContent = 'OFF'; status.style.background = 'var(--bg3)'; status.style.color = 'var(--muted)'; }
-    return;
-  }
-
-  // Save settings
-  saveDrawdownSettings(limit, pnl);
-
-  // Loss is positive number (pnl negative = loss)
-  const loss    = Math.max(0, -pnl);
-  const pct     = Math.min(100, Math.round((loss / limit) * 100));
-  const remaining = limit - loss;
-
-  // Always show meter once limit is set
-  if (meter) meter.style.display = 'block';
-  
-  // Also show remaining balance clearly
-  const remainEl = document.getElementById('ddRemaining');
-  if (remainEl) remainEl.textContent = '$' + Math.max(0, remaining).toFixed(2) + ' remaining';
-  if (limLbl) limLbl.textContent = 'Limit: $' + limit.toFixed(0);
-  if (pctLbl) {
-    pctLbl.textContent = pct + '%';
-    pctLbl.style.color = pct >= 100 ? 'var(--red)' : pct >= 75 ? 'var(--orange)' : pct >= 50 ? 'var(--gold)' : 'var(--green)';
-  }
-  if (bar) {
-    bar.style.width = pct + '%';
-    bar.style.background = pct >= 100 ? 'var(--red)' : pct >= 75 ? 'var(--orange)' : pct >= 50 ? 'var(--gold)' : 'var(--green)';
-  }
-
-  // Update quick stats
-  const pnlDisp  = document.getElementById('ddPnlDisplay');
-  const pctDisp  = document.getElementById('ddPctDisplay');
-  const remDisp  = document.getElementById('ddRemainingDisplay');
-  const remColor = remaining <= 0 ? 'var(--red)' : remaining < limit * 0.25 ? 'var(--orange)' : 'var(--green)';
-
-  if (pnlDisp) {
-    pnlDisp.textContent = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(0);
-    pnlDisp.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
-  }
-  if (pctDisp) {
-    pctDisp.textContent = pct + '%';
-    pctDisp.style.color = pct >= 100 ? 'var(--red)' : pct >= 75 ? 'var(--orange)' : pct >= 50 ? 'var(--gold)' : 'var(--green)';
-  }
-  if (remDisp) {
-    remDisp.textContent = '$' + Math.max(0, remaining).toFixed(0);
-    remDisp.style.color = remColor;
-  }
-
-  // Status badge
-  if (status) {
-    if (pct >= 100) {
-      status.textContent = 'LIMIT HIT'; status.style.background = 'rgba(229,57,53,0.15)'; status.style.color = 'var(--red)';
-    } else if (pct >= 75) {
-      status.textContent = 'WARNING'; status.style.background = 'rgba(45,212,191,0.15)'; status.style.color = 'var(--orange)';
-    } else if (pct >= 50) {
-      status.textContent = 'CAUTION'; status.style.background = 'rgba(var(--gold-rgb),0.15)'; status.style.color = 'var(--gold)';
-    } else if (pnl !== 0) {
-      status.textContent = 'ACTIVE'; status.style.background = 'rgba(0,208,132,0.1)'; status.style.color = 'var(--green)';
-    } else {
-      status.textContent = 'SET'; status.style.background = 'var(--bg3)'; status.style.color = 'var(--muted)';
-    }
-  }
-
-  // Alert messages
-  if (alert && aTitle && aMsg) {
-    if (pct >= 100) {
-      alert.style.display = 'block';
-      alert.style.background = 'rgba(229,57,53,0.08)';
-      alert.style.borderColor = 'rgba(229,57,53,0.4)';
-      aTitle.style.color = 'var(--red)';
-      aTitle.textContent = 'LIMIT REACHED — YOU ARE DONE FOR THE DAY';
-      aMsg.style.color = '#c07070';
-      aMsg.textContent = 'You have hit your max daily loss of $' + limit.toFixed(0) + '. Close your platform right now. No more trades today. Come back tomorrow with a clear head.';
-    } else if (pct >= 75) {
-      alert.style.display = 'block';
-      alert.style.background = 'rgba(45,212,191,0.06)';
-      alert.style.borderColor = 'rgba(45,212,191,0.3)';
-      aTitle.style.color = 'var(--orange)';
-      aTitle.textContent = '⚠ WARNING — $' + remaining.toFixed(0) + ' LEFT';
-      aMsg.style.color = '#a06040';
-      aMsg.textContent = 'You are at ' + pct + '% of your daily limit. You have $' + remaining.toFixed(0) + ' left before you hit your max. One more bad trade could end your day. Be extremely selective.';
-    } else if (pct >= 50) {
-      alert.style.display = 'block';
-      alert.style.background = 'rgba(var(--gold-rgb),0.06)';
-      alert.style.borderColor = 'rgba(var(--gold-rgb),0.2)';
-      aTitle.style.color = 'var(--gold)';
-      aTitle.textContent = 'Caution — Halfway to Your Limit';
-      aMsg.style.color = '#808060';
-      aMsg.textContent = 'You have used 50% of your daily max. $' + remaining.toFixed(0) + ' remaining. Only take A+ setups from here.';
-    } else {
-      alert.style.display = 'none';
-    }
-  }
-}
-
-// loadDrawdownSettings wired into loadDash directly below
+// (Drawdown Alarm removed — the live Risk Rules system replaced it.)
 
 // ═══════════════════════════════════════════════════════
 // WEEKLY RISK REPORT
@@ -10747,13 +10612,13 @@ function renderNavDots() {
   const checklistDot = document.getElementById('navDotChecklist');
   if (checklistDot) checklistDot.classList.toggle('show', needsReview && trades.length > 0);
 
-  // Risk dot — drawdown alarm in warning territory
-  const ddLimit = parseFloat((document.getElementById('ddLimit') || {}).value) || 0;
-  const ddPnl   = parseFloat((document.getElementById('ddPnl')   || {}).value) || 0;
+  // Risk dot — live daily budget in warning territory
+  const _rs = (function(){ try { return rtcLimitState(); } catch(e) { return { dailyMax:0, lost:0 }; } })();
+  const ddLimit = _rs.dailyMax;
   const riskDot = document.getElementById('navDotRisk');
   if (riskDot) {
     if (ddLimit > 0) {
-      const loss = Math.max(0, -ddPnl);
+      const loss = _rs.lost;
       const pct  = (loss / ddLimit) * 100;
       const isWarning = pct >= 75;
       riskDot.classList.toggle('show', isWarning);
@@ -12048,15 +11913,6 @@ const FEATURE_DETAILS = {
       + '<p>The name comes from the underlying principle: dividing your account into seven working days creates a sustainable, survivable daily risk number instead of an arbitrary guess. It is the same category of math professional risk managers use, simplified into one clear number a beginner can act on immediately.</p>'
       + '<p><strong>Built in: the Drawdown Alarm.</strong> Set your account limit — funded or personal — and RTC warns you <em>before</em> you breach it, not after. One undisciplined session can end a Topstep, Apex, or FTMO evaluation that took weeks to build. This is the guardrail that keeps you in the game.</p>',
   },
-  drawdown: {
-    icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>',
-    title: 'Drawdown Alarm',
-    tagline: 'A warning system before you blow through your limit',
-    body: '<p>Funded account traders live and die by their daily drawdown limit. One undisciplined session can end a Topstep, Apex, or FTMO evaluation that took weeks to build. The problem is rarely not knowing the rule \u2014 it is losing track of where you stand against it in the middle of a live, emotional trading session.</p>'
-      + '<p>The Drawdown Alarm solves exactly that. Set your account\u2019s max loss limit once, then update your running P&L as you trade. A live visual meter shows your exact percentage used in real time, color-coded from green to red, with the remaining dollar amount always visible.</p>'
-      + '<p>At 50% used you get a calm caution notice. At 75%, a clear warning that you are close to your limit. At 100%, the app tells you directly: close the platform, you are done for the day. No ambiguity, no convincing yourself "just one more trade" is fine.</p>'
-      + '<p>This is the feature built specifically for funded account traders who cannot afford to lose an evaluation to a moment of emotional drift.</p>',
-  },
   goals: {
     icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
     title: 'Goal Planner + Calendar',
@@ -12087,7 +11943,7 @@ const FEATURE_DETAILS = {
     title: 'Multi-Account Support',
     tagline: 'Your funded account and your personal account, kept completely separate',
     body: '<p>Traders running a funded evaluation alongside a personal account face a problem most journaling tools never solve: every account has different rules, different risk limits, and a completely different psychological pressure attached to it. Mixing that data together makes every insight less accurate.</p>'
-      + '<p>Multi-Account Support gives every account you add its own fully separate journal, goals, checklists, custom warmup steps, saved tickers, and Drawdown Alarm settings. Switch between accounts from Settings in a single tap, and every tab in the app instantly reflects only that account\u2019s real data.</p>'
+      + '<p>Multi-Account Support gives every account you add its own fully separate journal, goals, checklists, custom warmup steps, saved tickers, and risk rules. Switch between accounts from Settings in a single tap, and every tab in the app instantly reflects only that account\u2019s real data.</p>'
       + '<p>Run a Topstep combine and a personal crypto account side by side without either one\u2019s data ever blending into the other. This is built specifically for traders managing more than one book at once.</p>',
   },
 };
@@ -12694,9 +12550,7 @@ function populateTradingMode() {
   // ── RISK PER TRADE ───────────────────────────────────
   const riskEl = document.getElementById('tmRisk');
   if (riskEl) {
-    const ddKey = 'rtc_dd_' + getActiveIdx();
-    const ddData = JSON.parse(RTCStore.get(ddKey) || '{}');
-    const bal = ddData.balance || (acc && acc.balance) || 0;
+    const bal = rtcLiveBalance(acc);
     if (bal > 0) {
       const _r = getAccRules(acc);
       riskEl.textContent = curSym() + Math.round(bal / _r.divisor / _r.maxTrades).toLocaleString();
@@ -12720,10 +12574,9 @@ function populateTradingMode() {
   // ── DRAWDOWN STATUS ──────────────────────────────────
   const ddEl = document.getElementById('tmDrawdown');
   if (ddEl) {
-    const ddKey = 'rtc_dd_' + getActiveIdx();
-    const ddData = JSON.parse(RTCStore.get(ddKey) || '{}');
-    if (ddData.maxLoss && ddData.dailyPnl !== undefined) {
-      const pctUsed = Math.round(Math.abs(Math.min(0, ddData.dailyPnl)) / ddData.maxLoss * 100);
+    var _dd = rtcLimitState();
+    if (_dd.dailyMax > 0) {
+      const pctUsed = Math.round(_dd.lost / _dd.dailyMax * 100);
       ddEl.textContent = pctUsed + '%';
       ddEl.style.color = goalHit ? 'var(--gold)' : pctUsed >= 75 ? 'var(--red)' : pctUsed >= 50 ? 'var(--orange)' : 'var(--green)';
     } else {
@@ -13677,7 +13530,7 @@ function renderJournal() {
       const shots = (t.screenshots && t.screenshots.length) ? t.screenshots : (t.screenshot ? [t.screenshot] : []);
 
       const card = document.createElement('div');
-      card.className = 'journal-card' + (isExpanded ? ' jc-open' : '');
+      card.className = 'journal-card';
       card.dataset.tradeid = t.id;
       card.style.cssText = 'margin-bottom:0;opacity:0;transform:translateY(10px);transition:opacity .35s ease,transform .35s cubic-bezier(.2,.8,.3,1);';
 
@@ -13688,6 +13541,7 @@ function renderJournal() {
         ? '<span style="font-size:12px;font-weight:800;color:' + (t.tradePnl > 0 ? 'var(--green)' : t.tradePnl < 0 ? 'var(--red)' : 'var(--muted)') + ';">' + (t.tradePnl > 0 ? '+' : t.tradePnl < 0 ? '\u2212' : '') + curSym() + Math.abs(t.tradePnl).toLocaleString(undefined,{maximumFractionDigits:0}) + '</span>'
         : '';
 
+      if (isExpanded) card.classList.add('jc-open');
       card.innerHTML =
         // Header
         '<div class="jc-hdr" style="cursor:pointer;">'
@@ -14000,33 +13854,40 @@ const OB_STEPS = [
       }
     }
   },
-  // ── STEP 3: Drawdown Limit ───────────────────────────
+  // ── STEP 3: Your Risk Rules ──────────────────────────
   {
     type: 'setup',
     render: function() {
-      const ddKey = 'rtc_dd_' + getActiveIdx();
-      const dd = JSON.parse(RTCStore.get(ddKey) || '{}');
+      var r = getAccRules(getActiveAcc());
+      var bal = rtcLiveBalance(getActiveAcc());
+      var opt = function(kind, val, label, sub, cur) {
+        var on = val === cur;
+        return '<div class="ob-rule" data-kind="' + kind + '" data-val="' + val + '" onclick="rtcObPickRule(this)" style="flex:1;padding:11px 4px;text-align:center;cursor:pointer;background:' + (on ? 'rgba(var(--gold-rgb),0.1)' : 'var(--bg3)') + ';border:1.5px solid ' + (on ? 'var(--gold)' : 'var(--border2)') + ';border-radius:4px;">'
+          + '<div style="font-size:14px;font-weight:800;color:' + (on ? 'var(--gold)' : 'var(--white)') + ';">' + label + '</div>'
+          + (sub ? '<div style="font-size:9px;color:var(--muted);margin-top:2px;">' + sub + '</div>' : '') + '</div>';
+      };
       return '<div>'
         + '<div style="text-align:center;margin-bottom:20px;">'
-        + '<div style="width:56px;height:56px;border-radius:50%;background:rgba(var(--gold-rgb),0.1);border:1.5px solid rgba(var(--gold-rgb),0.25);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"var(--gold)\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"/></svg></div>'
-        + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;letter-spacing:3px;color:var(--white);">Drawdown Limit</div>'
-        + '<div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;">Your maximum daily loss. This activates the Drawdown Alarm<br>and powers your Trading Mode safety system.</div>'
+        + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;letter-spacing:3px;color:var(--white);">Your Risk Rules</div>'
+        + '<div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;">The whole app holds you to these. You can change them later.</div>'
         + '</div>'
-        + '<div><div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Max Daily Loss ($)</div>'
-        + '<input id="obMaxLoss" type="number" value="' + (dd.maxLoss || '') + '" placeholder="1000" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:12px 14px;color:var(--text);font-size:16px;font-family:\'Inter\',sans-serif;outline:none;">'
-        + '<div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;">For Topstep MNQ: typical daily loss limit is $1,000\u2013$1,500 depending on your account size.</div>'
+        + '<div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Max Trades Per Day</div>'
+        + '<div style="display:flex;gap:6px;margin-bottom:16px;">'
+          + [1,2,3,4,5].map(function(n){ return opt('maxTrades', n, n, '', r.maxTrades); }).join('')
+        + '</div>'
+        + '<div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Daily Max Loss</div>'
+        + '<div style="display:flex;gap:6px;">'
+          + opt('divisor', 5, '&divide; 5', 'Aggressive', r.divisor)
+          + opt('divisor', 7, '&divide; 7', 'Standard', r.divisor)
+          + opt('divisor', 10, '&divide; 10', 'Conservative', r.divisor)
+        + '</div>'
+        + '<div id="obRuleOut" style="font-size:12px;color:var(--text2);margin-top:14px;line-height:1.7;">'
+          + (bal > 0 ? 'Daily max loss <strong style="color:var(--red);">-' + curSym() + (bal / r.divisor).toFixed(0) + '</strong> &middot; per trade <strong style="color:var(--gold);">' + curSym() + (bal / r.divisor / r.maxTrades).toFixed(0) + '</strong>' : 'Set your balance and these numbers appear here.')
         + '</div></div>';
     },
-    save: function() {
-      const maxLoss = parseFloat((document.getElementById('obMaxLoss') || {}).value) || 0;
-      if (maxLoss > 0) {
-        const ddKey = 'rtc_dd_' + getActiveIdx();
-        const dd = JSON.parse(RTCStore.get(ddKey) || '{}');
-        dd.maxLoss = maxLoss;
-        rtcSet(ddKey, JSON.stringify(dd));
-      }
-    }
+    save: function() { /* rtcObPickRule saves on tap */ }
   },
+
   // ── STEP 4: Tour — Check-In ──────────────────────────
   {
     type: 'tour',
