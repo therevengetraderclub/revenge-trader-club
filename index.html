@@ -6361,7 +6361,8 @@ function renderCalendar() {
     var avg = o.scores.length ? Math.round(o.scores.reduce(function(a,b){return a+b;},0) / o.scores.length) : null;
     var over = o.trades > rules.maxTrades;
     var ranRed = o.killedTrade;
-    var clean = (avg === null || avg >= 70) && !over && !ranRed;
+    // o.revenge = logged a trade after the app's past-limit warning (incl. recovery limits)
+    var clean = (avg === null || avg >= 70) && !over && !ranRed && !o.revenge;
     var r = { avg: avg, flags: [] };
     if (o.trades === 0) {
       r.type = o.checkin ? 'discipline' : 'empty';
@@ -6373,6 +6374,7 @@ function renderCalendar() {
     // ['CHIP'|'INFO', label, color, tooltip] — only CHIP rows print on the tile
     if (over) r.flags.push(['CHIP','OVERTRADED','var(--red)','Overtraded — ' + o.trades + ' trades, your rule is ' + rules.maxTrades]);
     if (ranRed) r.flags.push(['CHIP','RAN THE RED','var(--red)','Ran the Red — traded through an active kill switch']);
+    if (o.revenge && !ranRed) r.flags.push(['CHIP','PAST LIMIT','var(--red)','Logged a trade after the app warned you were past your limit']);
     if (o.killFired && !ranRed) r.flags.push(['INFO','SAVED','var(--green)','Saved by the Switch — the kill switch fired and you walked away']);
     if (o.trades === 1 && (o.pnl || 0) > 0 && clean) r.flags.push(['INFO','SNIPER','var(--gold)','Sniper — one trade, one win']);
     if (o.checkin && typeof o.checkin.sleepHours === 'number' && o.checkin.sleepHours <= 5) r.flags.push(['INFO','LOW FUEL','var(--warn)','Low Fuel — traded on ' + o.checkin.sleepHours + 'h sleep']);
