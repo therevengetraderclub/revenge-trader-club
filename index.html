@@ -162,6 +162,33 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
 @media (max-width:600px){
   .seal-ring{ width:42px; height:42px; font-size:18px; }
   .cal-chip{ font-size:7.5px; }
+  /* Floating rail: smaller + tighter so it stops covering content */
+  #logFabBtn, #shareStatsBtn, #tradingModeBtn{ width:38px !important; height:38px !important; opacity:.92; }
+  .sound-toggle{ width:34px !important; height:34px !important; bottom:14px !important; right:10px !important; }
+  #tradingModeBtn{ bottom:96px !important; right:10px !important; }
+  #shareStatsBtn{ bottom:142px !important; right:10px !important; }
+  #logFabBtn{ bottom:188px !important; right:10px !important; }
+  /* Mood labels: OVERCONFIDENT must fit its box */
+  .mood-lbl{ font-size:8.5px !important; letter-spacing:.4px !important; }
+  .mood-btn{ padding:10px 4px !important; min-width:30% !important; }
+  /* Calendar tiles: compact, no stretched empty space */
+  .cal-cell{ min-height:56px !important; padding:4px 5px !important; }
+  .cal-pnl{ font-size:12.5px !important; margin-top:2px !important; }
+  .cal-sub{ font-size:8px !important; line-height:1.45 !important; margin-top:1px !important; }
+  .cal-title{ font-size:6.5px !important; letter-spacing:.6px !important; margin-top:1px !important; }
+  #rtcCalGrid, #rtcCalDow{ gap:3px !important; }
+  /* Trade rows: one tight line, no wrapping chips */
+  .jc-hdr{ gap:6px !important; padding:10px 10px !important; }
+  .jc-hdr span[style]{ white-space:nowrap; }
+  .jc-ticker{ font-size:13px !important; }
+  .jc-time{ font-size:10px !important; }
+  .jc-date{ font-size:9px !important; }
+  .jc-score{ font-size:10px !important; }
+  .jc-hint{ display:none !important; }
+  /* Share card: scale the fixed sizes back down on a phone */
+  #calShareCard [style*="font-size:30px"]{ font-size:22px !important; }
+  #calShareCard [style*="min-height:66px"]{ min-height:48px !important; }
+  #calShareCard [style*="font-size:15px"]{ font-size:11px !important; }
   /* Journal capture sheet takes the whole screen — thumb-friendly writing */
   #logOverlay{ padding:0 !important; }
   #logSheet{ max-width:100% !important; min-height:100vh; border-radius:0 !important; border-left:none; border-right:none; }
@@ -842,7 +869,7 @@ html,body{background:var(--page);font-family:"Inter",sans-serif;color:var(--text
   border-radius:var(--r);padding:18px;margin-bottom:12px;
 }
 .guide-box-gold{background:rgba(var(--gold-rgb),0.04);border:1px solid var(--gold-dim);}
-.guide-box-orange{background:rgba(45,212,191,0.04);border:1px solid rgba(45,212,191,0.3);}
+.guide-box-orange{background:rgba(var(--gold-rgb),0.03);border:1px solid var(--gold-dim);}
 .guide-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;}
 .guide-icon{
   width:34px;height:34px;border-radius:4px;flex-shrink:0;
@@ -850,7 +877,7 @@ html,body{background:var(--page);font-family:"Inter",sans-serif;color:var(--text
   font-size:13px;font-weight:900;
 }
 .guide-icon-gold{background:var(--gold-glow);border:1px solid var(--gold-dim);color:var(--gold);}
-.guide-icon-orange{background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.3);color:var(--orange);}
+.guide-icon-orange{background:rgba(var(--gold-rgb),0.1);border:1px solid var(--gold-dim);color:var(--gold2);}
 .guide-text{font-size:13px;color:var(--text2);line-height:1.7;}
 .guide-text strong{color:var(--white);}
 .guide-callout{
@@ -858,7 +885,7 @@ html,body{background:var(--page);font-family:"Inter",sans-serif;color:var(--text
   font-size:12px;line-height:1.6;
 }
 .guide-callout-gold{background:rgba(var(--gold-rgb),0.08);border-left:3px solid var(--gold);color:var(--gold);}
-.guide-callout-orange{background:rgba(45,212,191,0.08);border-left:3px solid var(--orange);color:var(--orange);}
+.guide-callout-orange{background:rgba(var(--gold-rgb),0.07);border-left:3px solid var(--gold);color:var(--gold);}
 .rk-step{display:flex;gap:14px;align-items:center;padding:14px 12px;border-bottom:1px solid rgba(var(--gold-rgb),0.08);}
 .rk-step:last-child{border-bottom:none;}
 .rk-badge{width:46px;height:46px;flex-shrink:0;border-radius:10px;background:rgba(var(--gold-rgb),0.1);border:1px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;color:var(--gold2);font-family:'Inter',sans-serif;font-size:19px;font-weight:700;letter-spacing:-.5px;}
@@ -871,8 +898,8 @@ html,body{background:var(--page);font-family:"Inter",sans-serif;color:var(--text
 .rk-ex-lbl{font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
 .rk-ex-val{font-size:18px;font-weight:800;color:var(--gold2);font-family:'Inter',sans-serif;}
 .rk-ex-val.white{color:var(--white);}
-.rk-badge.teal{background:rgba(45,212,191,0.1);border-color:rgba(45,212,191,0.3);color:var(--orange);}
-.rk-step.teal{border-bottom-color:rgba(45,212,191,0.1);}
+.rk-badge.teal{background:rgba(var(--gold-rgb),0.1);border-color:var(--gold-dim);color:var(--gold2);}
+.rk-step.teal{border-bottom-color:rgba(var(--gold-rgb),0.08);}
 .mir-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:3px;}
 .mir-sub{font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5;}
 .mir-heroes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
@@ -2109,7 +2136,7 @@ body{
 .btn-gold:active, .btn-calc:active{
   transform:translateY(2px) scale(.985);
 }
-button[onclick*="undoRecoveryEntry"], button[onclick*="exitRecoveryMode"]{ transform:none !important; }
+button[onclick*="exitRecoveryMode"]{ transform:none !important; }
 .badge-tilt{ transform:rotate(-2deg); display:inline-block; }
 
 
@@ -3753,7 +3780,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 <!-- ══ MONTH SHARE CARD — the flex with a conscience ══ -->
 <div id="calShareModal" onclick="if(event.target===this)closeCalShare()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100003;align-items:flex-start;justify-content:center;padding:26px 16px 44px;overflow-y:auto;">
   <button onclick="closeCalShare()" style="position:fixed;top:16px;right:16px;background:var(--gold);border:none;border-radius:6px;color:#0d0b08;font-size:13px;font-weight:800;box-shadow:0 3px 14px rgba(0,0,0,0.34);padding:8px 16px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;z-index:100004;">✕ Close</button>
-  <div style="width:100%;max-width:460px;">
+  <div style="width:100%;max-width:720px;">
     <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:12px;">
       <button onclick="calShareNav(-1)" aria-label="Previous month" style="width:34px;height:30px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;cursor:pointer;font-size:15px;line-height:1;">&lsaquo;</button>
       <span id="calShareNavLbl" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.8);min-width:120px;text-align:center;">—</span>
@@ -4540,7 +4567,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   <!-- RECOVERY -->
   <div class="tab-body" id="tab-recovery" style="display:none;">
     <div class="guide-box guide-box-orange" style="padding:6px;">
-      <div class="card-title" style="margin:12px 10px 3px;color:var(--orange);">What Is Recovery Mode?</div>
+      <div class="card-title" style="margin:12px 10px 3px;">What Is Recovery Mode?</div>
       <div style="font-size:12px;color:var(--muted);margin:0 10px 10px;">Lose the right way &mdash; survive, recover, come back sharper.</div>
       <div class="rk-step teal">
         <div class="rk-badge teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div>
@@ -4591,6 +4618,15 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <div class="mistake-chip" onclick="pickMistake(this,'Traded News')" style="padding:7px 14px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;">TRADED NEWS</div>
           <div class="mistake-chip" onclick="pickMistake(this,'Good Trade, Bad Luck')" style="padding:7px 14px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;">GOOD TRADE, BAD LUCK</div>
         </div>
+        <div class="cooldown-step" data-step="2" onclick="toggleCooldownStep(2)" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all .2s;">
+          <div class="cd-check" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;color:var(--white);">Journal the trade</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:3px;">Log it while it's fresh — the lesson is in the details.</div>
+          </div>
+          <button onclick="event.stopPropagation();switchTab('checklist',document.querySelector('[onclick*=checklist]'))" style="padding:8px 14px;background:transparent;border:1px solid var(--gold-dim);border-radius:4px;color:var(--orange);font-size:10px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;flex-shrink:0;">LOG IT</button>
+        </div>
+
         <div class="cooldown-step" data-step="3" onclick="toggleCooldownStep(3)" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all .2s;">
           <div class="cd-check" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
           <div style="flex:1;">
@@ -4599,14 +4635,6 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           </div>
         </div>
       </div>
-        <div class="cooldown-step" data-step="2" onclick="toggleCooldownStep(2)" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all .2s;">
-          <div class="cd-check" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;color:var(--white);">Journal the trade</div>
-            <div style="font-size:12px;color:var(--text2);margin-top:3px;">Log it while it's fresh — the lesson is in the details.</div>
-          </div>
-          <button onclick="event.stopPropagation();switchTab('checklist',document.querySelector('[onclick*=checklist]'))" style="padding:8px 14px;background:transparent;border:1px solid rgba(45,212,191,0.4);border-radius:4px;color:var(--orange);font-size:10px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;flex-shrink:0;">LOG IT</button>
-        </div>
 
       <div id="cooldownComplete" style="display:none;margin-top:14px;padding:16px;background:rgba(0,208,132,0.06);border:1px solid rgba(0,208,132,0.3);border-radius:4px;text-align:center;">
         <div style="font-size:13px;font-weight:800;color:var(--green);letter-spacing:1px;margin-bottom:4px;">COOLDOWN COMPLETE</div>
@@ -4615,7 +4643,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
 
     <div class="card">
-      <div class="card-title" style="color:var(--orange);">Recovery Rules</div>
+      <div class="card-title">Recovery Rules</div>
       <div class="rec-steps">
         <div class="rec-step"><div class="rec-num">1</div><div class="rec-txt"><strong>Stop panicking.</strong> What's left is enough to work with if you're disciplined.</div></div>
         <div class="rec-step"><div class="rec-num">2</div><div class="rec-txt"><strong>Cut your size in half.</strong> Half your normal risk per trade until you're back to even. Your confidence needs small wins, not big swings.</div></div>
@@ -5926,7 +5954,7 @@ function openCalShare() {
     var o = d.days[n];
     var future = d.isCurrentMonth && n > d.today;
     if (!o || future) {
-      cells += '<div style="min-height:46px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:3px 4px;opacity:' + (future ? '.35' : '.65') + ';"><span style="font-size:9px;color:var(--faint);">' + n + '</span></div>';
+      cells += '<div style="min-height:66px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 6px;opacity:' + (future ? '.35' : '.65') + ';"><span style="font-size:11px;color:var(--faint);">' + n + '</span></div>';
       continue;
     }
     var c = d.classify(o), t = d.TYPE[c.type];
@@ -5935,30 +5963,31 @@ function openCalShare() {
       var _a = Math.abs(o.pnl);
       amt = (o.pnl >= 0 ? '+' : '\u2212') + curSym() + (_a >= 1000 ? (Math.round(_a / 100) / 10) + 'k' : Math.round(_a));
     }
-    cells += '<div style="min-height:46px;background:' + (t.bg || 'var(--bg2)') + ';border:2px solid ' + t.ring + ';border-radius:5px;padding:3px 4px;display:flex;flex-direction:column;line-height:1.25;">'
-      + '<span style="font-size:9px;color:var(--faint);">' + n + '</span>'
-      + (amt ? '<span style="font-size:10.5px;font-weight:900;color:' + ((o.pnl >= 0) ? 'var(--green)' : 'var(--red)') + ';">' + amt + '</span>' : (c.type === 'discipline' ? '<span style="font-size:10px;color:var(--gold);">&bull;</span>' : ''))
-      + (SHORT[c.type] ? '<span style="font-size:6.5px;font-weight:800;letter-spacing:.6px;font-family:\'IBM Plex Mono\',monospace;color:' + t.ring + ';margin-top:auto;">' + SHORT[c.type] + '</span>' : '')
+    cells += '<div style="min-height:66px;background:' + (t.bg || 'var(--bg2)') + ';border:2px solid ' + t.ring + ';border-radius:6px;padding:5px 6px;display:flex;flex-direction:column;line-height:1.3;">'
+      + '<span style="font-size:11px;color:var(--faint);">' + n + '</span>'
+      + (amt ? '<span style="font-size:15px;font-weight:900;letter-spacing:-0.3px;color:' + ((o.pnl >= 0) ? 'var(--green)' : 'var(--red)') + ';">' + amt + '</span>' : (c.type === 'discipline' ? '<span style="font-size:10px;color:var(--gold);">&bull;</span>' : ''))
+      + (SHORT[c.type] ? '<span style="font-size:8.5px;font-weight:800;letter-spacing:1px;font-family:\'IBM Plex Mono\',monospace;color:' + t.ring + ';margin-top:auto;">' + SHORT[c.type] + '</span>' : '')
       + '</div>';
   }
 
+  var monthOver = !d.isCurrentMonth;
   var earned = (d.seals || []).filter(function(x){ return x.met; });
   var netCol = d.monthNet >= 0 ? 'var(--green)' : 'var(--red)';
   var stat = function(v, l, c) {
     return '<div style="flex:1;text-align:center;padding:12px 4px;background:var(--bg3);border-radius:8px;">'
-      + '<div style="font-size:22px;font-weight:900;color:' + (c || 'var(--white)') + ';font-family:Inter,sans-serif;line-height:1.1;">' + v + '</div>'
-      + '<div style="font-size:9.5px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-top:5px;">' + l + '</div></div>';
+      + '<div style="font-size:30px;font-weight:900;color:' + (c || 'var(--white)') + ';font-family:Inter,sans-serif;line-height:1.1;">' + v + '</div>'
+      + '<div style="font-size:11px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-top:6px;">' + l + '</div></div>';
   };
 
   el.innerHTML =
-    '<div style="background:var(--bg);border:1px solid var(--gold-dim);border-radius:14px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.35);color:var(--text2);">'
+    '<div style="background:var(--bg);border:1px solid var(--gold-dim);border-radius:16px;padding:30px 28px;box-shadow:0 20px 60px rgba(0,0,0,0.35);color:var(--text2);">'
     + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
-      + (logoSrc ? '<img src="' + logoSrc + '" alt="" style="width:52px;height:52px;border-radius:50%;border:2px solid var(--gold);object-fit:cover;flex-shrink:0;">' : '')
+      + (logoSrc ? '<img src="' + logoSrc + '" alt="" style="width:64px;height:64px;border-radius:50%;border:2px solid var(--gold);object-fit:cover;flex-shrink:0;">' : '')
       + '<div style="min-width:0;">'
-        + '<div style="font-family:Inter,sans-serif;font-size:15px;font-weight:900;letter-spacing:.4px;color:var(--white);line-height:1.2;">THE REVENGE <span style="color:var(--gold);">TRADER</span> CLUB</div>'
+        + '<div style="font-family:Inter,sans-serif;font-size:19px;font-weight:900;letter-spacing:.4px;color:var(--white);line-height:1.2;">THE REVENGE <span style="color:var(--gold);">TRADER</span> CLUB</div>'
         + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-top:3px;">DISCIPLINE CALENDAR</div>'
       + '</div>'
-      + '<div style="margin-left:auto;text-align:right;flex-shrink:0;"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:19px;letter-spacing:2px;color:var(--gold);line-height:1;">' + d.label.split(' ')[0].toUpperCase() + '</div><div style="font-size:11px;color:var(--muted);">' + d.y + '</div></div>'
+      + '<div style="margin-left:auto;text-align:right;flex-shrink:0;"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:24px;letter-spacing:2px;color:var(--gold);line-height:1;">' + d.label.split(' ')[0].toUpperCase() + '</div><div style="font-size:11px;color:var(--muted);">' + d.y + '</div></div>'
     + '</div>'
     + '<div style="display:flex;gap:7px;margin-bottom:14px;">'
       + stat((d.monthNet >= 0 ? '+' : '\u2212') + curSym() + Math.abs(d.monthNet).toLocaleString(undefined,{maximumFractionDigits:0}), 'Net P&L', netCol)
@@ -5966,10 +5995,10 @@ function openCalShare() {
       + stat(d.tradedDays, 'Traded Days')
     + '</div>'
     + '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px;">'
-      + ['S','M','T','W','T','F','S'].map(function(x){ return '<div style="text-align:center;font-size:9px;letter-spacing:1px;color:var(--faint);">' + x + '</div>'; }).join('')
+      + ['S','M','T','W','T','F','S'].map(function(x){ return '<div style="text-align:center;font-size:11px;letter-spacing:1.5px;color:var(--faint);">' + x + '</div>'; }).join('')
       + cells
     + '</div>'
-    + '<div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;font-size:9.5px;color:var(--muted);letter-spacing:.5px;margin-bottom:14px;">'
+    + '<div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);letter-spacing:.5px;margin-bottom:16px;">'
       + '<span><span style="display:inline-block;width:10px;height:10px;border:2px solid var(--green);border-radius:3px;vertical-align:-1px;"></span> rules kept</span>'
       + '<span><span style="display:inline-block;width:10px;height:10px;border:2px solid var(--red);border-radius:3px;vertical-align:-1px;"></span> rules broken</span>'
       + '<span><span style="display:inline-block;width:10px;height:10px;border:2px solid var(--gold);border-radius:3px;vertical-align:-1px;"></span> no-trade day</span>'
@@ -5980,11 +6009,12 @@ function openCalShare() {
       + stat(d.checkinDays, 'Check-Ins')
     + '</div>'
     + (earned.length
-        ? '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding-top:12px;border-top:1px solid var(--border);">'
-          + earned.map(function(x){ return '<span style="font-size:9.5px;font-weight:800;letter-spacing:1px;color:var(--gold);border:1px solid var(--gold-dim);background:rgba(var(--gold-rgb),0.08);border-radius:20px;padding:5px 11px;text-transform:uppercase;">' + x.name + '</span>'; }).join('')
+        ? '<div style="text-align:center;font-size:10px;letter-spacing:2px;color:var(--faint);padding-top:14px;border-top:1px solid var(--border);margin-bottom:8px;">' + (monthOver ? 'EARNED' : 'ON TRACK') + '</div>'
+          + '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;">'
+          + earned.map(function(x){ return '<span style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--gold);border:1px solid var(--gold-dim);background:rgba(var(--gold-rgb),0.08);border-radius:20px;padding:7px 14px;text-transform:uppercase;">' + x.name + '</span>'; }).join('')
           + '</div>'
         : '')
-    + '<div style="text-align:center;font-size:9.5px;letter-spacing:1px;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px solid var(--border);line-height:1.8;">'
+    + '<div style="text-align:center;font-size:11.5px;letter-spacing:1.5px;color:var(--muted);margin-top:16px;padding-top:14px;border-top:1px solid var(--border);line-height:1.9;">'
       + 'GREEN BORDER = FOLLOWED MY RULES<br>'
       + '<span style="color:var(--gold);">therevengetraderclub.com</span>'
     + '</div>'
@@ -6008,7 +6038,7 @@ function closeCalShare() {
 // ═══════════════════════════════════════════════════════
 var _rtcPendingSave = null;
 function rtcLimitState() {
-  var acc = getActiveAcc(), rules = getAccRules(acc);
+  var acc = getActiveAcc(), rules = getEffectiveRules(acc);
   var bal = rtcLiveBalance(acc);
   var dailyMax = bal > 0 ? bal / rules.divisor : 0;
   var today = new Date().toDateString(), count = 0, net = 0;
@@ -6050,6 +6080,18 @@ function rtcLimitStop() {
   var el = document.getElementById('limitTakeover'); if (el) el.style.display = 'none';
   _rtcPendingSave = null;
   playSound('warn');
+  // The right moment to offer the comeback plan — loss pre-filled, one tap.
+  try {
+    var st = rtcLimitState();
+    if (st.pastLoss && !recActive()) {
+      setTimeout(function() {
+        if (confirm('Enter Recovery Mode?\n\nToday\'s -' + curSym() + st.lost.toFixed(0) + ' gets a comeback plan: half size, one trade per session, progress tracked automatically until you earn it back.')) {
+          enterRecoveryMode(st.lost);
+          try { switchTab('recovery', document.querySelector('[onclick*="recovery"]')); } catch(e) { rtcWarn(e); }
+        }
+      }, 350);
+    }
+  } catch(e) { rtcWarn(e); }
 }
 function rtcLimitOverride() {
   var el = document.getElementById('limitTakeover'); if (el) el.style.display = 'none';
@@ -8299,7 +8341,10 @@ function renderRiskRules() {
   var rn = document.getElementById('d7RuleNote');
   if (rn) rn.textContent = 'Using your rule: \u00f7' + rules.divisor + ' across ' + rules.maxTrades + ' trade' + (rules.maxTrades !== 1 ? 's' : '') + '.';
   var out = document.getElementById('rrReadout');
-  if (out) {
+  if (out && recActive()) {
+    var hs = recHalfSizeNums();
+    out.innerHTML = '<span style="color:var(--warn);font-weight:800;letter-spacing:1px;">RECOVERY MODE ACTIVE</span> — enforced everywhere: <strong>1 trade per session</strong> at <strong style="color:var(--gold);">' + curSym() + hs.half.toFixed(0) + '/trade</strong> (half size). Your picks below resume when recovery completes.';
+  } else if (out) {
     var bal = rtcLiveBalance(acc);
     if (bal > 0) {
       var daily = bal / rules.divisor, per = daily / rules.maxTrades;
@@ -9468,15 +9513,15 @@ function calcRiskPerTrade() {
   const result   = document.getElementById('psResult');
   if (!balance || balance <= 0) { if (result) result.style.display = 'none'; return; }
 
-  const _rules    = getAccRules(getActiveAcc());
+  const _rules    = getEffectiveRules(getActiveAcc());
   const dailyMax  = balance / _rules.divisor;
   const perTrade  = dailyMax / _rules.maxTrades;
   // Keep the explainer copy in sync with the personal rules
   (function(){
     var dn = document.getElementById('psDivisorNote');
-    if (dn) dn.textContent = 'Balance ÷ ' + _rules.divisor + ' — stop trading if you hit this';
+    if (dn) dn.textContent = _rules.recovery ? 'RECOVERY MODE — half size until you earn it back' : ('Balance ÷ ' + _rules.divisor + ' — stop trading if you hit this');
     var mn = document.getElementById('psMaxTradesNote');
-    if (mn) mn.textContent = _rules.maxTrades + ' trade' + (_rules.maxTrades !== 1 ? 's' : '') + ' maximum — then you are done';
+    if (mn) mn.textContent = _rules.recovery ? 'One trade per session — recovery rule' : (_rules.maxTrades + ' trade' + (_rules.maxTrades !== 1 ? 's' : '') + ' maximum — then you are done');
     var mv = document.getElementById('psMaxTradesVal');
     if (mv) mv.textContent = _rules.maxTrades;
   })();
@@ -9513,7 +9558,7 @@ function updateRiskRemaining() {
   var bal = parseFloat((document.getElementById('psBalance') || {}).value) || 0;
   if (!bal || bal <= 0) { bal = rtcLiveBalance(getActiveAcc()); }
   if (!bal || bal <= 0) { wrap.style.display = 'none'; return; }
-  var rules = getAccRules(getActiveAcc());
+  var rules = getEffectiveRules(getActiveAcc());
   var dailyMax = bal / rules.divisor;
 
   var todayStr = new Date().toDateString(), net = 0, count = 0;
@@ -9918,7 +9963,7 @@ function renderPatternAlerts() {
 
   const colors = {
     danger:  { bg:'rgba(229,57,53,0.08)',  border:'rgba(229,57,53,0.25)',  title:'var(--red)',    msg:'#c07070' },
-    warning: { bg:'rgba(45,212,191,0.06)', border:'rgba(45,212,191,0.2)',  title:'var(--orange)', msg:'#a06040' },
+    warning: { bg:'rgba(224,140,60,0.07)', border:'rgba(224,140,60,0.25)', title:'var(--warn)', msg:'#a06040' },
     success: { bg:'rgba(0,208,132,0.06)',  border:'rgba(0,208,132,0.2)',   title:'var(--green)',  msg:'#60a070' },
   };
 
@@ -12567,7 +12612,7 @@ function populateTradingMode() {
   if (riskEl) {
     const bal = rtcLiveBalance(acc);
     if (bal > 0) {
-      const _r = getAccRules(acc);
+      const _r = getEffectiveRules(acc);
       riskEl.textContent = curSym() + Math.round(bal / _r.divisor / _r.maxTrades).toLocaleString();
       riskEl.style.color = goalHit ? 'var(--gold)' : 'var(--gold)';
     } else {
@@ -12578,7 +12623,7 @@ function populateTradingMode() {
   // ── TRADES LEFT TODAY ────────────────────────────────
   const tradesLeftEl = document.getElementById('tmTradesLeft');
   if (tradesLeftEl) {
-    const _mr = getAccRules(acc).maxTrades;
+    const _mr = getEffectiveRules(acc).maxTrades;
     const left = Math.max(0, _mr - todayTrades.length);
     tradesLeftEl.textContent = left;
     const _ofEl = document.getElementById('tmTradesOf');
@@ -14149,6 +14194,12 @@ function toggleCooldownStep(n) {
 
 function pickMistake(el, label) {
   cooldownMistake = label;
+  try {
+    var mk = 'rtc_mistakes_' + getActiveIdx();
+    var ml = JSON.parse(RTCStore.get(mk) || '[]');
+    ml.push({ d: new Date().toDateString(), m: label });
+    rtcSet(mk, JSON.stringify(ml));
+  } catch(e) { rtcWarn(e); }
   document.querySelectorAll('.mistake-chip').forEach(function(c) {
     c.style.borderColor = 'var(--border2)';
     c.style.color = 'var(--muted)';
@@ -14171,48 +14222,92 @@ function saveRecState(s) {
   if (s === null) RTCStore.remove(recStateKey());
   else rtcSet(recStateKey(), JSON.stringify(s));
 }
+function recActive() {
+  try { var r = getRecState(); return !!(r && r.active); } catch(e) { return false; }
+}
+
+// While recovering, the WHOLE APP tightens: one trade per session, at half your
+// normal size. Encoded as effective rules so every consumer enforces it for free.
+function getEffectiveRules(acc) {
+  var base = getAccRules(acc);
+  if (!recActive()) return base;
+  return { maxTrades: 1, divisor: base.divisor * base.maxTrades * 2, recovery: true, base: base };
+}
+
 function recPace() {
-  var acc = getActiveAcc();
-  var bal = acc && acc.balance ? parseFloat(acc.balance) : 0;
+  var bal = rtcLiveBalance(getActiveAcc());
   return bal > 0 ? bal * 0.01 : 50;
 }
 function recHalfSizeNums() {
   var acc = getActiveAcc();
-  var bal = acc && acc.balance ? parseFloat(acc.balance) : 0;
+  var bal = rtcLiveBalance(acc);
   var _rr = getAccRules(acc);
   var normal = bal > 0 ? (bal / _rr.divisor) / _rr.maxTrades : 0;
   return { normal: normal, half: normal / 2 };
 }
 
-function enterRecoveryMode() {
-  var loss = parseFloat((document.getElementById('recLossInput') || {}).value);
-  if (!loss || loss <= 0) return;
-  saveRecState({ active: true, loss: loss, start: new Date().toISOString().slice(0,10), entries: [] });
-  renderRecoveryMode();
+// Progress is read straight from the journal — trades and manual goal P&L logged
+// since the recovery started. Nothing is typed twice, nothing can disagree.
+function recProgress(s) {
+  var startDay = new Date(s.start + 'T00:00:00');
+  var byDay = {};
+  function add(d, amt) {
+    if (isNaN(d) || d < startDay) return;
+    var k = d.toDateString();
+    byDay[k] = (byDay[k] || 0) + amt;
+  }
+  getTrades().forEach(function(t) {
+    if (typeof t.tradePnl !== 'number' || !t.date) return;
+    add(new Date(t.date), t.tradePnl);
+  });
+  try {
+    (typeof pnlLog !== 'undefined' && pnlLog ? pnlLog : []).forEach(function(e) {
+      if (!e || e.src === 'trade' || !e.date) return;
+      var d = new Date(e.date);
+      if (!isNaN(d) && d.getFullYear() < 2010) d = new Date(e.date + ', ' + new Date().getFullYear());
+      add(d, e.pnl || 0);
+    });
+  } catch(e) { rtcWarn(e); }
+  var keys = Object.keys(byDay).sort(function(a, b){ return new Date(a) - new Date(b); });
+  var net = keys.reduce(function(sum, k){ return sum + byDay[k]; }, 0);
+  return {
+    net: net,
+    days: keys.map(function(k){ return { label: new Date(k).toLocaleDateString('en-US',{month:'short',day:'numeric'}), a: byDay[k] }; })
+  };
 }
 
-function logRecoveryResult() {
-  var amt = parseFloat((document.getElementById('recDayInput') || {}).value);
-  if (isNaN(amt) || amt === 0) return;
-  var s = getRecState();
-  if (!s || !s.active) return;
-  s.entries.push({ d: new Date().toISOString().slice(0,10), a: amt });
-  saveRecState(s);
+function enterRecoveryMode(autoLoss) {
+  var loss = typeof autoLoss === 'number' ? autoLoss
+    : parseFloat((document.getElementById('recLossInput') || {}).value);
+  if (!loss || loss <= 0) { alert('Enter the amount you lost.'); return; }
+  saveRecState({ active: true, loss: Math.round(loss * 100) / 100, start: new Date().toISOString().slice(0,10) });
   renderRecoveryMode();
+  try { renderHudData(); renderSessionStrip(); updateRiskRemaining(); } catch(e) { rtcWarn(e); }
+  playSound('warn');
 }
 
-function undoRecoveryEntry() {
+function completeRecovery() {
   var s = getRecState();
-  if (!s || !s.entries.length) return;
-  s.entries.pop();
-  saveRecState(s);
+  if (s) {
+    try {
+      var kk = 'rtc_recoveries_' + getActiveIdx();
+      var arc = JSON.parse(RTCStore.get(kk) || '[]');
+      var days = Math.max(1, Math.round((Date.now() - new Date(s.start + 'T00:00:00')) / 86400000));
+      arc.push({ loss: s.loss, start: s.start, end: new Date().toISOString().slice(0,10), days: days });
+      rtcSet(kk, JSON.stringify(arc));
+    } catch(e) { rtcWarn(e); }
+  }
+  saveRecState(null);
   renderRecoveryMode();
+  try { renderHudData(); renderSessionStrip(); updateRiskRemaining(); } catch(e) { rtcWarn(e); }
+  playSound('chime');
 }
 
 function exitRecoveryMode() {
-  if (!confirm('Exit Recovery Mode? Your progress log will be cleared.')) return;
+  if (!confirm('Exit Recovery Mode early? Full size returns immediately — make sure you mean it.')) return;
   saveRecState(null);
   renderRecoveryMode();
+  try { renderHudData(); renderSessionStrip(); updateRiskRemaining(); } catch(e) { rtcWarn(e); }
 }
 
 function renderRecoveryMode() {
@@ -14222,71 +14317,66 @@ function renderRecoveryMode() {
   var hs = recHalfSizeNums();
 
   if (!s || !s.active) {
-    body.innerHTML = '<div class="card-sub">Took a hit? Enter what you lost and start Recovery Mode. We\u2019ll track every day until you\u2019re back: 1% of your balance per day, at half your normal size.</div>'
+    // Suggest today's loss if there is one — no hunting for the number
+    var suggest = '';
+    try { var st = rtcLimitState(); if (st.lost > 0) suggest = Math.round(st.lost); } catch(e) { rtcWarn(e); }
+    body.innerHTML = '<div class="card-sub">Took a hit? Enter what you lost and the whole app changes: <strong style="color:var(--gold);">half size, one trade per session</strong>, until you earn it back. Progress tracks itself from your journal.</div>'
       + '<div class="risk-row">'
       + '<div class="risk-field"><div class="risk-lbl2">Amount Lost ($)</div>'
-      + '<input class="risk-input" id="recLossInput" type="number" placeholder="350" style="font-size:16px;"></div>'
+      + '<input class="risk-input" id="recLossInput" type="number" placeholder="350" value="' + suggest + '" style="font-size:16px;"></div>'
       + '<button class="btn-calc" onclick="enterRecoveryMode()">Enter Recovery Mode</button></div>';
     return;
   }
 
-  var recovered = s.entries.reduce(function(sum, e){ return sum + e.a; }, 0);
-  var remaining = Math.max(0, s.loss - recovered);
-  var pct = Math.min(100, Math.max(0, (recovered / s.loss) * 100));
+  var prog = recProgress(s);
+  var recovered = Math.max(0, prog.net);
+  var remaining = Math.max(0, s.loss - prog.net);
+  var pct = Math.min(100, Math.max(0, (prog.net / s.loss) * 100));
   var pace = recPace();
   var daysLeft = remaining > 0 ? Math.ceil(remaining / pace) : 0;
-  var dayNum = s.entries.length + 1;
+  var dayNum = Math.max(1, Math.round((Date.now() - new Date(s.start + 'T00:00:00')) / 86400000) + 1);
 
   if (remaining <= 0) {
+    var tookDays = Math.max(1, dayNum - 1);
     body.innerHTML = '<div style="text-align:center;padding:26px 16px;background:rgba(0,208,132,0.06);border:1px solid rgba(0,208,132,0.35);border-radius:4px;">'
       + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:34px;letter-spacing:3px;color:var(--green);line-height:1;">FULLY RECOVERED</div>'
-      + '<div style="font-size:13px;color:var(--text2);margin-top:10px;line-height:1.7;">You earned back <strong style="color:var(--white);">$' + s.loss.toFixed(0) + '</strong> in <strong style="color:var(--white);">' + s.entries.length + (s.entries.length===1?' day':' days') + '</strong> \u2014 the right way. No revenge trades. That\u2019s what professional recovery looks like.</div>'
-      + '<button class="btn-gold" style="width:100%;margin-top:16px;flex:none;" onclick="saveRecState(null);renderRecoveryMode();">Return To Full Size</button></div>';
+      + '<div style="font-size:13px;color:var(--text2);margin-top:10px;line-height:1.7;">You earned back <strong style="color:var(--white);">' + curSym() + s.loss.toFixed(0) + '</strong> in <strong style="color:var(--white);">' + tookDays + (tookDays===1?' day':' days') + '</strong> — at half size, inside your rules. That is what professional recovery looks like.</div>'
+      + '<button class="btn-gold" style="width:100%;margin-top:16px;flex:none;" onclick="completeRecovery()">Return To Full Size</button></div>';
     return;
   }
 
   var h = '';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
-    + '<div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:var(--orange);animation:pulse 2s infinite;"></div>'
-    + '<span style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--orange);">ACTIVE \u00b7 DAY ' + dayNum + '</span></div>'
+    + '<div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:var(--warn);animation:pulse 2s infinite;"></div>'
+    + '<span style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--warn);">ACTIVE · DAY ' + dayNum + '</span></div>'
     + '<button onclick="exitRecoveryMode()" style="background:transparent;border:none;color:var(--faint);font-size:11px;cursor:pointer;padding:4px;">EXIT</button></div>';
 
   h += '<div style="margin-bottom:6px;display:flex;justify-content:space-between;font-size:11px;">'
-    + '<span style="color:var(--green);font-weight:700;">$' + recovered.toFixed(0) + ' recovered</span>'
-    + '<span style="color:var(--muted);">$' + remaining.toFixed(0) + ' to go</span></div>';
+    + '<span style="color:var(--green);font-weight:700;">' + curSym() + recovered.toFixed(0) + ' recovered</span>'
+    + '<span style="color:var(--muted);">' + curSym() + remaining.toFixed(0) + ' to go</span></div>';
   h += '<div style="height:10px;background:var(--bg3);border-radius:5px;overflow:hidden;margin-bottom:14px;">'
-    + '<div style="height:100%;width:' + pct.toFixed(1) + '%;background:linear-gradient(90deg,var(--orange),var(--green));border-radius:5px;transition:width .5s ease;"></div></div>';
+    + '<div style="height:100%;width:' + pct.toFixed(1) + '%;background:linear-gradient(90deg,var(--warn),var(--green));border-radius:5px;transition:width .5s ease;"></div></div>';
 
   h += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">'
-    + '<div style="text-align:center;padding:10px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:18px;font-weight:800;color:var(--white);">' + pct.toFixed(0) + '%</div><div style="font-size:11px;color:var(--muted);letter-spacing:1px;">COMPLETE</div></div>'
-    + '<div style="text-align:center;padding:10px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:18px;font-weight:800;color:var(--orange);">~' + daysLeft + '</div><div style="font-size:11px;color:var(--muted);letter-spacing:1px;">DAYS LEFT</div></div>'
-    + '<div style="text-align:center;padding:10px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:18px;font-weight:800;color:var(--gold);">$' + hs.half.toFixed(0) + '</div><div style="font-size:11px;color:var(--muted);letter-spacing:1px;">MAX/TRADE</div></div></div>';
+    + '<div style="text-align:center;padding:10px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:18px;font-weight:800;color:var(--white);">' + pct.toFixed(0) + '%</div><div style="font-size:11px;color:var(--muted);letter-spacing:1px;">RECOVERED</div></div>'
+    + '<div style="text-align:center;padding:10px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:18px;font-weight:800;color:var(--warn);">~' + daysLeft + '</div><div style="font-size:11px;color:var(--muted);letter-spacing:1px;">DAYS AT 1%/DAY</div></div>'
+    + '<div style="text-align:center;padding:10px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:18px;font-weight:800;color:var(--gold);">' + curSym() + hs.half.toFixed(0) + '</div><div style="font-size:11px;color:var(--muted);letter-spacing:1px;">MAX/TRADE</div></div></div>';
 
-  h += '<div style="display:flex;gap:8px;margin-bottom:14px;">'
-    + '<input class="risk-input" id="recDayInput" type="number" placeholder="Today\u2019s P&L (120 or -45)" style="flex:1;font-size:16px;">'
-    + '<button class="btn-calc" onclick="logRecoveryResult()" style="flex-shrink:0;">Log Day</button></div>';
-
-  if (s.entries.length) {
-    h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">';
-    s.entries.forEach(function(e, i){
+  if (prog.days.length) {
+    h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">';
+    prog.days.forEach(function(e) {
       var pos = e.a >= 0;
-      h += '<div style="min-width:54px;padding:8px 6px;background:' + (pos?'rgba(0,208,132,0.06)':'rgba(229,57,53,0.06)') + ';border:1px solid ' + (pos?'rgba(0,208,132,0.3)':'rgba(229,57,53,0.3)') + ';border-radius:4px;text-align:center;">'
-        + '<div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;">DAY ' + (i+1) + '</div>'
-        + '<div style="font-size:12px;font-weight:800;color:' + (pos?'var(--green)':'var(--red)') + ';margin-top:2px;">' + (pos?'+':'') + '$' + e.a.toFixed(0) + '</div></div>';
+      h += '<div style="min-width:58px;padding:8px 6px;background:' + (pos?'rgba(0,208,132,0.06)':'rgba(229,57,53,0.06)') + ';border:1px solid ' + (pos?'rgba(0,208,132,0.3)':'rgba(229,57,53,0.3)') + ';border-radius:4px;text-align:center;">'
+        + '<div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.5px;">' + e.label.toUpperCase() + '</div>'
+        + '<div style="font-size:12px;font-weight:800;color:' + (pos?'var(--green)':'var(--red)') + ';margin-top:2px;">' + (pos?'+':'−') + curSym() + Math.abs(e.a).toFixed(0) + '</div></div>';
     });
-    var proj = Math.min(daysLeft, 5);
-    for (var p = 0; p < proj; p++) {
-      h += '<div style="min-width:54px;padding:8px 6px;background:var(--bg3);border:1px dashed var(--border2);border-radius:4px;text-align:center;opacity:.6;">'
-        + '<div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;">DAY ' + (dayNum + p) + '</div>'
-        + '<div style="font-size:12px;font-weight:800;color:var(--muted);margin-top:2px;">~$' + pace.toFixed(0) + '</div></div>';
-    }
-    if (daysLeft > 5) h += '<div style="display:flex;align-items:center;font-size:10px;color:var(--faint);padding:0 4px;">+' + (daysLeft-5) + ' more</div>';
     h += '</div>';
-    h += '<div style="text-align:right;margin-bottom:10px;"><button onclick="undoRecoveryEntry()" style="background:transparent;border:none;color:var(--faint);font-size:11px;cursor:pointer;">UNDO LAST</button></div>';
+  } else {
+    h += '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">No trades since entering recovery. Your progress fills in automatically as you log them.</div>';
   }
 
-  h += '<div style="padding:12px 14px;background:rgba(45,212,191,0.05);border:1px solid rgba(45,212,191,0.2);border-radius:4px;font-size:11px;color:var(--text2);line-height:1.7;">'
-    + '<strong style="color:var(--orange);">HALF SIZE RULE:</strong> Normal risk $' + hs.normal.toFixed(0) + '/trade \u2192 recovery risk <strong style="color:var(--white);">$' + hs.half.toFixed(0) + '/trade</strong>. Full size returns when the bar hits 100%.</div>';
+  h += '<div style="padding:12px 14px;background:rgba(var(--gold-rgb),0.05);border:1px solid var(--gold-dim);border-radius:4px;font-size:11px;color:var(--text2);line-height:1.7;">'
+    + '<strong style="color:var(--gold);">ENFORCED APP-WIDE:</strong> one trade per session at <strong style="color:var(--white);">' + curSym() + hs.half.toFixed(0) + '/trade</strong> (half your normal ' + curSym() + hs.normal.toFixed(0) + '). Risk, Trading Mode, and the gutter all run on these limits until the bar hits 100%. Progress syncs from your journal — log trades as normal.</div>';
 
   body.innerHTML = h;
 }
@@ -14407,7 +14497,7 @@ function renderHudData() {
     var acc = getActiveAcc();
     var now = new Date();
     var bal = rtcLiveBalance(acc);   // moves with every logged win/loss
-    var maxLoss = bal > 0 ? bal / getAccRules(acc).divisor : 0;
+    var maxLoss = bal > 0 ? bal / getEffectiveRules(acc).divisor : 0;
     var rec = (typeof getRecState === 'function') ? getRecState() : null;
     var rows = [];
     rows.push(['SESSION', '#' + String(getSessionNo()).padStart(3,'0'), '']);
@@ -14437,7 +14527,7 @@ function renderSessionStrip() {
     var acc = getActiveAcc();
     var now = new Date();
     var bal = rtcLiveBalance(acc);   // moves with every logged win/loss
-    var maxLoss = bal > 0 ? bal / getAccRules(acc).divisor : 0;
+    var maxLoss = bal > 0 ? bal / getEffectiveRules(acc).divisor : 0;
     var rec = (typeof getRecState === 'function') ? getRecState() : null;
     var parts = [];
     parts.push('<span style="color:var(--gold);">&gt;_ SESSION ' + String(getSessionNo()).padStart(3,'0') + '</span>');
