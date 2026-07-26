@@ -123,6 +123,11 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
 .seal-bar i{ display:block; height:100%; background:var(--gold-dim); }
 .seal-note{ font-size:9.5px; color:var(--muted); margin-top:5px; letter-spacing:.5px; }
 .seal-note.earned{ color:var(--gold); font-weight:800; letter-spacing:2px; margin-top:9px; }
+.seal-card.ontrack{ border-color:var(--border3); background:var(--bg2); }
+.seal-ring.ontrack{ color:var(--gold-dim); border:2px solid var(--gold-dim); background:transparent; }
+.seal-card.ontrack .seal-name{ color:var(--text2); }
+.seal-note.ontrack{ color:var(--gold-dim); font-weight:700; }
+.seal-card.ontrack .seal-bar i{ background:var(--gold); }
 @media (max-width:600px){
   .seal-ring{ width:42px; height:42px; font-size:18px; }
   .cal-chip{ font-size:7.5px; }
@@ -5965,13 +5970,34 @@ function renderLogList() {
     var m = rtcLogTypeMeta(e.type);
     var d = new Date(e.date);
     var when = isNaN(d) ? e.date : d.toLocaleDateString('en-US',{ weekday:'short', month:'short', day:'numeric', year:'numeric' });
-    return '<div onclick="openLogEntry(' + e.id + ')" style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid ' + m.color + ';padding:12px 14px;cursor:pointer;transition:border-color .15s;" onmouseenter="this.style.borderColor=\'var(--border3)\';this.style.borderLeftColor=\'' + m.color + '\'" onmouseleave="this.style.borderColor=\'var(--border)\';this.style.borderLeftColor=\'' + m.color + '\'">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'
+    var words = String(e.text || '').trim().split(/\s+/).filter(Boolean).length;
+    // Closed by default — this is a diary, not a feed. Tap to read.
+    return '<div class="log-row" style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid ' + m.color + ';">'
+      + '<div class="log-head" onclick="rtcToggleLogRow(this)" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;cursor:pointer;">'
+      + '<div style="display:flex;align-items:center;gap:10px;min-width:0;">'
+      + '<span class="log-caret" style="font-size:12px;font-weight:800;color:' + m.color + ';display:inline-block;transition:transform .2s;transform:rotate(-90deg);">&#9662;</span>'
       + '<span style="font-size:10px;font-weight:800;letter-spacing:1.5px;color:' + m.color + ';">' + m.name.toUpperCase() + '</span>'
-      + '<span style="font-size:10px;color:var(--muted);">' + _esc(when) + '</span></div>'
-      + '<div style="font-size:14px;color:var(--text2);line-height:1.8;white-space:pre-wrap;">' + _esc(e.text) + '</div>'
-      + '</div>';
+      + '<span style="font-size:11px;color:var(--muted);">' + _esc(when) + '</span></div>'
+      + '<div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">'
+      + '<span style="font-size:10px;color:var(--faint);">' + words + ' word' + (words !== 1 ? 's' : '') + '</span>'
+      + '<span class="log-hint" style="font-size:9px;letter-spacing:1px;color:var(--faint);text-transform:uppercase;">Read</span></div></div>'
+      + '<div class="log-body" style="display:none;padding:0 14px 14px 27px;">'
+      + '<div style="font-size:14px;color:var(--text2);line-height:1.85;white-space:pre-wrap;">' + _esc(e.text) + '</div>'
+      + '<button class="btn-plain" onclick="event.stopPropagation();openLogEntry(' + e.id + ')" style="margin-top:10px;padding:7px 14px;background:transparent;border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">Edit</button>'
+      + '</div></div>';
   }).join('');
+}
+
+// Entries stay closed until asked for — privacy first.
+function rtcToggleLogRow(head) {
+  var body = head.parentNode.querySelector('.log-body');
+  if (!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  var cv = head.querySelector('.log-caret');
+  if (cv) cv.style.transform = open ? 'rotate(-90deg)' : 'rotate(0)';
+  var hn = head.querySelector('.log-hint');
+  if (hn) hn.textContent = open ? 'Read' : 'Hide';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -6169,42 +6195,59 @@ function renderCalendar() {
   var cleanDays = tradedDays.filter(function(o){ return o.scores.length && (o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length) >= 85; }).length;
   var slips = tradedDays.filter(function(o){ return o.trades > rules.maxTrades || o.killedTrade; }).length;
   var avgSleep = sleepVals.length ? (sleepVals.reduce(function(a,b){return a+b;},0)/sleepVals.length) : 0;
-  var badges = [
-    { name:'Clean Month',  sub:'Followed your rules every trading day', icon:'&#10003;',
-      earned: tradedDays.length > 0 && cleanDays === tradedDays.length,
+  // A month can only be EARNED once it's over and it holds real volume — otherwise
+  // two clean trades on the 2nd would "win" the month. Live months show ON TRACK.
+  var MIN_TRADED_DAYS = 5;
+  var monthOver = !isCurrentMonth;
+  var enoughVolume = tradedDays.length >= MIN_TRADED_DAYS;
+
+  function seal(o) {
+    // o: { met, pct, note, needs }
+    if (!o.met)              return { state:'locked',  note:o.note };
+    if (!enoughVolume && o.needsVolume) return { state:'locked', note:'Needs ' + MIN_TRADED_DAYS + '+ traded days (' + tradedDays.length + ' so far)' };
+    if (!monthOver)          return { state:'ontrack', note:'On track — ' + o.note };
+    return { state:'earned', note:'' };
+  }
+
+  var defs = [
+    { name:'Clean Month', sub:'Followed your rules every trading day', icon:'&#10003;', needsVolume:true,
+      met: tradedDays.length > 0 && cleanDays === tradedDays.length,
       pct: tradedDays.length ? Math.round(cleanDays / tradedDays.length * 100) : 0,
       note: tradedDays.length ? cleanDays + ' of ' + tradedDays.length + ' days clean' : 'No trades yet' },
-    { name:'Iron Discipline', sub:'Never went over your trade limit', icon:'&#9635;',
-      earned: tradedDays.length > 0 && slips === 0,
+    { name:'Iron Discipline', sub:'Never went over your trade limit', icon:'&#9635;', needsVolume:true,
+      met: tradedDays.length > 0 && slips === 0,
       pct: tradedDays.length ? Math.round((tradedDays.length - slips) / tradedDays.length * 100) : 0,
-      note: slips === 0 ? (tradedDays.length ? 'No slips yet' : 'No trades yet') : slips + ' slip' + (slips > 1 ? 's' : '') + ' this month' },
-    { name:'Green Month',  sub:'Finished the month profitable', icon:'&#9650;',
-      earned: (tradedDays.length > 0 || checkinDays > 0) && monthNet > 0,
+      note: slips === 0 ? (tradedDays.length ? 'no slips yet' : 'No trades yet') : slips + ' slip' + (slips > 1 ? 's' : '') + ' this month' },
+    { name:'Green Month', sub:'Finished the month profitable', icon:'&#9650;', needsVolume:false,
+      met: (tradedDays.length > 0 || checkinDays > 0) && monthNet > 0,
       pct: monthNet > 0 ? 100 : 0,
       note: (monthNet >= 0 ? '+' : '\u2212') + curSym() + Math.abs(monthNet).toLocaleString(undefined,{maximumFractionDigits:0}) + ' so far' },
-    { name:'The Full Stack', sub:'Clean and profitable \u2014 the rare one', icon:'&#9819;',
-      earned: false, pct: 0, note: 'Needs Clean Month + Green Month', rare: true },
-    { name:'Perfect Attendance', sub:'Checked in every trading day', icon:'&#9776;',
-      earned: weekdaysElapsed > 0 && weekdaysCheckedIn === weekdaysElapsed,
+    { name:'The Full Stack', sub:'Clean and profitable \u2014 the rare one', icon:'&#9819;', needsVolume:true, rare:true,
+      met: false, pct:0, note:'Needs Clean Month + Green Month' },
+    { name:'Perfect Attendance', sub:'Checked in every trading day', icon:'&#9776;', needsVolume:false,
+      met: weekdaysElapsed > 0 && weekdaysCheckedIn === weekdaysElapsed,
       pct: weekdaysElapsed ? Math.round(weekdaysCheckedIn / weekdaysElapsed * 100) : 0,
       note: weekdaysCheckedIn + ' of ' + weekdaysElapsed + ' days' },
-    { name:'Well Rested',  sub:'Averaged 7+ hours of sleep', icon:'&#9790;',
-      earned: sleepVals.length >= 5 && avgSleep >= 7,
+    { name:'Well Rested', sub:'Averaged 7+ hours of sleep', icon:'&#9790;', needsVolume:false,
+      met: sleepVals.length >= 5 && avgSleep >= 7,
       pct: avgSleep ? Math.min(100, Math.round(avgSleep / 7 * 100)) : 0,
       note: sleepVals.length ? avgSleep.toFixed(1) + ' hr average' : 'Log sleep at check-in' }
   ];
-  badges[3].earned = badges[0].earned && badges[2].earned;
-  badges[3].pct = Math.round(((badges[0].earned ? 50 : 0) + (badges[2].earned ? 50 : 0)));
+  defs[3].met = defs[0].met && defs[2].met;
+  defs[3].pct = (defs[0].met ? 50 : 0) + (defs[2].met ? 50 : 0);
+  if (defs[3].met) defs[3].note = 'clean and green';
+
   var bEl = document.getElementById('rtcCalBadges');
   if (bEl) {
-    bEl.innerHTML = badges.map(function(bg) {
-      var on = bg.earned;
-      return '<div class="seal-card' + (on ? ' earned' : '') + (bg.rare && on ? ' rare' : '') + '">'
-        + '<div class="seal-ring' + (on ? ' earned' : '') + '">' + bg.icon + '</div>'
+    bEl.innerHTML = defs.map(function(bg) {
+      var st = seal(bg);
+      var on = st.state === 'earned', track = st.state === 'ontrack';
+      return '<div class="seal-card' + (on ? ' earned' : track ? ' ontrack' : '') + (bg.rare && on ? ' rare' : '') + '">'
+        + '<div class="seal-ring' + (on ? ' earned' : track ? ' ontrack' : '') + '">' + bg.icon + '</div>'
         + '<div class="seal-name">' + bg.name + '</div>'
         + '<div class="seal-sub">' + bg.sub + '</div>'
         + (on ? '<div class="seal-note earned">EARNED</div>'
-              : '<div class="seal-bar"><i style="width:' + Math.max(2, Math.min(100, bg.pct)) + '%;"></i></div><div class="seal-note">' + bg.note + '</div>')
+              : '<div class="seal-bar"><i style="width:' + Math.max(2, Math.min(100, bg.pct)) + '%;"></i></div><div class="seal-note' + (track ? ' ontrack' : '') + '">' + st.note + '</div>')
         + '</div>';
     }).join('');
   }
