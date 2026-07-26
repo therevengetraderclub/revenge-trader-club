@@ -77,6 +77,11 @@ html:is([data-theme="light"],[data-theme="rose"]) #aPlusTakeover{
 }
 /* On light themes a heavy black drop-shadow reads as a fuzzy grey halo — makes the
    menu look blurry/low-quality. Use a crisp light-theme shadow + tighter border. */
+/* The app frame's dark 60px glow is invisible on black but paints a hard seam
+   across a light page — it reads as two sheets stacked. Light themes get none. */
+html:is([data-theme="light"],[data-theme="rose"]) .screen.active{
+  box-shadow:none !important;
+}
 html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
   box-shadow:0 10px 34px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08) !important;
   border-color:var(--border2) !important;
@@ -1014,7 +1019,9 @@ html,body{background:var(--page);font-family:"Inter",sans-serif;color:var(--text
   width:54px;height:54px;border-radius:50%;
   background:var(--gold-glow);border:1px solid var(--gold-dim);
   display:flex;align-items:center;justify-content:center;
-  font-size:24px;flex-shrink:0;
+  flex-shrink:0;
+  font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:2px;
+  color:var(--gold); text-transform:uppercase; line-height:1;
 }
 .settings-name{font-size:18px;font-weight:800;color:var(--white);margin-bottom:3px;}
 .settings-style{font-size:12px;color:var(--gold);margin-bottom:2px;}
@@ -3230,7 +3237,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 #authOverlay .auth-confirm-sub{ font-size:13px; color:var(--text2); line-height:1.7; }
 #authOverlay .auth-confirm-sub b{ color:var(--gold); }
 #authOverlay .auth-msg{ min-height:16px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.5px; margin:2px 0 14px; text-align:center; line-height:1.5; color:var(--muted); }
-#authOverlay .auth-msg.err{ color:#f08a8a; }
+#authOverlay .auth-msg.err{ color:var(--red); }
 #authOverlay .auth-msg.ok{ color:var(--green); }
 #authOverlay .auth-submit{ width:100%; padding:15px; background:linear-gradient(135deg,#b8922e,var(--gold2),#b8922e); border:none; border-radius:4px; color:var(--page); font-family:'Bebas Neue',sans-serif; font-size:17px; letter-spacing:3px; cursor:pointer; transform:skewX(-6deg); box-shadow:0 4px 20px rgba(var(--gold-rgb),0.22); transition:transform .12s ease, box-shadow .12s ease; }
 #authOverlay .auth-submit .skfix{ display:inline-block; transform:skewX(6deg); }
@@ -5017,13 +5024,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <div class="card card-top-gold">
       <div class="card-title">Account</div>
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-        <div class="settings-avatar">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3C9 3 7 5 7 7c0 1 .5 2 1 2.5C6 10 4 11 3 13c1 0 2-.5 3-1 0 2 1 4 3 5v2h6v-2c2-1 3-3 3-5 1 .5 2 1 3 1-1-2-3-3-5-3.5.5-.5 1-1.5 1-2.5 0-2-2-4-5-4z"/>
-            <line x1="9" y1="3" x2="7" y2="1"/>
-            <line x1="15" y1="3" x2="17" y2="1"/>
-          </svg>
-        </div>
+        <div class="settings-avatar" id="settingsAvatar">JM</div>
         <div style="flex:1;min-width:0;">
           <div class="settings-name" id="settingsName">—</div>
           <div class="settings-style" id="settingsStyle">—</div>
@@ -7986,6 +7987,11 @@ function renderSettings() {
   if (!acc) return;
   const set = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
   set('settingsName',    acc.name);
+  var _av = document.getElementById('settingsAvatar');
+  if (_av) {
+    var _n = String(acc.name || '').trim().split(/\s+/);
+    _av.textContent = ((_n[0] || '?')[0] + (_n[1] ? _n[1][0] : (_n[0] || '')[1] || '')).toUpperCase();
+  }
   set('settingsStyle',   acc.style);
   set('settingsMember',  'Member since ' + (acc.createdAt||'—'));
   set('settingsTrades',  getTrades().length);
@@ -8755,13 +8761,13 @@ function renderNewsCalendar() {
     const d1 = fedD(FED_MEETINGS[mi][0]), d2 = fedD(FED_MEETINGS[mi][1]);
     if (todayMid.getTime() === d2.getTime()) {
       fedBanner = '<div style="padding:12px 14px;background:rgba(229,57,53,0.1);border:1px solid rgba(229,57,53,0.4);border-radius:4px;margin-bottom:8px;">'
-        + '<div style="font-size:12px;font-weight:800;color:#f08a8a;letter-spacing:1px;">FOMC DECISION DAY</div>'
+        + '<div style="font-size:12px;font-weight:800;color:var(--red);letter-spacing:1px;">FOMC DECISION DAY</div>'
         + '<div style="font-size:11px;color:var(--text2);margin-top:3px;line-height:1.6;">Rate statement 2:00 PM ET \u00b7 Fed Chair press conference 2:30 PM ET. Stand aside around the release \u2014 spreads blow out and stops get hunted.</div></div>';
       break;
     }
     if (todayMid.getTime() === d1.getTime()) {
       fedBanner = '<div style="padding:12px 14px;background:rgba(229,57,53,0.06);border:1px solid rgba(229,57,53,0.3);border-radius:4px;margin-bottom:8px;">'
-        + '<div style="font-size:12px;font-weight:800;color:#f08a8a;letter-spacing:1px;">FOMC MEETING \u2014 DAY 1</div>'
+        + '<div style="font-size:12px;font-weight:800;color:var(--red);letter-spacing:1px;">FOMC MEETING \u2014 DAY 1</div>'
         + '<div style="font-size:11px;color:var(--text2);margin-top:3px;">Decision drops tomorrow at 2:00 PM ET. Markets often chop sideways today.</div></div>';
       break;
     }
@@ -14412,7 +14418,7 @@ function renderSessionStrip() {
     parts.push('<span style="color:var(--gold);">&gt;_ SESSION ' + String(getSessionNo()).padStart(3,'0') + '</span>');
     parts.push('<span>' + now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase() + '</span>');
     if (bal > 0) parts.push('<span>BAL <span style="color:var(--text2);">' + curSym() + bal.toLocaleString() + '</span></span>');
-    if (maxLoss > 0) parts.push('<span>MAX LOSS <span style="color:#f08a8a;">-' + curSym() + maxLoss.toFixed(0) + '</span></span>');
+    if (maxLoss > 0) parts.push('<span>MAX LOSS <span style="color:var(--red);">-' + curSym() + maxLoss.toFixed(0) + '</span></span>');
     if (rec && rec.active) parts.push('<span style="color:var(--orange);">[RECOVERY MODE]</span>');
     else parts.push('<span style="color:var(--green);">[SYSTEM READY]</span>');
     el.innerHTML = parts.join('<span class="ss-sep">//</span>');
