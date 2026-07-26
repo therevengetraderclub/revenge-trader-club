@@ -3754,6 +3754,11 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 <div id="calShareModal" onclick="if(event.target===this)closeCalShare()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100003;align-items:flex-start;justify-content:center;padding:26px 16px 44px;overflow-y:auto;">
   <button onclick="closeCalShare()" style="position:fixed;top:16px;right:16px;background:var(--gold);border:none;border-radius:6px;color:#0d0b08;font-size:13px;font-weight:800;box-shadow:0 3px 14px rgba(0,0,0,0.34);padding:8px 16px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;z-index:100004;">✕ Close</button>
   <div style="width:100%;max-width:460px;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:12px;">
+      <button onclick="calShareNav(-1)" aria-label="Previous month" style="width:34px;height:30px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;cursor:pointer;font-size:15px;line-height:1;">&lsaquo;</button>
+      <span id="calShareNavLbl" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.8);min-width:120px;text-align:center;">—</span>
+      <button onclick="calShareNav(1)" aria-label="Next month" style="width:34px;height:30px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;cursor:pointer;font-size:15px;line-height:1;">&rsaquo;</button>
+    </div>
     <div id="calShareCard"></div>
     <div style="text-align:center;font-size:12px;color:rgba(255,255,255,0.7);line-height:1.9;margin-top:16px;">
       Screenshot this card and post it.<br>Let them see what discipline actually looks like.
@@ -5897,6 +5902,12 @@ function rtcObPickRule(el) {
 // MONTH SHARE CARD — built from the same data as the calendar so the
 // numbers can never disagree. Sized and typed to survive a screenshot.
 // ═══════════════════════════════════════════════════════
+function calShareNav(dir) {
+  if (rtcCalOffset + dir > 0) return;   // no future months
+  rtcCalOffset += dir;
+  openCalShare();                        // recompute + redraw the card for that month
+  playSound('tick');
+}
 function openCalShare() {
   try { renderCalendar(); } catch(e) { rtcWarn(e); }
   var d = window._rtcCalData;
@@ -5910,27 +5921,24 @@ function openCalShare() {
   // ── mini grid: colour carries the meaning, numbers stay legible ──
   var cells = '';
   for (var b = 0; b < d.firstDow; b++) cells += '<div></div>';
+  var SHORT = { cleanwin:'CLEAN WIN', dirtywin:'DIRTY WIN', cleanloss:'CLEAN LOSS', tilt:'TILT', discipline:'NO TRADE' };
   for (var n = 1; n <= d.nDays; n++) {
     var o = d.days[n];
     var future = d.isCurrentMonth && n > d.today;
-    var bg = 'var(--bg3)', bd = 'var(--border)', col = 'var(--faint)', mark = '';
-    if (o && !future) {
-      var c = d.classify(o), t = d.TYPE[c.type];
-      bd = t.ring; col = 'var(--text2)';
-      if (c.type === 'cleanwin')       { bg = 'rgba(34,197,94,0.16)'; bd = 'var(--green)'; }
-      else if (c.type === 'cleanloss') { bg = 'rgba(34,197,94,0.08)'; bd = 'var(--green)'; }
-      else if (c.type === 'dirtywin')  { bg = 'rgba(239,83,80,0.14)'; bd = 'var(--red)'; }
-      else if (c.type === 'tilt')      { bg = 'rgba(239,83,80,0.24)'; bd = 'var(--red)'; }
-      else if (c.type === 'discipline'){ bg = 'rgba(212,175,55,0.14)'; bd = 'var(--gold)'; }
-      if (o.pnl !== null && o.trades) {
-        var _a = Math.abs(o.pnl);
-        var _amt = _a >= 1000 ? (Math.round(_a / 100) / 10) + 'k' : String(Math.round(_a));
-        mark = (o.pnl >= 0 ? '+' : '\u2212') + _amt;
-      }
+    if (!o || future) {
+      cells += '<div style="min-height:46px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:3px 4px;opacity:' + (future ? '.35' : '.65') + ';"><span style="font-size:9px;color:var(--faint);">' + n + '</span></div>';
+      continue;
     }
-    cells += '<div style="aspect-ratio:1;background:' + bg + ';border:1.5px solid ' + bd + ';border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;overflow:hidden;">'
-      + '<span style="font-size:11px;font-weight:700;color:' + col + ';">' + n + '</span>'
-      + (mark ? '<span style="font-size:9px;font-weight:800;letter-spacing:-0.2px;color:' + (o.pnl >= 0 ? 'var(--green)' : 'var(--red)') + ';margin-top:2px;">' + mark + '</span>' : '')
+    var c = d.classify(o), t = d.TYPE[c.type];
+    var amt = '';
+    if (o.pnl !== null && o.trades) {
+      var _a = Math.abs(o.pnl);
+      amt = (o.pnl >= 0 ? '+' : '\u2212') + curSym() + (_a >= 1000 ? (Math.round(_a / 100) / 10) + 'k' : Math.round(_a));
+    }
+    cells += '<div style="min-height:46px;background:' + (t.bg || 'var(--bg2)') + ';border:2px solid ' + t.ring + ';border-radius:5px;padding:3px 4px;display:flex;flex-direction:column;line-height:1.25;">'
+      + '<span style="font-size:9px;color:var(--faint);">' + n + '</span>'
+      + (amt ? '<span style="font-size:10.5px;font-weight:900;color:' + ((o.pnl >= 0) ? 'var(--green)' : 'var(--red)') + ';">' + amt + '</span>' : (c.type === 'discipline' ? '<span style="font-size:10px;color:var(--gold);">&bull;</span>' : ''))
+      + (SHORT[c.type] ? '<span style="font-size:6.5px;font-weight:800;letter-spacing:.6px;font-family:\'IBM Plex Mono\',monospace;color:' + t.ring + ';margin-top:auto;">' + SHORT[c.type] + '</span>' : '')
       + '</div>';
   }
 
@@ -5943,8 +5951,7 @@ function openCalShare() {
   };
 
   el.innerHTML =
-    '<div style="--bg:#100f0c;--bg2:#161511;--bg3:#1d1b14;--bg4:#26231a;--border:#2b2820;--border2:#3a362a;--white:#f5f2ea;--text:#efece2;--text2:#cfc9ba;--muted:#8f8871;--faint:#6d675a;--gold:#d4af37;--gold2:#e2c26a;--gold-rgb:212,175,55;--gold-dim:#8a7434;--green:#22c55e;--red:#ef5350;'
-    + 'background:var(--bg);border:1px solid var(--gold-dim);border-radius:14px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.5);color:var(--text2);">'
+    '<div style="background:var(--bg);border:1px solid var(--gold-dim);border-radius:14px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.35);color:var(--text2);">'
     + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
       + (logoSrc ? '<img src="' + logoSrc + '" alt="" style="width:52px;height:52px;border-radius:50%;border:2px solid var(--gold);object-fit:cover;flex-shrink:0;">' : '')
       + '<div style="min-width:0;">'
@@ -5963,12 +5970,12 @@ function openCalShare() {
       + cells
     + '</div>'
     + '<div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;font-size:9.5px;color:var(--muted);letter-spacing:.5px;margin-bottom:14px;">'
-      + '<span><span style="display:inline-block;width:10px;height:10px;background:rgba(34,197,94,0.25);border:1.5px solid var(--green);border-radius:3px;vertical-align:-1px;"></span> rules kept</span>'
-      + '<span><span style="display:inline-block;width:10px;height:10px;background:rgba(239,83,80,0.25);border:1.5px solid var(--red);border-radius:3px;vertical-align:-1px;"></span> rules broken</span>'
-      + '<span><span style="display:inline-block;width:10px;height:10px;background:rgba(212,175,55,0.25);border:1.5px solid var(--gold);border-radius:3px;vertical-align:-1px;"></span> no-trade day</span>'
+      + '<span><span style="display:inline-block;width:10px;height:10px;border:2px solid var(--green);border-radius:3px;vertical-align:-1px;"></span> rules kept</span>'
+      + '<span><span style="display:inline-block;width:10px;height:10px;border:2px solid var(--red);border-radius:3px;vertical-align:-1px;"></span> rules broken</span>'
+      + '<span><span style="display:inline-block;width:10px;height:10px;border:2px solid var(--gold);border-radius:3px;vertical-align:-1px;"></span> no-trade day</span>'
     + '</div>'
     + '<div style="display:flex;gap:7px;margin-bottom:14px;">'
-      + stat(d.cleanDays + '/' + d.tradedDays, 'Clean Days', 'var(--green)')
+      + stat(d.cleanDays + ' of ' + d.tradedDays, 'Days Traded Clean', 'var(--green)')
       + stat(d.avgSleep ? d.avgSleep.toFixed(1) + 'h' : '\u2014', 'Avg Sleep')
       + stat(d.checkinDays, 'Check-Ins')
     + '</div>'
@@ -5983,12 +5990,15 @@ function openCalShare() {
     + '</div>'
     + '</div>';
 
+  var navLbl = document.getElementById('calShareNavLbl');
+  if (navLbl) navLbl.textContent = d.label.toUpperCase();
   modal.style.display = 'flex';
   playSound('chime');
 }
 function closeCalShare() {
   var m = document.getElementById('calShareModal');
   if (m) m.style.display = 'none';
+  if (rtcCalOffset !== 0) { rtcCalOffset = 0; try { renderCalendar(); } catch(e) { rtcWarn(e); } }
 }
 
 
@@ -6422,7 +6432,12 @@ function renderCalendar() {
     var dw = new Date(y, m, wd2).getDay();
     if (dw !== 0 && dw !== 6) { weekdaysElapsed++; if (days[wd2] && days[wd2].checkin) weekdaysCheckedIn++; }
   }
-  var cleanDays = tradedDays.filter(function(o){ return o.scores.length && (o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length) >= 85; }).length;
+  // One definition of "clean" everywhere — identical to the tile titles:
+  // discipline 70%+ (grade A), inside your max trades, no kill-switch override.
+  var cleanDays = tradedDays.filter(function(o){
+    var avg = o.scores.length ? o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length : 100;
+    return avg >= 70 && o.trades <= rules.maxTrades && !o.killedTrade;
+  }).length;
   var slips = tradedDays.filter(function(o){ return o.trades > rules.maxTrades || o.killedTrade; }).length;
   var avgSleep = sleepVals.length ? (sleepVals.reduce(function(a,b){return a+b;},0)/sleepVals.length) : 0;
   // A month can only be EARNED once it's over and it holds real volume — otherwise
@@ -6440,7 +6455,7 @@ function renderCalendar() {
   }
 
   var defs = [
-    { name:'Clean Month', sub:'85%+ discipline on every day you traded', icon:'&#10003;', needsVolume:true,
+    { name:'Clean Month', sub:'Every traded day inside your rules', icon:'&#10003;', needsVolume:true,
       met: tradedDays.length > 0 && cleanDays === tradedDays.length,
       pct: tradedDays.length ? Math.round(cleanDays / tradedDays.length * 100) : 0,
       note: tradedDays.length ? cleanDays + ' of ' + tradedDays.length + ' traded days clean' : 'No trades yet' },
@@ -8298,7 +8313,7 @@ function renderRiskRules() {
     var p = acc.pendingRules;
     if (p && p.setOn === new Date().toDateString()) {
       note.style.display = 'block';
-      note.innerHTML = '&#128274; You already traded today, so looser rules start tomorrow: <strong>' + p.maxTrades + ' trades &middot; &divide;' + p.divisor
+      note.innerHTML = '<span style="font-family:\'IBM Plex Mono\',monospace;font-weight:800;letter-spacing:1px;">LOCKED</span> — You already traded today, so looser rules start tomorrow: <strong>' + p.maxTrades + ' trades &middot; &divide;' + p.divisor
         + '</strong>. Today you finish on the rules you started with.'
         + ' <span onclick="cancelPendingRules()" style="text-decoration:underline;cursor:pointer;white-space:nowrap;">Cancel change</span>';
     } else { note.style.display = 'none'; }
