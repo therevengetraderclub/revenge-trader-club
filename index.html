@@ -128,6 +128,10 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
   flex:0 0 148px; min-width:148px;
 }
 #rtcCalBadges::-webkit-scrollbar, .tc-strip::-webkit-scrollbar{ display:none; }
+/* Flex ancestors let wide content stretch the page instead of scrolling the strip.
+   min-width:0 restores containment so overflow-x actually engages. */
+.tab-body, .tab-body .card{ min-width:0; }
+#rtcCalBadges, .tc-strip{ width:100%; max-width:100%; }
 .seal-card.legendary{ border-style:double; border-width:3px; }
 .seal-card.legendary.earned{
   border-color:var(--gold); background:rgba(var(--gold-rgb),0.1);
@@ -5895,6 +5899,48 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
 })();
 function rtcStorageUsage() { return RTCStore.usage(); }
 
+// ── SEAL ICONS — hand-drawn stroke icons, same style as the rest of the app ──
+var RTC_SEAL_SVG = {
+  shield:   '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/>',
+  lock:     '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
+  trend:    '<polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/>',
+  crown:    '<path d="M5 18h14l1.5-9-5 3.5L12 6l-3.5 6.5-5-3.5z"/>',
+  calcheck: '<rect x="4" y="5" width="16" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="4" y1="10" x2="20" y2="10"/><path d="M9 15.5l2 2 4-4"/>',
+  moon:     '<path d="M20 13A8 8 0 1111 4a6.5 6.5 0 009 9z"/>',
+  target:   '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>',
+  wall:     '<rect x="3" y="5" width="18" height="14"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="14.5" x2="21" y2="14.5"/><line x1="9" y1="5" x2="9" y2="10"/><line x1="15" y1="10" x2="15" y2="14.5"/><line x1="9" y1="14.5" x2="9" y2="19"/>',
+  snow:     '<line x1="12" y1="3" x2="12" y2="21"/><line x1="4.2" y1="7.5" x2="19.8" y2="16.5"/><line x1="19.8" y1="7.5" x2="4.2" y2="16.5"/>',
+  pen:      '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/>',
+  hourglass:'<path d="M6 3h12M6 21h12M8 3v3l4 4 4-4V3M8 21v-3l4-4 4 4v3"/>',
+  yinyang:  '<circle cx="12" cy="12" r="9"/><path d="M12 3a4.5 4.5 0 010 9 4.5 4.5 0 000 9"/><circle cx="12" cy="7.5" r="0.8"/><circle cx="12" cy="16.5" r="0.8"/>',
+  comeback: '<polyline points="3 10 7 16 12 12 16 14 21 5"/><polyline points="15 5 21 5 21 11"/>',
+  droplet:  '<path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z"/>',
+  grad:     '<path d="M2 9.5l10-4.5 10 4.5-10 4.5z"/><path d="M6 12v4c0 1.5 2.5 3 6 3s6-1.5 6-3v-4"/>',
+  flame:    '<path d="M12 3s5 4.5 5 9.5a5 5 0 01-10 0c0-2 1-3.7 2-5 .3 1.4 1 2.3 2 2.5C10.5 8 11 5.5 12 3z"/>',
+  gear:     '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.2 2.2M16.9 16.9l2.2 2.2M19.1 4.9l-2.2 2.2M7.1 16.9l-2.2 2.2"/>',
+  medal:    '<circle cx="12" cy="15" r="5"/><path d="M8 3l4 7 4-7"/>',
+  quill:    '<path d="M20 4c-6 0-11 4-13 10l-3 6 6-3c6-2 10-7 10-13z"/><path d="M7 17l6-6"/>',
+  bubble:   '<path d="M21 11.5a8.5 8.5 0 01-9 8.4L6 22l1.5-4.5A8.5 8.5 0 1121 11.5z"/>',
+  phoenix:  '<path d="M12 22c-3 0-5-2-5-5 0-2 1-3.7 2-4.9.3 1.4 1 2.3 2 2.5-.5-2 0-4.4 1-6.6 1 2.2 5 4 5 9a5 5 0 01-5 5z"/><path d="M12 2v4M9.5 4.5L12 2l2.5 2.5"/>',
+  bars:     '<rect x="4" y="13" width="4" height="7"/><rect x="10" y="9" width="4" height="11"/><rect x="16" y="5" width="4" height="15"/>',
+  cal365:   '<rect x="4" y="5" width="16" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="4" y1="10" x2="20" y2="10"/>'
+};
+function rtcSealIcon(k) {
+  return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (RTC_SEAL_SVG[k] || '') + '</svg>';
+}
+
+
+// Badge strips: let a normal mouse wheel scroll them sideways
+document.addEventListener('wheel', function(e) {
+  var strip = e.target && e.target.closest ? e.target.closest('#rtcCalBadges, .tc-strip') : null;
+  if (!strip || strip.scrollWidth <= strip.clientWidth) return;
+  if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+    strip.scrollLeft += e.deltaY;
+    e.preventDefault();
+  }
+}, { passive: false });
+
+
 // ═══════════════════════════════════════════════════════
 // TROPHY CASE — lifetime badges + every month's earned seals.
 // Nothing new is tracked: history is replayed through the same standards.
@@ -5965,17 +6011,17 @@ function rtcLifetimeBadges() {
     return { name:name, sub:sub, icon:icon, earned:!!earned, pct:Math.min(100,Math.round(pct)), note:note, tier:tier||'' };
   }
   return [
-    b('First Blood','First trade logged','&#10022;', n >= 1, n >= 1 ? 100 : 0, n >= 1 ? '' : 'Log your first trade'),
-    b('Paid Tuition','First clean loss — lost money correctly','&#9633;', paidTuition, paidTuition ? 100 : 0, paidTuition ? '' : 'A clean loss earns this'),
-    b('Untouchable','10 clean days in a row','&#9651;', maxStreak >= 10, maxStreak/10*100, maxStreak + ' of 10'),
-    b('Iron Streak','30 clean days in a row','&#9650;', maxStreak >= 30, maxStreak/30*100, maxStreak + ' of 30', 'rare'),
-    b('The Machine','90 clean days in a row','&#9670;', maxStreak >= 90, maxStreak/90*100, maxStreak + ' of 90', 'legendary'),
-    b('Centurion','100 trades logged','&#8557;', n >= 100, n/100*100, n + ' of 100'),
-    b('The Scribe','50 journal entries','&#9998;', logs >= 50, logs/50*100, logs + ' of 50'),
-    b('Confessional','Named the mistake in 10 cooldowns','&#8226;&#8226;', mistakes >= 10, mistakes/10*100, mistakes + ' of 10'),
-    b('Phoenix','Completed 3 recoveries','&#8593;&#8593;', recovs >= 3, recovs/3*100, recovs + ' of 3', 'legendary'),
-    b('Green Quarter','3 green months in a row','&#9650;&#9650;', gq, gq ? 100 : 0, gq ? '' : 'Needs 3 closed green months', 'rare'),
-    b('365','One full year in the club','&#9679;', memberDays >= 365, memberDays/365*100, memberDays + ' of 365 days')
+    b('First Blood','First trade logged',rtcSealIcon('droplet'), n >= 1, n >= 1 ? 100 : 0, n >= 1 ? '' : 'Log your first trade'),
+    b('Paid Tuition','First clean loss — lost money correctly',rtcSealIcon('grad'), paidTuition, paidTuition ? 100 : 0, paidTuition ? '' : 'A clean loss earns this'),
+    b('Untouchable','10 clean days in a row',rtcSealIcon('flame'), maxStreak >= 10, maxStreak/10*100, maxStreak + ' of 10'),
+    b('Iron Streak','30 clean days in a row',rtcSealIcon('flame'), maxStreak >= 30, maxStreak/30*100, maxStreak + ' of 30', 'rare'),
+    b('The Machine','90 clean days in a row',rtcSealIcon('gear'), maxStreak >= 90, maxStreak/90*100, maxStreak + ' of 90', 'legendary'),
+    b('Centurion','100 trades logged',rtcSealIcon('medal'), n >= 100, n/100*100, n + ' of 100'),
+    b('The Scribe','50 journal entries',rtcSealIcon('quill'), logs >= 50, logs/50*100, logs + ' of 50'),
+    b('Confessional','Named the mistake in 10 cooldowns',rtcSealIcon('bubble'), mistakes >= 10, mistakes/10*100, mistakes + ' of 10'),
+    b('Phoenix','Completed 3 recoveries',rtcSealIcon('phoenix'), recovs >= 3, recovs/3*100, recovs + ' of 3', 'legendary'),
+    b('Green Quarter','3 green months in a row',rtcSealIcon('bars'), gq, gq ? 100 : 0, gq ? '' : 'Needs 3 closed green months', 'rare'),
+    b('365','One full year in the club',rtcSealIcon('cal365'), memberDays >= 365, memberDays/365*100, memberDays + ' of 365 days')
   ];
 }
 
@@ -6734,49 +6780,49 @@ function renderCalendar() {
   }
 
   var defs = [
-    { name:'Clean Month', sub:'Every traded day inside your rules', icon:'&#10003;', needsVolume:true,
+    { name:'Clean Month', sub:'Every traded day inside your rules', icon:rtcSealIcon('shield'), needsVolume:true,
       met: tradedDays.length > 0 && cleanDays === tradedDays.length,
       pct: tradedDays.length ? Math.round(cleanDays / tradedDays.length * 100) : 0,
       note: tradedDays.length ? cleanDays + ' of ' + tradedDays.length + ' traded days clean' : 'No trades yet' },
-    { name:'Iron Discipline', sub:'Never went over your trade limit', icon:'&#9635;', needsVolume:true,
+    { name:'Iron Discipline', sub:'Never went over your trade limit', icon:rtcSealIcon('lock'), needsVolume:true,
       met: tradedDays.length > 0 && slips === 0,
       pct: tradedDays.length ? Math.round((tradedDays.length - slips) / tradedDays.length * 100) : 0,
       note: slips === 0 ? (tradedDays.length ? 'no slips yet' : 'No trades yet') : slips + ' slip' + (slips > 1 ? 's' : '') + ' this month' },
-    { name:'Green Month', sub:'Finished the month profitable', icon:'&#9650;', needsVolume:false,
+    { name:'Green Month', sub:'Finished the month profitable', icon:rtcSealIcon('trend'), needsVolume:false,
       met: (tradedDays.length > 0 || checkinDays > 0) && monthNet > 0,
       pct: monthNet > 0 ? 100 : 0,
       note: (monthNet >= 0 ? '+' : '\u2212') + curSym() + Math.abs(monthNet).toLocaleString(undefined,{maximumFractionDigits:0}) + ' so far' },
-    { name:'The Full Stack', sub:'Clean and profitable \u2014 the rare one', icon:'&#9819;', needsVolume:true, rare:true,
+    { name:'The Full Stack', sub:'Clean and profitable \u2014 the rare one', icon:rtcSealIcon('crown'), needsVolume:true, rare:true,
       met: false, pct:0, note:'Needs Clean Month + Green Month' },
-    { name:'Perfect Attendance', sub:'Checked in every trading day', icon:'&#9776;', needsVolume:false,
+    { name:'Perfect Attendance', sub:'Checked in every trading day', icon:rtcSealIcon('calcheck'), needsVolume:false,
       met: weekdaysElapsed > 0 && weekdaysCheckedIn === weekdaysElapsed,
       pct: weekdaysElapsed ? Math.round(weekdaysCheckedIn / weekdaysElapsed * 100) : 0,
       note: weekdaysCheckedIn + ' of ' + weekdaysElapsed + ' weekdays checked in' },
-    { name:'Well Rested', sub:'Averaged 7+ hours of sleep', icon:'&#9790;', needsVolume:false,
+    { name:'Well Rested', sub:'Averaged 7+ hours of sleep', icon:rtcSealIcon('moon'), needsVolume:false,
       met: sleepVals.length >= 5 && avgSleep >= 7,
       pct: avgSleep ? Math.min(100, Math.round(avgSleep / 7 * 100)) : 0,
       note: sleepVals.length ? avgSleep.toFixed(1) + ' hr average' : 'Log sleep at check-in' },
-    { name:'Sniper Month', sub:'Every traded day: one and done', icon:'&#9678;', needsVolume:true,
+    { name:'Sniper Month', sub:'Every traded day: one and done', icon:rtcSealIcon('target'), needsVolume:true,
       met: allOneTrade,
       pct: tradedDays.length ? Math.round(tradedDays.filter(function(o){return o.trades===1;}).length / tradedDays.length * 100) : 0,
       note: tradedDays.length ? tradedDays.filter(function(o){return o.trades===1;}).length + ' of ' + tradedDays.length + ' days one-and-done' : 'No trades yet' },
-    { name:'The Wall', sub:'Kill switch fired 3+, walked away every time', icon:'&#9646;', needsVolume:false,
+    { name:'The Wall', sub:'Kill switch fired 3+, walked away every time', icon:rtcSealIcon('wall'), needsVolume:false,
       met: killWalkDays >= 3 && !tradedDays.some(function(o){ return o.killedTrade; }),
       pct: Math.min(100, Math.round(killWalkDays / 3 * 100)),
       note: killWalkDays + ' of 3 walk-aways' },
-    { name:'Cold Blooded', sub:'3+ clean losses, zero tilt after', icon:'&#10033;', needsVolume:true,
+    { name:'Cold Blooded', sub:'3+ clean losses, zero tilt after', icon:rtcSealIcon('snow'), needsVolume:true,
       met: cleanLossDays >= 3 && tiltDayCount === 0,
       pct: Math.min(100, Math.round(cleanLossDays / 3 * 100)),
       note: cleanLossDays + ' clean loss' + (cleanLossDays !== 1 ? 'es' : '') + (tiltDayCount ? ' · ' + tiltDayCount + ' tilt day' + (tiltDayCount > 1 ? 's' : '') : '') },
-    { name:'No Excuses', sub:'Checked in and journaled every traded day', icon:'&#9998;', needsVolume:true,
+    { name:'No Excuses', sub:'Checked in and journaled every traded day', icon:rtcSealIcon('pen'), needsVolume:true,
       met: noExcusesOK,
       pct: tradedDays.length ? Math.round(tradedDays.filter(function(o){return o.checkin && o.logs;}).length / tradedDays.length * 100) : 0,
       note: tradedDays.length ? tradedDays.filter(function(o){return o.checkin && o.logs;}).length + ' of ' + tradedDays.length + ' full-accountability days' : 'No trades yet' },
-    { name:'Sat On Hands', sub:'3+ no-trade discipline days', icon:'&#8214;', needsVolume:false,
+    { name:'Sat On Hands', sub:'3+ no-trade discipline days', icon:rtcSealIcon('hourglass'), needsVolume:false,
       met: satHandsDays >= 3,
       pct: Math.min(100, Math.round(satHandsDays / 3 * 100)),
       note: satHandsDays + ' of 3 discipline days' },
-    { name:'Zen', sub:'10+ check-ins, stress stayed low', icon:'&#8857;', needsVolume:false,
+    { name:'Zen', sub:'10+ check-ins, stress stayed low', icon:rtcSealIcon('yinyang'), needsVolume:false,
       met: checkinDays >= 10 && avgStress <= 0.5,
       pct: Math.min(100, Math.round(checkinDays / 10 * 100)),
       note: checkinDays < 10 ? checkinDays + ' of 10 check-ins' : (avgStress <= 0.5 ? 'stress low' : 'stress ran high') },
@@ -6792,7 +6838,7 @@ function renderCalendar() {
         var rs = getRecState();
         if (rs && rs.active) livePct = Math.min(99, Math.max(0, Math.round((recProgress(rs).net / rs.loss) * 100)));
       } catch(e) { rtcWarn(e); }
-      return { name:'Comeback', sub:'Recovered a drawdown, rules intact', icon:'&#8593;', needsVolume:false, instant:true,
+      return { name:'Comeback', sub:'Recovered a drawdown, rules intact', icon:rtcSealIcon('comeback'), needsVolume:false, instant:true,
         met: done, pct: livePct, note: livePct > 0 ? 'Climbing — ' + livePct + '% back' : 'No drawdown to recover — good' };
     })()
   ];
