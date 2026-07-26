@@ -125,7 +125,15 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
 .seal-card{
   padding:14px 10px; background:var(--bg2); border:1px solid var(--border);
   border-radius:10px; text-align:center; display:flex; flex-direction:column; align-items:center;
+  flex:0 0 148px; min-width:148px;
 }
+#rtcCalBadges::-webkit-scrollbar, .tc-strip::-webkit-scrollbar{ display:none; }
+.seal-card.legendary{ border-style:double; border-width:3px; }
+.seal-card.legendary.earned{
+  border-color:var(--gold); background:rgba(var(--gold-rgb),0.1);
+  box-shadow:0 0 0 1px rgba(var(--gold-rgb),0.2), 0 0 22px rgba(var(--gold-rgb),0.12);
+}
+.seal-card.legendary.earned .seal-ring{ box-shadow:0 0 0 3px rgba(var(--gold-rgb),0.15), 0 0 18px rgba(var(--gold-rgb),0.25); }
 .seal-card.earned{ background:rgba(var(--gold-rgb),0.06); border-color:var(--gold-dim); }
 .seal-card.rare{ border-width:2px; border-color:var(--gold); }
 .seal-ring{
@@ -4794,13 +4802,20 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div id="rtcCalDow" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:5px;"></div>
       <div id="rtcCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;"></div>
       <div id="rtcCalSummary" style="margin-top:12px;font-size:12px;color:var(--text2);"></div>
-      <div id="rtcCalBadges" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px;"></div>
+      <div id="rtcCalBadges" style="display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px;"></div>
       <div id="rtcCalMarks" style="display:none;"></div>
       <button onclick="openCalShare()" class="btn-gold" style="width:100%;margin-top:14px;">Share This Month</button>
       <div id="rtcCalLegend" style="margin-top:12px;font-size:10px;color:var(--muted);line-height:1.9;"></div>
     </div>
 
-    <!-- THE MIRROR — self-knowledge surface, rendered by renderMirror() -->
+        <!-- TROPHY CASE — every badge you've ever earned, forever -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">Trophy Case</div>
+      <div class="card-sub">Lifetime badges and every month's seals. History replayed through the same standards — nothing here was given.</div>
+      <div id="rtcTrophyCase"></div>
+    </div>
+
+<!-- THE MIRROR — self-knowledge surface, rendered by renderMirror() -->
     <div id="mirrorSection" style="display:none;margin-bottom:16px;"></div>
 
     <!-- Empty state — shown when no trades logged -->
@@ -5880,6 +5895,208 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
 })();
 function rtcStorageUsage() { return RTCStore.usage(); }
 
+// ═══════════════════════════════════════════════════════
+// TROPHY CASE — lifetime badges + every month's earned seals.
+// Nothing new is tracked: history is replayed through the same standards.
+// ═══════════════════════════════════════════════════════
+function rtcMaxCleanStreak() {
+  try {
+    var rules = getAccRules(getActiveAcc());
+    var byDay = {};
+    getTrades().forEach(function(t) {
+      if (!t.date) return;
+      var d = new Date(t.date); if (isNaN(d)) return;
+      var k = d.toDateString();
+      var o = byDay[k] || (byDay[k] = { n:0, bad:false, scores:[] });
+      o.n++;
+      if (t.killed || t.pastLimit) o.bad = true;
+      if (t.pct) o.scores.push(t.pct);
+    });
+    var keys = Object.keys(byDay).sort(function(a,b){ return new Date(a) - new Date(b); });
+    var maxS = 0, cur = 0, prev = null;
+    keys.forEach(function(k) {
+      var o = byDay[k];
+      var avg = o.scores.length ? o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length : 100;
+      var clean = !o.bad && o.n <= rules.maxTrades && avg >= 70;
+      cur = clean ? cur + 1 : 0;
+      if (cur > maxS) maxS = cur;
+    });
+    return maxS;
+  } catch(e) { rtcWarn(e); return 0; }
+}
+
+function rtcMonthNets() {
+  // month key 'y-m' -> net P&L, only from trades (the reliable dated source)
+  var nets = {};
+  getTrades().forEach(function(t) {
+    if (typeof t.tradePnl !== 'number' || !t.date) return;
+    var d = new Date(t.date); if (isNaN(d)) return;
+    var k = d.getFullYear() + '-' + d.getMonth();
+    nets[k] = (nets[k] || 0) + t.tradePnl;
+  });
+  return nets;
+}
+
+function rtcLifetimeBadges() {
+  var trades = getTrades();
+  var n = trades.length;
+  var logs = 0, mistakes = 0, recovs = 0;
+  try { logs = getLog().length; } catch(e) {}
+  try { mistakes = JSON.parse(RTCStore.get('rtc_mistakes_' + getActiveIdx()) || '[]').length; } catch(e) {}
+  try { recovs = JSON.parse(RTCStore.get('rtc_recoveries_' + getActiveIdx()) || '[]').length; } catch(e) {}
+  var paidTuition = trades.some(function(t){ return typeof t.tradePnl === 'number' && t.tradePnl < 0 && (t.pct||0) >= 70 && !t.killed && !t.pastLimit; });
+  var maxStreak = rtcMaxCleanStreak();
+  var firstD = null;
+  trades.forEach(function(t){ var d = new Date(t.date); if (!isNaN(d) && (!firstD || d < firstD)) firstD = d; });
+  var memberDays = firstD ? Math.floor((Date.now() - firstD) / 86400000) : 0;
+  // Green Quarter: 3 consecutive CLOSED months, each net positive
+  var nets = rtcMonthNets(), gq = false;
+  var now = new Date();
+  var probe = new Date(now.getFullYear(), now.getMonth() - 1, 1);   // last closed month
+  var run = 0;
+  for (var i = 0; i < 24; i++) {
+    var k = probe.getFullYear() + '-' + probe.getMonth();
+    if (nets[k] > 0) { run++; if (run >= 3) { gq = true; break; } }
+    else if (k in nets) { run = 0; }
+    else break;   // gap in history ends the search
+    probe.setMonth(probe.getMonth() - 1);
+  }
+  function b(name, sub, icon, earned, pct, note, tier) {
+    return { name:name, sub:sub, icon:icon, earned:!!earned, pct:Math.min(100,Math.round(pct)), note:note, tier:tier||'' };
+  }
+  return [
+    b('First Blood','First trade logged','&#10022;', n >= 1, n >= 1 ? 100 : 0, n >= 1 ? '' : 'Log your first trade'),
+    b('Paid Tuition','First clean loss — lost money correctly','&#9633;', paidTuition, paidTuition ? 100 : 0, paidTuition ? '' : 'A clean loss earns this'),
+    b('Untouchable','10 clean days in a row','&#9651;', maxStreak >= 10, maxStreak/10*100, maxStreak + ' of 10'),
+    b('Iron Streak','30 clean days in a row','&#9650;', maxStreak >= 30, maxStreak/30*100, maxStreak + ' of 30', 'rare'),
+    b('The Machine','90 clean days in a row','&#9670;', maxStreak >= 90, maxStreak/90*100, maxStreak + ' of 90', 'legendary'),
+    b('Centurion','100 trades logged','&#8557;', n >= 100, n/100*100, n + ' of 100'),
+    b('The Scribe','50 journal entries','&#9998;', logs >= 50, logs/50*100, logs + ' of 50'),
+    b('Confessional','Named the mistake in 10 cooldowns','&#8226;&#8226;', mistakes >= 10, mistakes/10*100, mistakes + ' of 10'),
+    b('Phoenix','Completed 3 recoveries','&#8593;&#8593;', recovs >= 3, recovs/3*100, recovs + ' of 3', 'legendary'),
+    b('Green Quarter','3 green months in a row','&#9650;&#9650;', gq, gq ? 100 : 0, gq ? '' : 'Needs 3 closed green months', 'rare'),
+    b('365','One full year in the club','&#9679;', memberDays >= 365, memberDays/365*100, memberDays + ' of 365 days')
+  ];
+}
+
+// A month's earned seals, replayed from raw history (closed months only)
+function rtcMonthSeals(y, m) {
+  var rules = getAccRules(getActiveAcc());
+  var days = {};
+  function day(n) { return days[n] || (days[n] = { trades:0, pnl:0, scores:[], bad:false, checkin:null, logs:0 }); }
+  getTrades().forEach(function(t) {
+    var d = rtcCalParseDate(t.date);
+    if (!d || d.getFullYear() !== y || d.getMonth() !== m) return;
+    var o = day(d.getDate());
+    o.trades++;
+    if (typeof t.tradePnl === 'number') o.pnl += t.tradePnl;
+    if (t.pct) o.scores.push(t.pct);
+    if (t.killed || t.pastLimit) o.bad = true;
+  });
+  getCheckins().forEach(function(c) {
+    var d = rtcCalParseDate(c.date);
+    if (d && d.getFullYear() === y && d.getMonth() === m && !day(d.getDate()).checkin) day(d.getDate()).checkin = c;
+  });
+  try { getLog().forEach(function(e) {
+    var d = rtcCalParseDate(e.date);
+    if (d && d.getFullYear() === y && d.getMonth() === m) day(d.getDate()).logs++;
+  }); } catch(e) {}
+  var td = [], net = 0, checkins = 0, sleep = [], satHands = 0;
+  Object.keys(days).forEach(function(k) {
+    var o = days[k];
+    if (o.trades > 0) td.push(o);
+    net += o.pnl;
+    if (o.checkin) { checkins++; if (typeof o.checkin.sleepHours === 'number') sleep.push(o.checkin.sleepHours); if (o.trades === 0) satHands++; }
+  });
+  function cleanDay(o) {
+    var avg = o.scores.length ? o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length : 100;
+    return avg >= 70 && o.trades <= rules.maxTrades && !o.bad;
+  }
+  var out = [];
+  var vol = td.length >= 5;
+  var allClean = td.length > 0 && td.every(cleanDay);
+  if (vol && allClean) out.push({ name:'Clean Month' });
+  if (vol && td.every(function(o){ return o.trades <= rules.maxTrades && !o.bad; })) out.push({ name:'Iron Discipline' });
+  if ((td.length > 0 || checkins > 0) && net > 0) out.push({ name:'Green Month' });
+  if (vol && allClean && net > 0) out.push({ name:'The Full Stack', rare:true });
+  if (vol && td.every(function(o){ return o.trades === 1; })) out.push({ name:'Sniper Month' });
+  if (td.filter(function(o){ return o.pnl < 0 && cleanDay(o); }).length >= 3 && td.filter(function(o){ return o.pnl < 0 && !cleanDay(o); }).length === 0 && vol) out.push({ name:'Cold Blooded' });
+  if (vol && td.every(function(o){ return o.checkin && o.logs; })) out.push({ name:'No Excuses' });
+  if (satHands >= 3) out.push({ name:'Sat On Hands' });
+  if (sleep.length >= 5 && (sleep.reduce(function(a,b){return a+b;},0)/sleep.length) >= 7) out.push({ name:'Well Rested' });
+  try { JSON.parse(RTCStore.get('rtc_recoveries_' + getActiveIdx()) || '[]').forEach(function(rc) {
+    var e = new Date(rc.end + 'T00:00:00');
+    if (!isNaN(e) && e.getFullYear() === y && e.getMonth() === m) out.push({ name:'Comeback' });
+  }); } catch(e) {}
+  return out;
+}
+
+function renderTrophyCase() {
+  var el = document.getElementById('rtcTrophyCase');
+  if (!el) return;
+  var life = rtcLifetimeBadges();
+  var now = new Date();
+  var months = [];
+  var firstD = null;
+  getTrades().forEach(function(t){ var d = rtcCalParseDate(t.date); if (d && (!firstD || d < firstD)) firstD = d; });
+  var totalSeals = 0, cleanMonths = 0, fullStacks = 0, comebacks = 0;
+  if (firstD) {
+    var probe = new Date(firstD.getFullYear(), firstD.getMonth(), 1);
+    var lastClosed = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    var guard = 0;
+    while (probe <= lastClosed && guard++ < 36) {
+      var seals = rtcMonthSeals(probe.getFullYear(), probe.getMonth());
+      if (seals.length) {
+        months.unshift({ label: probe.toLocaleDateString('en-US',{month:'long',year:'numeric'}), seals: seals });
+        totalSeals += seals.length;
+        seals.forEach(function(sl) {
+          if (sl.name === 'Clean Month') cleanMonths++;
+          if (sl.name === 'The Full Stack') fullStacks++;
+          if (sl.name === 'Comeback') comebacks++;
+        });
+      }
+      probe.setMonth(probe.getMonth() + 1);
+    }
+  }
+  var earnedLife = life.filter(function(x){ return x.earned; });
+  var h = '';
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:14px;">'
+    + '<div style="text-align:center;padding:12px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:20px;font-weight:900;color:var(--gold);">' + (totalSeals + earnedLife.length) + '</div><div style="font-size:9.5px;color:var(--muted);letter-spacing:1px;">BADGES EARNED</div></div>'
+    + '<div style="text-align:center;padding:12px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:20px;font-weight:900;color:var(--green);">' + cleanMonths + '</div><div style="font-size:9.5px;color:var(--muted);letter-spacing:1px;">CLEAN MONTHS</div></div>'
+    + '<div style="text-align:center;padding:12px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:20px;font-weight:900;color:var(--gold);">' + fullStacks + '</div><div style="font-size:9.5px;color:var(--muted);letter-spacing:1px;">FULL STACKS</div></div>'
+    + '<div style="text-align:center;padding:12px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:20px;font-weight:900;color:var(--green);">' + comebacks + '</div><div style="font-size:9.5px;color:var(--muted);letter-spacing:1px;">COMEBACKS</div></div></div>';
+
+  h += '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin:4px 0 8px;">// LIFETIME</div>';
+  h += '<div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;" class="tc-strip">';
+  life.sort(function(a,b){ return (b.earned?1:0) - (a.earned?1:0); });
+  life.forEach(function(x) {
+    h += '<div class="seal-card' + (x.earned ? ' earned' : '') + (x.tier === 'rare' && x.earned ? ' rare' : '') + (x.tier === 'legendary' ? ' legendary' + (x.earned ? ' earned' : '') : '') + '">'
+      + '<div class="seal-ring' + (x.earned ? ' earned' : '') + '">' + x.icon + '</div>'
+      + '<div class="seal-name">' + x.name + '</div>'
+      + '<div class="seal-sub">' + x.sub + '</div>'
+      + (x.earned ? '<div class="seal-note earned">EARNED</div>'
+          : '<div class="seal-bar"><i style="width:' + Math.max(2, x.pct) + '%;"></i></div><div class="seal-note">' + x.note + '</div>')
+      + '</div>';
+  });
+  h += '</div>';
+
+  if (months.length) {
+    h += '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin:14px 0 8px;">// BY MONTH</div>';
+    months.forEach(function(mo) {
+      h += '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">'
+        + '<span style="font-size:11px;font-weight:700;color:var(--text2);min-width:96px;padding-top:5px;">' + mo.label + '</span>'
+        + '<div style="display:flex;gap:5px;flex-wrap:wrap;">'
+        + mo.seals.map(function(sl) {
+            return '<span style="font-size:10px;font-weight:800;letter-spacing:.8px;color:var(--gold);border:1px solid ' + (sl.rare ? 'var(--gold)' : 'var(--gold-dim)') + ';background:rgba(var(--gold-rgb),0.07);border-radius:20px;padding:4px 10px;text-transform:uppercase;">' + sl.name + '</span>';
+          }).join('')
+        + '</div></div>';
+    });
+  } else {
+    h += '<div style="font-size:12px;color:var(--muted);margin-top:12px;">Your first closed month lands its seals here. The shelf fills itself.</div>';
+  }
+  el.innerHTML = h;
+}
+
 // ── DISCIPLINE STREAK ───────────────────────────────────
 // Consecutive days, walking back from today, where you either sat out or traded
 // inside your own rules. Breaking a rule ends the streak; not trading never does.
@@ -6448,12 +6665,12 @@ function renderCalendar() {
   grid.innerHTML = html;
 
   // ── month summary + badges ──
-  var tradedDays = [], monthNet = 0, checkinDays = 0, sleepVals = [];
+  var tradedDays = [], monthNet = 0, checkinDays = 0, sleepVals = [], stressVals = [];
   Object.keys(days).forEach(function(k) {
     var o = days[k];
     if (o.trades > 0) tradedDays.push(o);
     if (o.pnl !== null) monthNet += o.pnl;
-    if (o.checkin) { checkinDays++; if (typeof o.checkin.sleepHours === 'number') sleepVals.push(o.checkin.sleepHours); }
+    if (o.checkin) { checkinDays++; if (typeof o.checkin.sleepHours === 'number') sleepVals.push(o.checkin.sleepHours); if (o.checkin.stress) stressVals.push({Low:0,Medium:1,High:2}[o.checkin.stress] || 0); }
   });
   var allAvgs = tradedDays.map(function(o){ return o.scores.length ? o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length : 0; });
   var monthAvg = allAvgs.length ? Math.round(allAvgs.reduce(function(a,b){return a+b;},0)/allAvgs.length) : null;
@@ -6487,6 +6704,23 @@ function renderCalendar() {
   // A month can only be EARNED once it's over and it holds real volume — otherwise
   // two clean trades on the 2nd would "win" the month. Live months show ON TRACK.
   var MIN_TRADED_DAYS = 5;
+  function _dayClean(o) {
+    var avg = o.scores.length ? o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length : 100;
+    return avg >= 70 && o.trades <= rules.maxTrades && !o.killedTrade && !o.revenge;
+  }
+  var allOneTrade   = tradedDays.length > 0 && tradedDays.every(function(o){ return o.trades === 1; });
+  var killWalkDays  = 0, satHandsDays = 0, cleanLossDays = 0, tiltDayCount = 0, noExcusesOK = tradedDays.length > 0;
+  Object.keys(days).forEach(function(k) {
+    var o = days[k];
+    if (o.killFired && !o.killedTrade) killWalkDays++;
+    if (o.checkin && o.trades === 0) satHandsDays++;
+  });
+  tradedDays.forEach(function(o) {
+    if ((o.pnl || 0) < 0 && _dayClean(o)) cleanLossDays++;
+    if ((o.pnl || 0) < 0 && !_dayClean(o)) tiltDayCount++;
+    if (!(o.checkin && o.logs)) noExcusesOK = false;
+  });
+  var avgStress = stressVals.length ? stressVals.reduce(function(a,b){return a+b;},0)/stressVals.length : 99;
   var monthOver = !isCurrentMonth;
   var enoughVolume = tradedDays.length >= MIN_TRADED_DAYS;
 
@@ -6522,6 +6756,30 @@ function renderCalendar() {
       met: sleepVals.length >= 5 && avgSleep >= 7,
       pct: avgSleep ? Math.min(100, Math.round(avgSleep / 7 * 100)) : 0,
       note: sleepVals.length ? avgSleep.toFixed(1) + ' hr average' : 'Log sleep at check-in' },
+    { name:'Sniper Month', sub:'Every traded day: one and done', icon:'&#9678;', needsVolume:true,
+      met: allOneTrade,
+      pct: tradedDays.length ? Math.round(tradedDays.filter(function(o){return o.trades===1;}).length / tradedDays.length * 100) : 0,
+      note: tradedDays.length ? tradedDays.filter(function(o){return o.trades===1;}).length + ' of ' + tradedDays.length + ' days one-and-done' : 'No trades yet' },
+    { name:'The Wall', sub:'Kill switch fired 3+, walked away every time', icon:'&#9646;', needsVolume:false,
+      met: killWalkDays >= 3 && !tradedDays.some(function(o){ return o.killedTrade; }),
+      pct: Math.min(100, Math.round(killWalkDays / 3 * 100)),
+      note: killWalkDays + ' of 3 walk-aways' },
+    { name:'Cold Blooded', sub:'3+ clean losses, zero tilt after', icon:'&#10033;', needsVolume:true,
+      met: cleanLossDays >= 3 && tiltDayCount === 0,
+      pct: Math.min(100, Math.round(cleanLossDays / 3 * 100)),
+      note: cleanLossDays + ' clean loss' + (cleanLossDays !== 1 ? 'es' : '') + (tiltDayCount ? ' · ' + tiltDayCount + ' tilt day' + (tiltDayCount > 1 ? 's' : '') : '') },
+    { name:'No Excuses', sub:'Checked in and journaled every traded day', icon:'&#9998;', needsVolume:true,
+      met: noExcusesOK,
+      pct: tradedDays.length ? Math.round(tradedDays.filter(function(o){return o.checkin && o.logs;}).length / tradedDays.length * 100) : 0,
+      note: tradedDays.length ? tradedDays.filter(function(o){return o.checkin && o.logs;}).length + ' of ' + tradedDays.length + ' full-accountability days' : 'No trades yet' },
+    { name:'Sat On Hands', sub:'3+ no-trade discipline days', icon:'&#8214;', needsVolume:false,
+      met: satHandsDays >= 3,
+      pct: Math.min(100, Math.round(satHandsDays / 3 * 100)),
+      note: satHandsDays + ' of 3 discipline days' },
+    { name:'Zen', sub:'10+ check-ins, stress stayed low', icon:'&#8857;', needsVolume:false,
+      met: checkinDays >= 10 && avgStress <= 0.5,
+      pct: Math.min(100, Math.round(checkinDays / 10 * 100)),
+      note: checkinDays < 10 ? checkinDays + ' of 10 check-ins' : (avgStress <= 0.5 ? 'stress low' : 'stress ran high') },
     (function() {
       // Comeback — recovered a drawdown without breaking a rule. Instant: a finished
       // climb doesn't wait for the calendar. Progress bar shows a live recovery.
@@ -6544,6 +6802,9 @@ function renderCalendar() {
 
   var bEl = document.getElementById('rtcCalBadges');
   if (bEl) {
+    // Earned first, then on-track, then locked — the wins lead the strip
+    var rank = { earned: 0, ontrack: 1, locked: 2 };
+    defs.sort(function(a, b) { return rank[seal(a).state] - rank[seal(b).state]; });
     bEl.innerHTML = defs.map(function(bg) {
       var st = seal(bg);
       var on = st.state === 'earned', track = st.state === 'ontrack';
@@ -8018,6 +8279,7 @@ function renderMirror(){
 function renderPerf() {
   checkPerfEmptyStates();
   try { renderCalendar(); } catch(e) { rtcWarn(e); }
+  try { renderTrophyCase(); } catch(e) { rtcWarn(e); }
   const trades   = getTrades();
   const checkins = getCheckins();
   const set = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
