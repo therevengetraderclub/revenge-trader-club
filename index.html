@@ -83,7 +83,7 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
 #rtcCalGrid, #rtcCalDow{ gap:6px !important; }
 #rtcCalDow > div{ font-size:11px !important; letter-spacing:2px !important; font-weight:700; color:var(--muted) !important; }
 .cal-cell{
-  min-height:104px; display:flex; flex-direction:column;
+  min-height:120px; display:flex; flex-direction:column;
   font-family:'Inter',sans-serif;
 }
 .cal-dnum{ font-size:12px; font-weight:700; color:var(--text2); line-height:1.2; }
@@ -91,6 +91,7 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
   font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:800;
   letter-spacing:2px; color:var(--warn); line-height:1.2; white-space:nowrap;
 }
+.cal-title{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-top:3px; line-height:1.4; }
 .cal-pnl{ font-size:19px; font-weight:900; letter-spacing:-0.3px; margin-top:5px; line-height:1.1; }
 .cal-sub{
   font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
@@ -131,17 +132,29 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
 @media (max-width:600px){
   .seal-ring{ width:42px; height:42px; font-size:18px; }
   .cal-chip{ font-size:7.5px; }
+  /* Journal capture sheet takes the whole screen — thumb-friendly writing */
+  #logOverlay{ padding:0 !important; }
+  #logSheet{ max-width:100% !important; min-height:100vh; border-radius:0 !important; border-left:none; border-right:none; }
+  #logText{ min-height:44vh !important; font-size:16px !important; }
+  #logExpandBtn{ display:none; }
+  #logTypeRow{ grid-template-columns:repeat(3,1fr) !important; }
+  /* Settings-style pickers stay tappable on narrow screens */
+  .rr-opt{ padding:9px 2px !important; font-size:12px !important; }
+  .rr-opt div:first-child{ font-size:12px !important; }
+  .market-opt, .ccy-opt{ padding:10px 4px !important; }
+  #rtcCalMonthLbl{ min-width:88px !important; font-size:10px !important; }
 }
 #rtcCalSummary{ font-size:14px !important; }
 #rtcCalLegend{ font-size:11px !important; line-height:2 !important; }
 @media (min-width:1100px){
-  .cal-cell{ min-height:118px; }
+  .cal-cell{ min-height:134px; }
   .cal-pnl{ font-size:19px; }
 }
 @media (max-width:600px){
-  .cal-cell{ min-height:78px; padding:4px 5px !important; }
+  .cal-cell{ min-height:92px; padding:4px 5px !important; }
   .cal-pnl{ font-size:13px; margin-top:3px; }
   .cal-sub, .cal-flags{ font-size:9px; }
+  .cal-title{ font-size:8px; letter-spacing:1px; }
   .cal-dnum{ font-size:10px; }
 }
 /* 7-day breakdown: on light themes --gold-dim is a pale pastel, so the highlighted
@@ -3434,6 +3447,8 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <div style="width:100%;margin-bottom:12px;">
       <button class="btn-primary" onclick="rtcEnterClub()" style="width:100%;"><span class="skfix">Enter The Club &rarr;</span></button>
       <div class="cta-note">Free &middot; No card &middot; Cancel your excuses, not a subscription</div>
+      <!-- Returning members need a way in without walking through the pledge again -->
+      <div class="cta-note" style="margin-top:14px;">Already a member? <span onclick="rtcOpenLogin()" style="color:var(--gold);cursor:pointer;text-decoration:underline;font-weight:700;">Log in</span></div>
     </div>
     <div id="backToDashBtn" style="display:none;margin-top:16px;width:100%;">
       <button onclick="loadDash()" style="width:100%;padding:14px;background:transparent;border:1px solid var(--border2);border-radius:var(--r);color:var(--muted);font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;" onmouseenter="this.style.borderColor='var(--gold-dim)';this.style.color='var(--gold)'" onmouseleave="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">
@@ -6133,12 +6148,12 @@ function renderCalendar() {
       '<div class="cal-pnl" style="color:' + ((o.pnl >= 0) ? 'var(--green)' : 'var(--red)') + ';">' + (o.pnl >= 0 ? '+' : '−') + curSym() + Math.abs(o.pnl).toLocaleString(undefined,{maximumFractionDigits:0}) + '</div>';
     if (c.type === 'discipline') pnlStr = '<div class="cal-pnl" style="color:var(--gold);">&bull;</div>';
     // Words, not micro-icons: the tile must be legible in a social screenshot.
-    var lineTrades = o.trades ? (o.trades + ' trade' + (o.trades !== 1 ? 's' : '') + (c.avg !== null ? '  &middot;  ' + c.avg + '%' : '')) : '';
+    var lineTrades = o.trades ? (o.trades + ' trade' + (o.trades !== 1 ? 's' : '') + (c.avg !== null ? '  &middot;  discipline ' + c.avg + '%' : '')) : '';
     var lineBody = '';
     if (o.checkin) {
       var bits = [];
-      if (typeof o.checkin.sleepHours === 'number') bits.push(o.checkin.sleepHours + 'h sleep');
-      if (o.checkin.mood) bits.push(String(o.checkin.mood).toLowerCase());
+      if (typeof o.checkin.sleepHours === 'number') bits.push('slept ' + o.checkin.sleepHours + 'h');
+      if (o.checkin.mood) bits.push('mood ' + String(o.checkin.mood).toLowerCase());
       lineBody = bits.join('  &middot;  ');
     }
     var MOODC = { 'Locked In':'var(--green)', 'Good':'var(--green)', 'Neutral':'var(--muted)', 'Overconfident':'var(--orange)', 'Frustrated':'var(--warn)', 'Anxious':'var(--warn)', 'Defeated':'var(--red)' };
@@ -6155,6 +6170,7 @@ function renderCalendar() {
     html += '<div class="cal-cell" onclick="openLogEntry(null,\'' + cDate + '\')" title="' + _esc(tipParts.filter(Boolean).join(' · ')) + ' — tap to write" style="cursor:pointer;background:' + (t.bg || 'var(--bg2)') + ';border:2px solid ' + t.ring + ';border-radius:6px;padding:7px 9px;">'
       + '<div class="cal-dnum">' + dnum + '</div>'
       + pnlStr
+      + (t.name ? '<div class="cal-title" style="color:' + t.ring + ';">' + t.name + '</div>' : '')
       + (lineTrades ? '<div class="cal-sub">' + lineTrades + '</div>' : '')
       + (lineBody ? '<div class="cal-sub" style="color:' + moodCol + ';">' + lineBody + '</div>' : '')
       + (chips ? '<div class="cal-chips">' + chips + '</div>' : '')
@@ -6252,7 +6268,15 @@ function renderCalendar() {
     }).join('');
   }
   var lg = document.getElementById('rtcCalLegend');
-  if (lg) lg.innerHTML = 'Every day is judged two ways. <strong style="color:var(--green);">Green border = you followed your rules.</strong> <strong style="color:var(--red);">Red border = you broke them.</strong> The dollar figure is just the money.';
+  if (lg) lg.innerHTML = 'Every day is judged two ways. <strong style="color:var(--green);">Green border = you followed your rules.</strong> <strong style="color:var(--red);">Red border = you broke them.</strong> The dollar figure is just the money.'
+    + '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px 16px;">'
+    + '<span><strong style="color:var(--green);">Clean Win</strong> profit, rules kept</span>'
+    + '<span><strong style="color:var(--red);">Dirty Win</strong> profit, rules broken</span>'
+    + '<span><strong style="color:var(--green);">Clean Loss</strong> loss, rules kept &mdash; a professional loss</span>'
+    + '<span><strong style="color:var(--red);">Tilt Day</strong> loss and rules broken</span>'
+    + '<span><strong style="color:var(--gold);">Discipline Day</strong> checked in, took no trade</span>'
+    + '</div>'
+    + '<div style="margin-top:6px;">Discipline % is your checklist score for the day. Sleep and mood come from your morning check-in.</div>';
 }
 
 
