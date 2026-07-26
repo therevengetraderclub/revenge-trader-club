@@ -6490,6 +6490,7 @@ function renderCalendar() {
 
   function seal(o) {
     // o: { met, pct, note, needs }
+    if (o.instant && o.met)  return { state:'earned',  note:'' };
     if (!o.met)              return { state:'locked',  note:o.note };
     if (!enoughVolume && o.needsVolume) return { state:'locked', note:'Needs ' + MIN_TRADED_DAYS + '+ traded days this month (' + tradedDays.length + ' so far)' };
     if (!monthOver)          return { state:'ontrack', note:'On track — ' + o.note };
@@ -6518,7 +6519,22 @@ function renderCalendar() {
     { name:'Well Rested', sub:'Averaged 7+ hours of sleep', icon:'&#9790;', needsVolume:false,
       met: sleepVals.length >= 5 && avgSleep >= 7,
       pct: avgSleep ? Math.min(100, Math.round(avgSleep / 7 * 100)) : 0,
-      note: sleepVals.length ? avgSleep.toFixed(1) + ' hr average' : 'Log sleep at check-in' }
+      note: sleepVals.length ? avgSleep.toFixed(1) + ' hr average' : 'Log sleep at check-in' },
+    (function() {
+      // Comeback — recovered a drawdown without breaking a rule. Instant: a finished
+      // climb doesn't wait for the calendar. Progress bar shows a live recovery.
+      var done = false, livePct = 0;
+      try {
+        JSON.parse(RTCStore.get('rtc_recoveries_' + getActiveIdx()) || '[]').forEach(function(rc) {
+          var e = new Date(rc.end + 'T00:00:00');
+          if (!isNaN(e) && e.getFullYear() === y && e.getMonth() === m) done = true;
+        });
+        var rs = getRecState();
+        if (rs && rs.active) livePct = Math.min(99, Math.max(0, Math.round((recProgress(rs).net / rs.loss) * 100)));
+      } catch(e) { rtcWarn(e); }
+      return { name:'Comeback', sub:'Recovered a drawdown, rules intact', icon:'&#8593;', needsVolume:false, instant:true,
+        met: done, pct: livePct, note: livePct > 0 ? 'Climbing — ' + livePct + '% back' : 'No drawdown to recover — good' };
+    })()
   ];
   defs[3].met = defs[0].met && defs[2].met;
   defs[3].pct = (defs[0].met ? 50 : 0) + (defs[2].met ? 50 : 0);
@@ -8358,9 +8374,9 @@ function renderRiskRules() {
     var p = acc.pendingRules;
     if (p && p.setOn === new Date().toDateString()) {
       note.style.display = 'block';
-      note.innerHTML = '<span style="font-family:\'IBM Plex Mono\',monospace;font-weight:800;letter-spacing:1px;">LOCKED</span> — You already traded today, so looser rules start tomorrow: <strong>' + p.maxTrades + ' trades &middot; &divide;' + p.divisor
-        + '</strong>. Today you finish on the rules you started with.'
-        + ' <span onclick="cancelPendingRules()" style="text-decoration:underline;cursor:pointer;white-space:nowrap;">Cancel change</span>';
+      note.innerHTML = '<span style="font-family:\'IBM Plex Mono\',monospace;font-weight:800;letter-spacing:1px;">LOCKED FOR TODAY</span> — Your new limits (<strong>' + p.maxTrades + ' trades &middot; &divide;' + p.divisor
+        + '</strong>) begin next session. You set today\'s rules with a clear head — they stand.'
+        + ' <span onclick="cancelPendingRules()" style="text-decoration:underline;cursor:pointer;white-space:nowrap;">Undo</span>';
     } else { note.style.display = 'none'; }
   }
 }
@@ -14276,14 +14292,57 @@ function recProgress(s) {
   };
 }
 
+var _recPendingLoss = null;
 function enterRecoveryMode(autoLoss) {
   var loss = typeof autoLoss === 'number' ? autoLoss
     : parseFloat((document.getElementById('recLossInput') || {}).value);
   if (!loss || loss <= 0) { alert('Enter the amount you lost.'); return; }
-  saveRecState({ active: true, loss: Math.round(loss * 100) / 100, start: new Date().toISOString().slice(0,10) });
+  _recPendingLoss = Math.round(loss * 100) / 100;
+  renderRecoveryMode();
+  playSound('warn');
+}
+function cancelRecoveryCommit() { _recPendingLoss = null; renderRecoveryMode(); }
+function acceptRecoveryTerms() {
+  if (!_recPendingLoss) return;
+  saveRecState({ active: true, loss: _recPendingLoss, start: new Date().toISOString().slice(0,10), stage: 0 });
+  _recPendingLoss = null;
   renderRecoveryMode();
   try { renderHudData(); renderSessionStrip(); updateRiskRemaining(); } catch(e) { rtcWarn(e); }
-  playSound('warn');
+  playSound('chime');
+}
+
+// Clean streak while recovering: traded days that obeyed the recovery rules
+// (one trade, no kill override). No-trade days neither add nor break it.
+function recCleanStreak(s) {
+  var start = new Date(s.start + 'T00:00:00');
+  var byDay = {};
+  getTrades().forEach(function(t) {
+    if (!t.date) return;
+    var d = new Date(t.date); if (isNaN(d) || d < start) return;
+    var k = d.toDateString();
+    var o = byDay[k] || (byDay[k] = { n:0, bad:false });
+    o.n++;
+    if (t.killed || t.pastLimit) o.bad = true;
+  });
+  var streak = 0, cur = new Date();
+  for (var i = 0; i < 200; i++) {
+    var o = byDay[cur.toDateString()];
+    if (o) { if (o.bad || o.n > 1) break; streak++; }
+    if (cur.toDateString() === start.toDateString()) break;
+    cur.setDate(cur.getDate() - 1);
+  }
+  return streak;
+}
+var REC_STAGES = [
+  { at: 0,  name: 'STABILIZE',  sub: 'Stop the bleeding. Small, clean, boring.' },
+  { at: 25, name: 'REBUILD',    sub: 'The base is holding. Keep the size small.' },
+  { at: 50, name: 'MOMENTUM',   sub: 'Halfway back — this is where people get cocky. Don’t.' },
+  { at: 75, name: 'THE RETURN', sub: 'In sight. Finish it the same way you started it.' }
+];
+function recStage(pct) {
+  var st = 0;
+  for (var i = 0; i < REC_STAGES.length; i++) if (pct >= REC_STAGES[i].at) st = i;
+  return st;
 }
 
 function completeRecovery() {
@@ -14316,11 +14375,30 @@ function renderRecoveryMode() {
   var s = getRecState();
   var hs = recHalfSizeNums();
 
+  // ── COMMITMENT SCREEN — you enter recovery, you don't fill it in ──
+  if ((!s || !s.active) && _recPendingLoss) {
+    var bal0 = rtcLiveBalance(getActiveAcc());
+    var heavy = bal0 > 0 && _recPendingLoss >= bal0 * 0.3;
+    body.innerHTML = '<div style="text-align:center;padding:8px 4px 0;">'
+      + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:3px;color:var(--warn);margin-bottom:10px;">// THE TERMS</div>'
+      + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:30px;letter-spacing:2px;color:var(--white);line-height:1.1;">' + curSym() + _recPendingLoss.toFixed(0) + ' TO EARN BACK</div>'
+      + (heavy ? '<div style="font-size:12px;color:var(--warn);margin-top:8px;font-weight:700;">This is a rebuild, not a bounce-back. First mission: stabilize.</div>' : '')
+      + '<div style="text-align:left;max-width:430px;margin:18px auto 0;font-size:13px;color:var(--text2);line-height:2.1;">'
+      + '<div>— Half size: <strong style="color:var(--gold);">' + curSym() + hs.half.toFixed(0) + '/trade</strong>, enforced everywhere.</div>'
+      + '<div>— One trade per session. The app holds the line.</div>'
+      + '<div>— I am not trying to win it back today.</div>'
+      + '<div>— Progress comes from my journal, not my feelings.</div>'
+      + '</div>'
+      + '<button class="btn-gold" style="width:100%;max-width:430px;margin:20px auto 0;display:block;flex:none;" onclick="acceptRecoveryTerms()">I Accept The Terms</button>'
+      + '<button class="btn-plain" onclick="cancelRecoveryCommit()" style="margin-top:10px;background:transparent;border:none;color:var(--faint);font-size:11px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">Not yet</button>'
+      + '</div>';
+    return;
+  }
+
   if (!s || !s.active) {
-    // Suggest today's loss if there is one — no hunting for the number
     var suggest = '';
     try { var st = rtcLimitState(); if (st.lost > 0) suggest = Math.round(st.lost); } catch(e) { rtcWarn(e); }
-    body.innerHTML = '<div class="card-sub">Took a hit? Enter what you lost and the whole app changes: <strong style="color:var(--gold);">half size, one trade per session</strong>, until you earn it back. Progress tracks itself from your journal.</div>'
+    body.innerHTML = '<div class="card-sub">Took a hit? Enter what you lost and the whole app changes: <strong style="color:var(--gold);">half size, one trade per session</strong>, until you earn it back. Progress tracks itself from your journal. The amount is your climb-back target — it does not change your balance.</div>'
       + '<div class="risk-row">'
       + '<div class="risk-field"><div class="risk-lbl2">Amount Lost ($)</div>'
       + '<input class="risk-input" id="recLossInput" type="number" placeholder="350" value="' + suggest + '" style="font-size:16px;"></div>'
@@ -14333,35 +14411,69 @@ function renderRecoveryMode() {
   var remaining = Math.max(0, s.loss - prog.net);
   var pct = Math.min(100, Math.max(0, (prog.net / s.loss) * 100));
   var pace = recPace();
-  var daysLeft = remaining > 0 ? Math.ceil(remaining / pace) : 0;
   var dayNum = Math.max(1, Math.round((Date.now() - new Date(s.start + 'T00:00:00')) / 86400000) + 1);
+  var streak = recCleanStreak(s);
+
+  // stage crossing = a moment
+  var stIdx = recStage(pct);
+  if (typeof s.stage === 'number' && stIdx > s.stage) {
+    s.stage = stIdx; saveRecState(s); playSound('chime');
+  } else if (typeof s.stage !== 'number') { s.stage = stIdx; saveRecState(s); }
+  var stage = REC_STAGES[stIdx];
 
   if (remaining <= 0) {
     var tookDays = Math.max(1, dayNum - 1);
     body.innerHTML = '<div style="text-align:center;padding:26px 16px;background:rgba(0,208,132,0.06);border:1px solid rgba(0,208,132,0.35);border-radius:4px;">'
-      + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:34px;letter-spacing:3px;color:var(--green);line-height:1;">FULLY RECOVERED</div>'
-      + '<div style="font-size:13px;color:var(--text2);margin-top:10px;line-height:1.7;">You earned back <strong style="color:var(--white);">' + curSym() + s.loss.toFixed(0) + '</strong> in <strong style="color:var(--white);">' + tookDays + (tookDays===1?' day':' days') + '</strong> — at half size, inside your rules. That is what professional recovery looks like.</div>'
+      + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:34px;letter-spacing:3px;color:var(--green);line-height:1;">THE COMEBACK IS COMPLETE</div>'
+      + '<div style="font-size:13px;color:var(--text2);margin-top:10px;line-height:1.7;">' + curSym() + s.loss.toFixed(0) + ' earned back in <strong style="color:var(--white);">' + tookDays + (tookDays===1?' day':' days') + '</strong> — at half size, ' + (streak > 0 ? '<strong style="color:var(--green);">' + streak + ' clean day' + (streak!==1?'s':'') + ' straight</strong>, ' : '') + 'no revenge. This is the trade that matters.</div>'
       + '<button class="btn-gold" style="width:100%;margin-top:16px;flex:none;" onclick="completeRecovery()">Return To Full Size</button></div>';
     return;
   }
 
+  var mission = Math.min(pace, remaining);
+  var todayNet = 0;
+  var todayLbl = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  prog.days.forEach(function(e){ if (e.label === todayLbl) todayNet = e.a; });
+  var missionDone = todayNet >= mission;
+
   var h = '';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
+  // header: day · stage · streak
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px;">'
     + '<div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:var(--warn);animation:pulse 2s infinite;"></div>'
-    + '<span style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--warn);">ACTIVE · DAY ' + dayNum + '</span></div>'
-    + '<button onclick="exitRecoveryMode()" style="background:transparent;border:none;color:var(--faint);font-size:11px;cursor:pointer;padding:4px;">EXIT</button></div>';
+    + '<span style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--warn);">DAY ' + dayNum + ' · ' + stage.name + '</span></div>'
+    + '<div style="display:flex;align-items:center;gap:12px;">'
+    + (streak > 0 ? '<span style="font-size:11px;font-weight:800;letter-spacing:1px;color:var(--green);">' + streak + ' CLEAN DAY' + (streak!==1?'S':'') + ' STRAIGHT</span>' : '')
+    + '<button onclick="exitRecoveryMode()" style="background:transparent;border:none;color:var(--faint);font-size:11px;cursor:pointer;padding:4px;">EXIT</button></div></div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">' + stage.sub + '</div>';
 
-  h += '<div style="margin-bottom:6px;display:flex;justify-content:space-between;font-size:11px;">'
-    + '<span style="color:var(--green);font-weight:700;">' + curSym() + recovered.toFixed(0) + ' recovered</span>'
-    + '<span style="color:var(--muted);">' + curSym() + remaining.toFixed(0) + ' to go</span></div>';
-  h += '<div style="height:10px;background:var(--bg3);border-radius:5px;overflow:hidden;margin-bottom:14px;">'
-    + '<div style="height:100%;width:' + pct.toFixed(1) + '%;background:linear-gradient(90deg,var(--warn),var(--green));border-radius:5px;transition:width .5s ease;"></div></div>';
+  // TODAY'S MISSION — the whole plan, shrunk to one day
+  if (missionDone) {
+    h += '<div style="padding:16px;background:rgba(0,208,132,0.07);border:1.5px solid rgba(0,208,132,0.4);border-radius:6px;margin-bottom:14px;text-align:center;">'
+      + '<div style="font-size:10px;letter-spacing:2.5px;color:var(--green);font-weight:800;">TODAY\'S MISSION — COMPLETE</div>'
+      + '<div style="font-size:22px;font-weight:900;color:var(--green);margin-top:6px;font-family:Inter,sans-serif;">+' + curSym() + todayNet.toFixed(0) + (todayNet > mission ? ' <span style="font-size:12px;font-weight:700;">(mission was ' + curSym() + mission.toFixed(0) + ' — crushed it)</span>' : '') + '</div>'
+      + '<div style="font-size:12px;color:var(--text2);margin-top:6px;">You\'re done. Close the platform. Protect it.</div></div>';
+  } else {
+    h += '<div style="padding:16px;background:rgba(var(--gold-rgb),0.06);border:1.5px solid var(--gold-dim);border-radius:6px;margin-bottom:14px;text-align:center;">'
+      + '<div style="font-size:10px;letter-spacing:2.5px;color:var(--gold);font-weight:800;">TODAY\'S MISSION</div>'
+      + '<div style="font-size:26px;font-weight:900;color:var(--white);margin-top:6px;font-family:Inter,sans-serif;">+' + curSym() + mission.toFixed(0) + '</div>'
+      + '<div style="font-size:12px;color:var(--text2);margin-top:6px;">One clean trade' + (todayNet !== 0 ? ' · today so far: <strong style="color:' + (todayNet>=0?'var(--green)':'var(--red)') + ';">' + (todayNet>=0?'+':'−') + curSym() + Math.abs(todayNet).toFixed(0) + '</strong>' : '') + '. Hit it, then close the platform.</div></div>';
+  }
 
-  h += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">'
-    + '<div style="text-align:center;padding:10px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:18px;font-weight:800;color:var(--white);">' + pct.toFixed(0) + '%</div><div style="font-size:11px;color:var(--muted);letter-spacing:1px;">RECOVERED</div></div>'
-    + '<div style="text-align:center;padding:10px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:18px;font-weight:800;color:var(--warn);">~' + daysLeft + '</div><div style="font-size:11px;color:var(--muted);letter-spacing:1px;">DAYS AT 1%/DAY</div></div>'
-    + '<div style="text-align:center;padding:10px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:18px;font-weight:800;color:var(--gold);">' + curSym() + hs.half.toFixed(0) + '</div><div style="font-size:11px;color:var(--muted);letter-spacing:1px;">MAX/TRADE</div></div></div>';
+  // the ladder — four stages, position marked
+  h += '<div style="display:flex;gap:4px;margin-bottom:6px;">';
+  REC_STAGES.forEach(function(sg, i) {
+    var segStart = sg.at, segEnd = (REC_STAGES[i+1] ? REC_STAGES[i+1].at : 100);
+    var fillPct = pct <= segStart ? 0 : pct >= segEnd ? 100 : ((pct - segStart) / (segEnd - segStart)) * 100;
+    h += '<div style="flex:1;"><div style="height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;">'
+      + '<div style="height:100%;width:' + fillPct.toFixed(0) + '%;background:' + (i === stIdx ? 'linear-gradient(90deg,var(--warn),var(--gold))' : 'var(--green)') + ';"></div></div>'
+      + '<div style="font-size:8px;letter-spacing:1px;color:' + (i === stIdx ? 'var(--gold)' : i < stIdx ? 'var(--green)' : 'var(--faint)') + ';font-weight:800;margin-top:4px;text-align:center;font-family:\'IBM Plex Mono\',monospace;">' + sg.name + '</div></div>';
+  });
+  h += '</div>';
+  h += '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:14px;">'
+    + '<span style="color:var(--green);font-weight:700;">' + curSym() + recovered.toFixed(0) + ' back</span>'
+    + '<span style="color:var(--muted);">' + curSym() + remaining.toFixed(0) + ' to go · max ' + curSym() + hs.half.toFixed(0) + '/trade</span></div>';
 
+  // actual days
   if (prog.days.length) {
     h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">';
     prog.days.forEach(function(e) {
@@ -14371,12 +14483,10 @@ function renderRecoveryMode() {
         + '<div style="font-size:12px;font-weight:800;color:' + (pos?'var(--green)':'var(--red)') + ';margin-top:2px;">' + (pos?'+':'−') + curSym() + Math.abs(e.a).toFixed(0) + '</div></div>';
     });
     h += '</div>';
-  } else {
-    h += '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">No trades since entering recovery. Your progress fills in automatically as you log them.</div>';
   }
 
   h += '<div style="padding:12px 14px;background:rgba(var(--gold-rgb),0.05);border:1px solid var(--gold-dim);border-radius:4px;font-size:11px;color:var(--text2);line-height:1.7;">'
-    + '<strong style="color:var(--gold);">ENFORCED APP-WIDE:</strong> one trade per session at <strong style="color:var(--white);">' + curSym() + hs.half.toFixed(0) + '/trade</strong> (half your normal ' + curSym() + hs.normal.toFixed(0) + '). Risk, Trading Mode, and the gutter all run on these limits until the bar hits 100%. Progress syncs from your journal — log trades as normal.</div>';
+    + '<strong style="color:var(--gold);">ENFORCED APP-WIDE:</strong> one trade per session at half size. Risk, Trading Mode, and the gutter all run on these limits. A big win moves the ladder by the full amount — and raises tomorrow\'s mission with your new balance.</div>';
 
   body.innerHTML = h;
 }
