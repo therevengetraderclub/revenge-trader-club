@@ -3789,6 +3789,21 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   </div>
 
 
+
+<!-- ══ BADGE GALLERY — every badge, its meaning, and how far you are ══ -->
+<div id="badgeGallery" onclick="if(event.target===this)closeBadgeGallery()" style="display:none;position:fixed;inset:0;background:var(--page);z-index:100003;overflow-y:auto;padding:26px 18px 60px;">
+  <div style="max-width:860px;margin:0 auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:3px;color:var(--white);line-height:1;">THE BADGES</div>
+        <div id="bgCount" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);margin-top:6px;">—</div>
+      </div>
+      <button onclick="closeBadgeGallery()" style="background:var(--gold);border:none;border-radius:6px;color:#0d0b08;font-size:13px;font-weight:800;box-shadow:0 3px 14px rgba(0,0,0,0.3);padding:8px 16px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;">✕ Close</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">Every badge rewards process — none of them care how big you win.</div>
+    <div id="bgBody"></div>
+  </div>
+</div>
 <!-- ══ MONTH SHARE CARD — the flex with a conscience ══ -->
 <div id="calShareModal" onclick="if(event.target===this)closeCalShare()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100003;align-items:flex-start;justify-content:center;padding:26px 16px 44px;overflow-y:auto;">
   <button onclick="closeCalShare()" style="position:fixed;top:16px;right:16px;background:var(--gold);border:none;border-radius:6px;color:#0d0b08;font-size:13px;font-weight:800;box-shadow:0 3px 14px rgba(0,0,0,0.34);padding:8px 16px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;z-index:100004;">✕ Close</button>
@@ -5899,6 +5914,55 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
 })();
 function rtcStorageUsage() { return RTCStore.usage(); }
 
+function openBadgeGallery() {
+  var g = document.getElementById('badgeGallery'), body = document.getElementById('bgBody');
+  if (!g || !body) return;
+  try { renderCalendar(); } catch(e) { rtcWarn(e); }
+  var seals = window._rtcSealStates || [];
+  var life = rtcLifetimeBadges();
+  life.sort(function(a,b){ return (b.earned?1:0) - (a.earned?1:0); });
+  var earnedCount = seals.filter(function(x){ return x.state === 'earned'; }).length
+                  + life.filter(function(x){ return x.earned; }).length;
+  var cEl = document.getElementById('bgCount');
+  if (cEl) cEl.textContent = earnedCount + ' OF ' + (seals.length + life.length) + ' EARNED';
+
+  function grid(items) {
+    return '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:22px;">' + items.join('') + '</div>';
+  }
+  function sealCard(x) {
+    var on = x.state === 'earned', track = x.state === 'ontrack';
+    return '<div class="seal-card' + (on ? ' earned' : track ? ' ontrack' : '') + (x.rare && on ? ' rare' : '') + '" style="min-width:0;flex:none;">'
+      + '<div class="seal-ring' + (on ? ' earned' : track ? ' ontrack' : '') + '">' + x.icon + '</div>'
+      + '<div class="seal-name">' + x.name + '</div>'
+      + '<div class="seal-sub">' + x.sub + '</div>'
+      + (on ? '<div class="seal-note earned">EARNED</div>'
+            : '<div class="seal-bar"><i style="width:' + Math.max(2, Math.min(100, x.pct)) + '%;"></i></div><div class="seal-note' + (track ? ' ontrack' : '') + '">' + x.snote + '</div>')
+      + '</div>';
+  }
+  function lifeCard(x) {
+    return '<div class="seal-card' + (x.earned ? ' earned' : '') + (x.tier === 'rare' && x.earned ? ' rare' : '') + (x.tier === 'legendary' ? ' legendary' + (x.earned ? ' earned' : '') : '') + '" style="min-width:0;flex:none;">'
+      + '<div class="seal-ring' + (x.earned ? ' earned' : '') + '">' + x.icon + '</div>'
+      + '<div class="seal-name">' + x.name + '</div>'
+      + '<div class="seal-sub">' + x.sub + '</div>'
+      + (x.earned ? '<div class="seal-note earned">EARNED</div>'
+          : '<div class="seal-bar"><i style="width:' + Math.max(2, x.pct) + '%;"></i></div><div class="seal-note">' + x.note + '</div>')
+      + '</div>';
+  }
+  var h = '';
+  h += '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:8px;">// THIS MONTH\'S SEALS — reset every month</div>';
+  h += grid(seals.map(sealCard));
+  h += '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:8px;">// LIFETIME — earned once, yours forever</div>';
+  h += grid(life.map(lifeCard));
+  body.innerHTML = h;
+  g.style.display = 'block';
+  playSound('tick');
+}
+function closeBadgeGallery() {
+  var g = document.getElementById('badgeGallery');
+  if (g) g.style.display = 'none';
+}
+
+
 // ── SEAL ICONS — hand-drawn stroke icons, same style as the rest of the app ──
 var RTC_SEAL_SVG = {
   shield:   '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/>',
@@ -6112,19 +6176,16 @@ function renderTrophyCase() {
     + '<div style="text-align:center;padding:12px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:20px;font-weight:900;color:var(--gold);">' + fullStacks + '</div><div style="font-size:9.5px;color:var(--muted);letter-spacing:1px;">FULL STACKS</div></div>'
     + '<div style="text-align:center;padding:12px 6px;background:var(--bg3);border-radius:4px;"><div style="font-size:20px;font-weight:900;color:var(--green);">' + comebacks + '</div><div style="font-size:9.5px;color:var(--muted);letter-spacing:1px;">COMEBACKS</div></div></div>';
 
-  h += '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin:4px 0 8px;">// LIFETIME</div>';
-  h += '<div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;" class="tc-strip">';
-  life.sort(function(a,b){ return (b.earned?1:0) - (a.earned?1:0); });
-  life.forEach(function(x) {
-    h += '<div class="seal-card' + (x.earned ? ' earned' : '') + (x.tier === 'rare' && x.earned ? ' rare' : '') + (x.tier === 'legendary' ? ' legendary' + (x.earned ? ' earned' : '') : '') + '">'
-      + '<div class="seal-ring' + (x.earned ? ' earned' : '') + '">' + x.icon + '</div>'
-      + '<div class="seal-name">' + x.name + '</div>'
-      + '<div class="seal-sub">' + x.sub + '</div>'
-      + (x.earned ? '<div class="seal-note earned">EARNED</div>'
-          : '<div class="seal-bar"><i style="width:' + Math.max(2, x.pct) + '%;"></i></div><div class="seal-note">' + x.note + '</div>')
+  var earnedPills = life.filter(function(x){ return x.earned; });
+  if (earnedPills.length) {
+    h += '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin:4px 0 8px;">// LIFETIME</div>';
+    h += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;">'
+      + earnedPills.map(function(x) {
+          return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);border:1px solid ' + (x.tier ? 'var(--gold)' : 'var(--gold-dim)') + ';background:rgba(var(--gold-rgb),0.08);border-radius:20px;padding:6px 12px;"><span style="display:inline-flex;width:15px;height:15px;">' + x.icon.replace('width="22" height="22"','width="15" height="15"') + '</span>' + x.name + '</span>';
+        }).join('')
       + '</div>';
-  });
-  h += '</div>';
+  }
+  h += '<button class="btn-plain" onclick="openBadgeGallery()" style="width:100%;margin-top:10px;padding:11px;background:var(--bg3);border:1px dashed var(--gold-dim);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">View All Badges — ' + life.filter(function(x){ return !x.earned; }).length + ' left to unlock</button>';
 
   if (months.length) {
     h += '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin:14px 0 8px;">// BY MONTH</div>';
@@ -6846,22 +6907,30 @@ function renderCalendar() {
   defs[3].pct = (defs[0].met ? 50 : 0) + (defs[2].met ? 50 : 0);
   if (defs[3].met) defs[3].note = 'clean and green';
 
+  // Stash full states for the Badge Gallery, show only wins on the page
+  var rank = { earned: 0, ontrack: 1, locked: 2 };
+  var sealStates = defs.map(function(bg) {
+    var st = seal(bg);
+    return { name: bg.name, sub: bg.sub, icon: bg.icon, rare: !!bg.rare, pct: bg.pct, state: st.state, snote: st.note || '' };
+  }).sort(function(a, b) { return rank[a.state] - rank[b.state]; });
+  window._rtcSealStates = sealStates;
   var bEl = document.getElementById('rtcCalBadges');
   if (bEl) {
-    // Earned first, then on-track, then locked — the wins lead the strip
-    var rank = { earned: 0, ontrack: 1, locked: 2 };
-    defs.sort(function(a, b) { return rank[seal(a).state] - rank[seal(b).state]; });
-    bEl.innerHTML = defs.map(function(bg) {
-      var st = seal(bg);
-      var on = st.state === 'earned', track = st.state === 'ontrack';
-      return '<div class="seal-card' + (on ? ' earned' : track ? ' ontrack' : '') + (bg.rare && on ? ' rare' : '') + '">'
-        + '<div class="seal-ring' + (on ? ' earned' : track ? ' ontrack' : '') + '">' + bg.icon + '</div>'
-        + '<div class="seal-name">' + bg.name + '</div>'
-        + '<div class="seal-sub">' + bg.sub + '</div>'
-        + (on ? '<div class="seal-note earned">EARNED</div>'
-              : '<div class="seal-bar"><i style="width:' + Math.max(2, Math.min(100, bg.pct)) + '%;"></i></div><div class="seal-note' + (track ? ' ontrack' : '') + '">' + st.note + '</div>')
+    var wins = sealStates.filter(function(x){ return x.state !== 'locked'; });
+    var lockedCount = sealStates.length - wins.length;
+    var hh = '';
+    if (wins.length) {
+      hh += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">'
+        + wins.map(function(x) {
+            var on = x.state === 'earned';
+            return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:' + (on ? 'var(--gold)' : 'var(--gold-dim)') + ';border:1px solid ' + (on ? (x.rare ? 'var(--gold)' : 'var(--gold-dim)') : 'var(--border2)') + ';background:' + (on ? 'rgba(var(--gold-rgb),0.08)' : 'var(--bg2)') + ';border-radius:20px;padding:6px 12px;"><span style="display:inline-flex;width:15px;height:15px;">' + x.icon.replace('width="22" height="22"','width="15" height="15"') + '</span>' + x.name + (on ? '' : ' · on track') + '</span>';
+          }).join('')
         + '</div>';
-    }).join('');
+    }
+    hh += '<button class="btn-plain" onclick="openBadgeGallery()" style="width:100%;padding:11px;background:var(--bg3);border:1px dashed var(--gold-dim);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">'
+      + (wins.length ? lockedCount + ' more to unlock — view all badges' : 'View all ' + sealStates.length + ' badges to unlock') + '</button>';
+    bEl.innerHTML = hh;
+    bEl.style.display = 'block';
   }
   // ── MARKS AGAINST YOU ── the other half of an honest record.
   // Only rendered when earned; the app doesn't nag about sins you haven't committed.
