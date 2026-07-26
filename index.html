@@ -99,6 +99,17 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
   font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:800;
   letter-spacing:2px; color:var(--warn); line-height:1.2; white-space:nowrap;
 }
+/* The row you're reading wears the theme accent, so you never lose your place */
+.journal-card.jc-open{
+  border-color:var(--gold-dim) !important;
+  box-shadow:inset 3px 0 0 var(--gold);
+  background:rgba(var(--gold-rgb),0.05) !important;
+}
+.log-row.lr-open{
+  border-color:var(--gold-dim) !important;
+  background:rgba(var(--gold-rgb),0.05) !important;
+}
+.jc-date{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600; color:var(--muted); letter-spacing:.5px; }
 .cal-title{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-top:3px; line-height:1.4; }
 .cal-pnl{ font-size:19px; font-weight:900; letter-spacing:-0.3px; margin-top:5px; line-height:1.1; }
 .cal-sub{
@@ -3738,6 +3749,17 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
   </div>
 
+
+<!-- ══ MONTH SHARE CARD — the flex with a conscience ══ -->
+<div id="calShareModal" onclick="if(event.target===this)closeCalShare()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100003;align-items:flex-start;justify-content:center;padding:26px 16px 44px;overflow-y:auto;">
+  <button onclick="closeCalShare()" style="position:fixed;top:16px;right:16px;background:var(--gold);border:none;border-radius:6px;color:#0d0b08;font-size:13px;font-weight:800;box-shadow:0 3px 14px rgba(0,0,0,0.34);padding:8px 16px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;z-index:100004;">✕ Close</button>
+  <div style="width:100%;max-width:460px;">
+    <div id="calShareCard"></div>
+    <div style="text-align:center;font-size:12px;color:rgba(255,255,255,0.7);line-height:1.9;margin-top:16px;">
+      Screenshot this card and post it.<br>Let them see what discipline actually looks like.
+    </div>
+  </div>
+</div>
 <!-- ══ PAST-LIMIT TAKEOVER — the app's last honest word before an override ══ -->
 <div id="limitTakeover" style="display:none;position:fixed;inset:0;z-index:100002;background:radial-gradient(ellipse at center, rgba(229,57,53,0.18) 0%, rgba(229,57,53,0) 58%), var(--page);align-items:center;justify-content:center;padding:24px;overflow-y:auto;">
   <div style="width:100%;max-width:560px;text-align:center;">
@@ -4796,6 +4818,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div id="rtcCalSummary" style="margin-top:12px;font-size:12px;color:var(--text2);"></div>
       <div id="rtcCalBadges" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px;"></div>
       <div id="rtcCalMarks" style="display:none;"></div>
+      <button onclick="openCalShare()" class="btn-gold" style="width:100%;margin-top:14px;">Share This Month</button>
       <div id="rtcCalLegend" style="margin-top:12px;font-size:10px;color:var(--muted);line-height:1.9;"></div>
     </div>
 
@@ -5880,6 +5903,100 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
 function rtcStorageUsage() { return RTCStore.usage(); }
 
 // ═══════════════════════════════════════════════════════
+// MONTH SHARE CARD — built from the same data as the calendar so the
+// numbers can never disagree. Sized and typed to survive a screenshot.
+// ═══════════════════════════════════════════════════════
+function openCalShare() {
+  try { renderCalendar(); } catch(e) { rtcWarn(e); }
+  var d = window._rtcCalData;
+  var el = document.getElementById('calShareCard');
+  var modal = document.getElementById('calShareModal');
+  if (!d || !el || !modal) return;
+
+  var logoSrc = '';
+  try { var im = document.querySelector('img[src^="data:image"]'); if (im) logoSrc = im.getAttribute('src'); } catch(e) {}
+
+  // ── mini grid: colour carries the meaning, numbers stay legible ──
+  var cells = '';
+  for (var b = 0; b < d.firstDow; b++) cells += '<div></div>';
+  for (var n = 1; n <= d.nDays; n++) {
+    var o = d.days[n];
+    var future = d.isCurrentMonth && n > d.today;
+    var bg = 'var(--bg3)', bd = 'var(--border)', col = 'var(--faint)', mark = '';
+    if (o && !future) {
+      var c = d.classify(o), t = d.TYPE[c.type];
+      bd = t.ring; col = 'var(--text2)';
+      if (c.type === 'cleanwin')       { bg = 'rgba(10,158,99,0.16)'; }
+      else if (c.type === 'cleanloss') { bg = 'rgba(10,158,99,0.07)'; }
+      else if (c.type === 'dirtywin')  { bg = 'rgba(229,57,53,0.10)'; }
+      else if (c.type === 'tilt')      { bg = 'rgba(229,57,53,0.20)'; }
+      else if (c.type === 'discipline'){ bg = 'rgba(var(--gold-rgb),0.12)'; }
+      if (o.pnl !== null && o.trades) mark = (o.pnl >= 0 ? '+' : '\u2212');
+    }
+    cells += '<div style="aspect-ratio:1;background:' + bg + ';border:1.5px solid ' + bd + ';border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;">'
+      + '<span style="font-size:12px;font-weight:700;color:' + col + ';">' + n + '</span>'
+      + (mark ? '<span style="font-size:10px;font-weight:800;color:' + (mark === '+' ? 'var(--green)' : 'var(--red)') + ';margin-top:1px;">' + mark + '</span>' : '')
+      + '</div>';
+  }
+
+  var earned = (d.seals || []).filter(function(x){ return x.met; });
+  var netCol = d.monthNet >= 0 ? 'var(--green)' : 'var(--red)';
+  var stat = function(v, l, c) {
+    return '<div style="flex:1;text-align:center;padding:12px 4px;background:var(--bg3);border-radius:8px;">'
+      + '<div style="font-size:22px;font-weight:900;color:' + (c || 'var(--white)') + ';font-family:Inter,sans-serif;line-height:1.1;">' + v + '</div>'
+      + '<div style="font-size:9.5px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-top:5px;">' + l + '</div></div>';
+  };
+
+  el.innerHTML =
+    '<div style="background:var(--bg);border:1px solid var(--gold-dim);border-radius:14px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">'
+    + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
+      + (logoSrc ? '<img src="' + logoSrc + '" alt="" style="width:52px;height:52px;border-radius:50%;border:2px solid var(--gold);object-fit:cover;flex-shrink:0;">' : '')
+      + '<div style="min-width:0;">'
+        + '<div style="font-family:Inter,sans-serif;font-size:15px;font-weight:900;letter-spacing:.4px;color:var(--white);line-height:1.2;">THE REVENGE <span style="color:var(--gold);">TRADER</span> CLUB</div>'
+        + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-top:3px;">DISCIPLINE CALENDAR</div>'
+      + '</div>'
+      + '<div style="margin-left:auto;text-align:right;flex-shrink:0;"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:19px;letter-spacing:2px;color:var(--gold);line-height:1;">' + d.label.split(' ')[0].toUpperCase() + '</div><div style="font-size:11px;color:var(--muted);">' + d.y + '</div></div>'
+    + '</div>'
+    + '<div style="display:flex;gap:7px;margin-bottom:14px;">'
+      + stat((d.monthNet >= 0 ? '+' : '\u2212') + curSym() + Math.abs(d.monthNet).toLocaleString(undefined,{maximumFractionDigits:0}), 'Net P&L', netCol)
+      + stat((d.monthAvg !== null ? d.monthAvg + '%' : '\u2014'), 'Discipline', 'var(--gold)')
+      + stat(d.tradedDays, 'Traded Days')
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px;">'
+      + ['S','M','T','W','T','F','S'].map(function(x){ return '<div style="text-align:center;font-size:9px;letter-spacing:1px;color:var(--faint);">' + x + '</div>'; }).join('')
+      + cells
+    + '</div>'
+    + '<div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;font-size:9.5px;color:var(--muted);letter-spacing:.5px;margin-bottom:14px;">'
+      + '<span><span style="display:inline-block;width:8px;height:8px;border:1.5px solid var(--green);border-radius:2px;vertical-align:-1px;"></span> rules kept</span>'
+      + '<span><span style="display:inline-block;width:8px;height:8px;border:1.5px solid var(--red);border-radius:2px;vertical-align:-1px;"></span> rules broken</span>'
+      + '<span><span style="display:inline-block;width:8px;height:8px;border:1.5px solid var(--gold-dim);border-radius:2px;vertical-align:-1px;"></span> no-trade discipline</span>'
+    + '</div>'
+    + '<div style="display:flex;gap:7px;margin-bottom:14px;">'
+      + stat(d.cleanDays + '/' + d.tradedDays, 'Clean Days', 'var(--green)')
+      + stat(d.avgSleep ? d.avgSleep.toFixed(1) + 'h' : '\u2014', 'Avg Sleep')
+      + stat(d.checkinDays, 'Check-Ins')
+    + '</div>'
+    + (earned.length
+        ? '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding-top:12px;border-top:1px solid var(--border);">'
+          + earned.map(function(x){ return '<span style="font-size:9.5px;font-weight:800;letter-spacing:1px;color:var(--gold);border:1px solid var(--gold-dim);background:rgba(var(--gold-rgb),0.08);border-radius:20px;padding:5px 11px;text-transform:uppercase;">' + x.name + '</span>'; }).join('')
+          + '</div>'
+        : '')
+    + '<div style="text-align:center;font-size:9.5px;letter-spacing:1px;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px solid var(--border);line-height:1.8;">'
+      + 'GREEN BORDER = FOLLOWED MY RULES<br>'
+      + '<span style="color:var(--gold);">therevengetraderclub.com</span>'
+    + '</div>'
+    + '</div>';
+
+  modal.style.display = 'flex';
+  playSound('chime');
+}
+function closeCalShare() {
+  var m = document.getElementById('calShareModal');
+  if (m) m.style.display = 'none';
+}
+
+
+// ═══════════════════════════════════════════════════════
 // PAST-LIMIT INTERVENTION — the app can't lock the door, but nobody
 // walks through it by accident. Cold facts, two honest choices.
 // ═══════════════════════════════════════════════════════
@@ -6111,6 +6228,7 @@ function rtcToggleLogRow(head) {
   if (cv) cv.style.transform = open ? 'rotate(-90deg)' : 'rotate(0)';
   var hn = head.querySelector('.log-hint');
   if (hn) hn.textContent = open ? 'Read' : 'Hide';
+  head.parentNode.classList.toggle('lr-open', !open);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -6399,6 +6517,15 @@ function renderCalendar() {
         + '</div>';
     }
   }
+  // Cache for the share card so it never recomputes (or disagrees with) the grid
+  window._rtcCalData = {
+    y: y, m: m, label: view.toLocaleDateString('en-US', { month:'long', year:'numeric' }),
+    days: days, classify: classify, TYPE: TYPE, rules: rules,
+    tradedDays: tradedDays.length, monthNet: monthNet, monthAvg: monthAvg,
+    checkinDays: checkinDays, avgSleep: sleepVals.length ? (sleepVals.reduce(function(a,b){return a+b;},0)/sleepVals.length) : 0,
+    cleanDays: cleanDays, seals: defs, marks: marks, firstDow: firstDow, nDays: nDays,
+    isCurrentMonth: isCurrentMonth, today: now.getDate()
+  };
   var lg = document.getElementById('rtcCalLegend');
   if (lg) lg.innerHTML = 'Every day is judged two ways. <strong style="color:var(--green);">Green border = you followed your rules.</strong> <strong style="color:var(--red);">Red border = you broke them.</strong> The dollar figure is just the money.'
     + '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px 16px;">'
@@ -6857,6 +6984,7 @@ function rtcMenuSwitch(i) {
   try { switchAccount(i); } catch(e) { rtcWarn(e); }
 }
 function switchTab(tab, el) {
+  try { rtcSet('rtc_tab', tab); } catch(e) { /* pre-boot */ }
   document.querySelectorAll('.tab-body').forEach(t => {
     t.classList.remove('active');
     t.style.display = 'none';
@@ -6886,10 +7014,15 @@ function loadDash() {
     t.style.display = 'none';
   });
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  const firstTab = document.getElementById('tab-checkin');
-  const firstNav = document.querySelector('[onclick*="checkin"]');
+  // Reopen wherever the trader left off — a refresh shouldn't cost them their place
+  var _saved = 'checkin';
+  try { _saved = RTCStore.get('rtc_tab') || localStorage.getItem('rtc_tab') || 'checkin'; } catch(e) { _saved = 'checkin'; }
+  var firstTab = document.getElementById('tab-' + _saved);
+  var firstNav = document.querySelector('[onclick*="\'' + _saved + '\'"]');
+  if (!firstTab) { _saved = 'checkin'; firstTab = document.getElementById('tab-checkin'); firstNav = document.querySelector('[onclick*="checkin"]'); }
   if (firstTab) { firstTab.classList.add('active'); firstTab.style.display = 'block'; }
   if (firstNav) firstNav.classList.add('active');
+  window._rtcRestoredTab = _saved;
 
   // Set header — account name now shown via initials badge tooltip
   const badgeEl = document.getElementById('dashAccBadge');
@@ -6946,6 +7079,22 @@ function loadDash() {
   setTimeout(function() {
     try { startOnboarding(); } catch(e) { rtcWarn(e); }
   }, 600);
+
+  // The restored tab needs its own render pass (tabs render on switch) and the
+  // nav underline needs to land on it.
+  setTimeout(function() {
+    var t = window._rtcRestoredTab;
+    try {
+      if (t === 'perf')      { renderPerf(); }
+      if (t === 'journal')   { renderJournal(); }
+      if (t === 'goals')     { renderGoals(); }
+      if (t === 'settings')  { renderSettings(); }
+      if (t === 'recovery')  { renderRecoveryMode(); }
+      if (t === 'checklist') { renderChecklist(); renderSavedTickers(); }
+      if (t === 'risk')      { renderRiskRules(); prefillPSBalance(); }
+    } catch(e) { rtcWarn(e); }
+    try { positionNavSlider(document.querySelector('.nav-tab.active')); } catch(e) { rtcWarn(e); }
+  }, 140);
 }
 
 // ── PLEDGE SCREEN ───────────────────────────────────────────────
@@ -10531,13 +10680,11 @@ function renderWelcomeBack() {
 // ── 1. GLIDING TAB SLIDER ───────────────────────────────
 function positionNavSlider(activeTabEl) {
   const slider = document.getElementById('navSlider');
-  const wrap   = document.getElementById('navTabsWrap');
-  if (!slider || !wrap || !activeTabEl) return;
-  const wrapRect = wrap.getBoundingClientRect();
-  const tabRect  = activeTabEl.getBoundingClientRect();
-  const left = tabRect.left - wrapRect.left + wrap.scrollLeft;
-  slider.style.left  = Math.round(left) + 'px';
-  slider.style.width = Math.round(tabRect.width) + 'px';
+  if (!slider || !activeTabEl) return;
+  // offsetLeft is measured against the slider's own positioned ancestor (.nav-tabs),
+  // so it stays aligned regardless of wrapper padding or horizontal scroll.
+  slider.style.left  = Math.round(activeTabEl.offsetLeft) + 'px';
+  slider.style.width = Math.round(activeTabEl.offsetWidth) + 'px';
 }
 
 function initNavSlider() {
@@ -13530,7 +13677,7 @@ function renderJournal() {
       const shots = (t.screenshots && t.screenshots.length) ? t.screenshots : (t.screenshot ? [t.screenshot] : []);
 
       const card = document.createElement('div');
-      card.className = 'journal-card';
+      card.className = 'journal-card' + (isExpanded ? ' jc-open' : '');
       card.dataset.tradeid = t.id;
       card.style.cssText = 'margin-bottom:0;opacity:0;transform:translateY(10px);transition:opacity .35s ease,transform .35s cubic-bezier(.2,.8,.3,1);';
 
@@ -13549,6 +13696,7 @@ function renderJournal() {
         + '<span class="jc-ticker">' + (t.ticker||'\u2014') + '</span>'
         + (t.direction && t.direction!=='\u2014' ? '<span class="jc-dir ' + (t.direction==='Long'?'long':'short') + '">' + t.direction + '</span>' : '')
         + '<span class="jc-time">' + (t.time||'') + '</span>'
+        + '<span class="jc-date">' + (function(){ if(!t.date) return ''; var d=new Date(t.date); if(!isNaN(d)&&d.getFullYear()<2010){d=new Date(t.date+', '+new Date().getFullYear());} return isNaN(d)? _esc(t.date) : d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); })() + '</span>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:8px;">'
         + pnlChip
@@ -13588,6 +13736,7 @@ function renderJournal() {
             if (cv) cv.style.transform = open ? 'rotate(-90deg)' : 'rotate(0)';
             const hn = hdrEl.querySelector('.jc-hint');
             if (hn) hn.textContent = open ? 'Details' : 'Hide';
+            card.classList.toggle('jc-open', !open);
           };
         }
       })(t.id);
