@@ -5914,6 +5914,13 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
 })();
 function rtcStorageUsage() { return RTCStore.usage(); }
 
+// Local YYYY-MM-DD. toISOString() is UTC and rolls over mid-evening in the Americas,
+// which made recovery start "tomorrow" and filed comeback seals in the wrong month.
+function rtcLocalDay(d) {
+  d = d || new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
 function openBadgeGallery() {
   var g = document.getElementById('badgeGallery'), body = document.getElementById('bgBody');
   if (!g || !body) return;
@@ -6018,7 +6025,7 @@ document.addEventListener('wheel', function(e) {
 // ═══════════════════════════════════════════════════════
 function rtcMaxCleanStreak() {
   try {
-    var rules = getAccRules(getActiveAcc());
+    var rules = getEffectiveRules(getActiveAcc());
     var byDay = {};
     getTrades().forEach(function(t) {
       if (!t.date) return;
@@ -6076,7 +6083,7 @@ function rtcSealHistory() {
 }
 function rtcCleanTradingDays() {
   try {
-    var rules = getAccRules(getActiveAcc()), byDay = {};
+    var rules = getEffectiveRules(getActiveAcc()), byDay = {};
     getTrades().forEach(function(t) {
       var d = rtcCalParseDate(t.date); if (!d) return;
       var k = d.toDateString();
@@ -6119,7 +6126,7 @@ function rtcLifetimeBadges() {
   for (var i = 0; i < 24; i++) {
     var k = probe.getFullYear() + '-' + probe.getMonth();
     if (nets[k] > 0) { run++; if (run >= 3) { gq = true; break; } }
-    else if (k in nets) { run = 0; }             // a flat/red month breaks the run
+    else if (k in nets) { break; }               // a flat/red month ends the current run
     // a month with no trades at all is skipped, not fatal
     probe.setMonth(probe.getMonth() - 1);
   }
@@ -6222,7 +6229,7 @@ function rtcSealCacheGet() {
   return c;
 }
 function rtcMonthSeals(y, m) {
-  var rules = getAccRules(getActiveAcc());
+  var rules = getEffectiveRules(getActiveAcc());
   var _c = rtcSealCacheGet();
   var days = {};
   function day(n) { return days[n] || (days[n] = { trades:0, pnl:0, scores:[], bad:false, checkin:null, logs:0 }); }
@@ -6367,7 +6374,7 @@ function renderTrophyCase() {
 // inside your own rules. Breaking a rule ends the streak; not trading never does.
 function getDisciplineStreak() {
   try {
-    var rules = getAccRules(getActiveAcc());
+    var rules = getEffectiveRules(getActiveAcc());
     var byDay = {};
     getTrades().forEach(function(t) {
       if (!t.date) return;
@@ -7575,7 +7582,7 @@ function rtcToggleAcctMenu(ev) {
     list.innerHTML = accs.map(function(a, i) {
       var active = (i === idx);
       return '<button class="acct-item' + (active ? ' active' : '') + '" onclick="rtcMenuSwitch(' + i + ')">'
-        + '<div style="min-width:0;"><div class="acct-nm">' + a.name + '</div><div class="acct-sub">' + a.style + ' &middot; $' + Number(a.balance).toLocaleString() + '</div></div>'
+        + '<div style="min-width:0;"><div class="acct-nm">' + _esc(a.name) + '</div><div class="acct-sub">' + _esc(a.style) + ' &middot; ' + curSym() + Number(a.balance).toLocaleString() + '</div></div>'
         + (active ? '<span class="acct-check">&#10003;</span>' : '')
         + '</button>';
     }).join('');
@@ -7915,9 +7922,9 @@ function renderChecklist() {
         const isCustom = custom.some(c => c.text === item);
         return `<div class="cl-item" data-pts="${pts}" data-sec="${si}" onclick="toggleCl(this)">
           <div class="cl-cb"></div>
-          <div class="cl-txt">${item}</div>
+          <div class="cl-txt">${_esc(item)}</div>
           <div style="display:flex;align-items:center;gap:6px;">
-            ${isCustom ? `<button onclick="event.stopPropagation();removeCustomItem('${item.replace(/'/g,"\\'")}')" style="background:transparent;border:none;cursor:pointer;color:var(--red);font-size:12px;padding:2px 4px;opacity:.7;">✕</button>` : ''}
+            ${isCustom ? `<button data-item="${_esc(item)}" onclick="event.stopPropagation();removeCustomItem(this.dataset.item)" style="background:transparent;border:none;cursor:pointer;color:var(--red);font-size:12px;padding:2px 4px;opacity:.7;">✕</button>` : ''}
             <div class="cl-pts">+${pts}</div>
           </div>
         </div>`;
@@ -7929,9 +7936,9 @@ function renderChecklist() {
     const isCustom = custom.some(c => c.text === k && c.section === 'Kill Switch');
     return `<div class="kill-item" data-pts="-5" onclick="toggleKill(this)">
       <div class="kill-cb"></div>
-      <div class="kill-txt">${k}</div>
+      <div class="kill-txt">${_esc(k)}</div>
       <div style="display:flex;align-items:center;gap:6px;">
-        ${isCustom ? `<button onclick="event.stopPropagation();removeCustomItem('${k.replace(/'/g,"\\'")}')" style="background:transparent;border:none;cursor:pointer;color:var(--red);font-size:12px;padding:2px 4px;opacity:.7;">✕</button>` : ''}
+        ${isCustom ? `<button data-item="${_esc(k)}" onclick="event.stopPropagation();removeCustomItem(this.dataset.item)" style="background:transparent;border:none;cursor:pointer;color:var(--red);font-size:12px;padding:2px 4px;opacity:.7;">✕</button>` : ''}
         <div class="kill-pts">−5</div>
       </div>
     </div>`;
@@ -8208,10 +8215,10 @@ function renderCustomItemsList() {
   list.innerHTML = items.map(item => `
     <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:var(--r-sm);border:1px solid var(--border);">
       <div style="flex:1;">
-        <div style="font-size:12px;color:var(--white);margin-bottom:2px;">${item.text}</div>
-        <div style="font-size:10px;color:var(--muted);">${item.section}</div>
+        <div style="font-size:12px;color:var(--white);margin-bottom:2px;">${_esc(item.text)}</div>
+        <div style="font-size:10px;color:var(--muted);">${_esc(item.section)}</div>
       </div>
-      <button onclick="removeCustomItem('${item.text.replace(/'/g,"\\'")}','${item.section}')" style="padding:6px 10px;background:transparent;border:1px solid var(--red);border-radius:6px;color:var(--red);font-size:10px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">Remove</button>
+      <button onclick="removeCustomItem('${item.text.replace(/'/g,"\\'")}','${_esc(item.section)}')" style="padding:6px 10px;background:transparent;border:1px solid var(--red);border-radius:6px;color:var(--red);font-size:10px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">Remove</button>
     </div>`).join('');
 }
 
@@ -8300,11 +8307,18 @@ function checkGoalReady() {
   if (btn) { btn.style.opacity = (amt>0&&days>0&&bal>0)?'1':'0.4'; btn.style.pointerEvents = (amt>0&&days>0&&bal>0)?'all':'none'; }
 }
 function setGoal() {
-  const amt  = parseFloat(document.getElementById('goalAmt').value);
-  const days = parseInt(document.getElementById('goalDays').value);
-  const bal  = parseFloat(document.getElementById('goalBal').value);
-  const name = (document.getElementById('goalName').value) || 'My Goal';
-  goalData = { amt, days, bal, name, daily: amt/days, createdAt: Date.now() };
+  // Clamp before anything persists — an unbounded day count froze the app on every load
+
+  var amt  = parseFloat(document.getElementById('goalAmt').value);
+  var days = parseInt(document.getElementById('goalDays').value);
+  var bal  = parseFloat(document.getElementById('goalBal').value);
+  var name = (document.getElementById('goalName').value) || 'My Goal';
+  if (!isFinite(amt) || amt <= 0) { alert('Enter a goal amount.'); return; }
+  if (!isFinite(days) || days <= 0) days = 30;
+  amt  = Math.min(100000000, amt);
+  days = Math.min(730, Math.max(1, days));      // 2 years max — bigger froze the app on every load
+  if (!isFinite(bal) || bal < 0) bal = 0;
+  goalData = { amt: amt, days: days, bal: bal, name: name, daily: amt/days, createdAt: Date.now() };
   saveGoal(goalData);
   calViewYear = null; calViewMonth = null; // reset calendar view to today for the new plan
   renderGoals();
@@ -8380,7 +8394,7 @@ function renderGoals() {
       var _gh = JSON.parse(RTCStore.get(_gk) || '[]');
       var _sig = (name || 'goal') + '|' + amt;
       if (!_gh.some(function(g){ return g && g.sig === _sig; })) {
-        _gh.push({ sig: _sig, name: name, amt: amt, at: new Date().toISOString().slice(0,10) });
+        _gh.push({ sig: _sig, name: name, amt: amt, at: rtcLocalDay() });
         rtcSet(_gk, JSON.stringify(_gh));
         playSound('chime');
       }
@@ -8398,7 +8412,7 @@ function renderGoals() {
     sumEl.classList.add('goal-summary-reveal');
     setTimeout(() => sumEl.classList.remove('goal-summary-reveal'), 700);
     animateDollarCountUp(document.getElementById('gDailyAmt'), daily, 600);
-    animateDollarCountUp(document.getElementById('gPerTrade'), daily/3, 600);
+    animateDollarCountUp(document.getElementById('gPerTrade'), daily/getEffectiveRules(getActiveAcc()).maxTrades, 600);
     animateCountUp('gDaysLeft', daysLeft);
   } else {
     set('gDailyAmt',  '$' + daily.toFixed(0));
@@ -8407,8 +8421,8 @@ function renderGoals() {
   }
 
   set('gGoalLabel', name);
-  set('gProgressLabel', '$'+Math.max(0,totalEarned).toFixed(0)+' earned of $'+amt.toFixed(0)+' goal');
-  set('gGoalTotal', '$'+amt.toFixed(0));
+  set('gProgressLabel', curSym()+Math.max(0,totalEarned).toFixed(0)+' earned of '+curSym()+amt.toFixed(0)+' goal');
+  set('gGoalTotal', curSym()+amt.toFixed(0));
 
   // Progress bar — animate width with stagger, count up the percent label
   const bar = document.getElementById('gProgressBar');
@@ -8461,9 +8475,9 @@ function computeMirror(trades){
   var moodArr=Object.keys(md).map(function(k){return {mood:k,avg:md[k].avg};});
   if(moodArr.length>=2){ moodArr.sort(function(a,b){return b.avg-a.avg;});
     var bm=moodArr[0], wm=moodArr[moodArr.length-1], g2=bm.avg-wm.avg;
-    if(g2>=12){ feed.push({text:'Your worst trading headspace is <b>'+wm.mood+'</b> ('+wm.avg+'%). Your sharpest is <b>'+bm.mood+'</b> ('+bm.avg+'%).',sentiment:'leak',gap:g2});
-      cWorst(wm.mood,'You average just '+wm.avg+'% when you trade feeling '+wm.mood+'.',g2);
-      cBest('Feeling '+bm.mood,'You average '+bm.avg+'% when you trade feeling '+bm.mood+'.',bm.avg); } }
+    if(g2>=12){ feed.push({text:'Your worst trading headspace is <b>'+_esc(wm.mood)+'</b> ('+wm.avg+'%). Your sharpest is <b>'+_esc(bm.mood)+'</b> ('+bm.avg+'%).',sentiment:'leak',gap:g2});
+      cWorst(_esc(wm.mood),'You average just '+wm.avg+'% when you trade feeling '+_esc(wm.mood)+'.',g2);
+      cBest('Feeling '+_esc(bm.mood),'You average '+bm.avg+'% when you trade feeling '+_esc(bm.mood)+'.',bm.avg); } }
   // Life stress
   var stg=groupAvg(function(t){return t.stress;});
   if(stg['High'] && (stg['Low']||stg['Medium'])){ var lowStr=stg['Low']||stg['Medium']; var gS=lowStr.avg-stg['High'].avg;
@@ -8475,8 +8489,8 @@ function computeMirror(trades){
   if(tagArr.length>=2){ tagArr.sort(function(a,b){return b.avg-a.avg;});
     var bt=tagArr[0], wt=tagArr[tagArr.length-1];
     if(bt.avg-wt.avg>=15){ var mult=wt.avg>0?(bt.avg/wt.avg):0;
-      feed.push({text:'Your <b>'+bt.tag+'</b> trades score '+(mult>=1.5?('<b>'+mult.toFixed(1)+'x</b> higher than'):'well above')+' your <b>'+wt.tag+'</b> trades.',sentiment:'pattern',gap:bt.avg-wt.avg});
-      cBest(bt.tag+' setups','Your '+bt.tag+' trades average '+bt.avg+'%.',bt.avg); } }
+      feed.push({text:'Your <b>'+_esc(bt.tag)+'</b> trades score '+(mult>=1.5?('<b>'+mult.toFixed(1)+'x</b> higher than'):'well above')+' your <b>'+_esc(wt.tag)+'</b> trades.',sentiment:'pattern',gap:bt.avg-wt.avg});
+      cBest(bt.tag+' setups','Your '+_esc(bt.tag)+' trades average '+bt.avg+'%.',bt.avg); } }
   // Time of day
   var morn=trades.filter(function(t){var h=_mHour(t);return h!=null&&h<12;});
   var aft=trades.filter(function(t){var h=_mHour(t);return h!=null&&h>=12;});
@@ -8789,8 +8803,8 @@ function renderSettings() {
       const isActive = i === getActiveIdx();
       return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${isActive?'rgba(var(--gold-rgb),0.08)':'var(--bg3)'};border:1.5px solid ${isActive?'var(--gold)':'var(--border)'};border-radius:4px;">
         <div style="flex:1;">
-          <div style="font-size:13px;font-weight:700;color:${isActive?'var(--gold)':'var(--white)'};">${a.name}${isActive?' <span style="font-size:10px;background:var(--gold);color:#000;padding:2px 7px;border-radius:4px;font-weight:800;margin-left:6px;">ACTIVE</span>':''}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:3px;">${a.style} · $${Number(a.balance).toLocaleString()}</div>
+          <div style="font-size:13px;font-weight:700;color:${isActive?'var(--gold)':'var(--white)'};">${_esc(a.name)}${isActive?' <span style="font-size:10px;background:var(--gold);color:#000;padding:2px 7px;border-radius:4px;font-weight:800;margin-left:6px;">ACTIVE</span>':''}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;">${_esc(a.style)} · $${Number(a.balance).toLocaleString()}</div>
         </div>
         ${!isActive ? `<button onclick="switchAccount(${i})" style="padding:8px 14px;background:var(--gold);border:none;border-radius:4px;color:#000;font-size:11px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;">Switch</button>` : ''}
         ${accs.length>1 ? `<button onclick="deleteAccount(${i})" style="padding:8px 12px;background:transparent;border:1px solid #3a1212;border-radius:4px;color:var(--red);font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">✕</button>` : ''}
@@ -8970,10 +8984,29 @@ function switchAccount(i) {
   loadDash();
   setTimeout(() => switchTab('settings', document.querySelector('[onclick*="settings"]')), 100);
 }
+// Every per-account namespace. Index-keyed, so a delete must SHIFT them down or
+// the next account silently inherits the deleted one's journal.
+var RTC_ACC_KEYS = ['rtc_trades_','rtc_checkins_','rtc_goal_','rtc_pnl_','rtc_recovery_',
+  'rtc_goals_hit_','rtc_mistakes_','rtc_killlog_','rtc_recoveries_','rtc_custom_cl_',
+  'rtc_tickers_','rtc_letters_','rtc_warmup_','rtc_streak_','rtc_dd_'];
+function rtcShiftAccountKeys(removedIdx, total) {
+  RTC_ACC_KEYS.forEach(function(p) {
+    try {
+      RTCStore.remove(p + removedIdx);                       // drop the deleted account's data
+      for (var k = removedIdx + 1; k < total; k++) {          // pull everyone above it down one
+        var v = RTCStore.get(p + k);
+        if (v === null || v === undefined) { RTCStore.remove(p + (k - 1)); continue; }
+        RTCStore.set(p + (k - 1), v);
+        RTCStore.remove(p + k);
+      }
+    } catch(e) { rtcWarn(e); }
+  });
+}
 function deleteAccount(i) {
   const accs = getAccounts();
   if (accs.length <= 1) { alert('You need at least one account.'); return; }
   if (!confirm('Delete "' + accs[i].name + '"? This cannot be undone.')) return;
+  try { rtcShiftAccountKeys(i, accs.length); } catch(e) { rtcWarn(e); }
   accs.splice(i, 1);
   saveAccounts(accs);
   if (getActiveIdx() >= accs.length) setActiveIdx(accs.length - 1);
@@ -9889,11 +9922,12 @@ function renderScreenshotThumbStrip() {
 
 // Override saveTrade to include screenshot
 const _origSaveTradeScreenshot = saveTrade;
-saveTrade = function() {
+saveTrade = function(_override) {
   // We add screenshot to the trade after saving
-  // First call original
+  // First call original — _override MUST pass through or the past-limit takeover
+  // re-fires forever and no trade can ever be saved.
   const tradesBefore = getTrades().length;
-  _origSaveTradeScreenshot();
+  _origSaveTradeScreenshot(_override);
   const tradesAfter = getTrades().length;
 
   // If a new trade was saved and we have screenshot(s), upload then attach the refs.
@@ -10818,7 +10852,7 @@ function renderTagPerf() {
     const color = item.avg >= 85 ? 'var(--green)' : item.avg >= 70 ? '#4dcc6e' : item.avg >= 50 ? 'var(--gold)' : 'var(--orange)';
     return '<div style="margin-bottom:4px;">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'
-      + '<span style="font-size:13px;font-weight:600;color:var(--text);">' + item.tag + '</span>'
+      + '<span style="font-size:13px;font-weight:600;color:var(--text);">' + _esc(item.tag) + '</span>'
       + '<div style="display:flex;align-items:center;gap:8px;">'
       + '<span style="font-size:11px;color:var(--muted);">' + item.count + 'x</span>'
       + '<span style="font-size:14px;font-weight:800;color:' + color + ';">' + item.avg + '%</span>'
@@ -10830,8 +10864,8 @@ function renderTagPerf() {
 
   if (sorted.length > 1 && best.tag !== worst.tag) {
     html += '<div style="margin-top:10px;padding:12px 14px;background:rgba(var(--gold-rgb),0.04);border:1px solid var(--gold-dim);border-radius:4px;font-size:12px;color:var(--muted);line-height:1.7;">'
-      + 'Your <strong style="color:var(--gold);">' + best.tag + '</strong> setups average ' + best.avg + '%. '
-      + 'Your <strong style="color:var(--red);">' + worst.tag + '</strong> setups average ' + worst.avg + '%. '
+      + 'Your <strong style="color:var(--gold);">' + _esc(best.tag) + '</strong> setups average ' + best.avg + '%. '
+      + 'Your <strong style="color:var(--red);">' + _esc(worst.tag) + '</strong> setups average ' + worst.avg + '%. '
       + 'Take more of the first, fewer of the second.'
       + '</div>';
   }
@@ -12238,7 +12272,7 @@ function renderMonthlyLetter() {
       + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>'
       + '<span style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1px;text-transform:uppercase;">Sealed — ' + alreadyWrittenThisMonth.monthLabel + '</span>'
       + '</div>'
-      + '<div style="font-size:13px;color:var(--text2);line-height:1.7;font-style:italic;">"' + alreadyWrittenThisMonth.text.slice(0, 140) + (alreadyWrittenThisMonth.text.length > 140 ? '…' : '') + '"</div>'
+      + '<div style="font-size:13px;color:var(--text2);line-height:1.7;font-style:italic;">"' + _esc(alreadyWrittenThisMonth.text.slice(0, 140)) + (alreadyWrittenThisMonth.text.length > 140 ? '…' : '') + '"</div>'
       + '<div style="font-size:11px;color:var(--muted);margin-top:10px;">You already wrote your letter this month. Come back next month to write another.</div>'
       + '</div>';
   } else {
@@ -12833,7 +12867,7 @@ function showCompanionMessage(msg, state) {
 }
 
 // ── DAILY BRIEF — tap the button, the system reads you your day ──
-function _esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function _esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function _briefWeekAvg(trades, back){
   var start=new Date(); start.setHours(0,0,0,0);
   start.setDate(start.getDate() - start.getDay() - back*7);
@@ -14176,9 +14210,9 @@ function renderJournal() {
         '<div class="jc-hdr" style="cursor:pointer;">'
         + '<div style="display:flex;align-items:center;gap:10px;">'
         + '<span class="jc-caret" style="font-size:13px;font-weight:800;color:var(--gold);display:inline-block;transition:transform .2s;transform:' + (isExpanded ? 'rotate(0)' : 'rotate(-90deg)') + ';">\u2228</span>'
-        + '<span class="jc-ticker">' + (t.ticker||'\u2014') + '</span>'
-        + (t.direction && t.direction!=='\u2014' ? '<span class="jc-dir ' + (t.direction==='Long'?'long':'short') + '">' + t.direction + '</span>' : '')
-        + '<span class="jc-time">' + (t.time||'') + '</span>'
+        + '<span class="jc-ticker">' + _esc(t.ticker||'\u2014') + '</span>'
+        + (t.direction && t.direction!=='\u2014' ? '<span class="jc-dir ' + (t.direction==='Long'?'long':'short') + '">' + _esc(t.direction) + '</span>' : '')
+        + '<span class="jc-time">' + _esc(t.time||'') + '</span>'
         + '<span class="jc-date">' + (function(){ if(!t.date) return ''; var d=new Date(t.date); if(!isNaN(d)&&d.getFullYear()<2010){d=new Date(t.date+', '+new Date().getFullYear());} return isNaN(d)? _esc(t.date) : d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); })() + '</span>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:8px;">'
@@ -14191,7 +14225,7 @@ function renderJournal() {
         // Collapsible detail body — compact single-line rows keep the page short
         + '<div class="jc-body"' + (isExpanded ? '' : ' style="display:none;"') + '>'
         // Date
-        + '<div style="font-size:11px;color:var(--muted);padding:6px 16px;border-bottom:1px solid var(--border);">' + (function(){ if(!t.date) return ''; var d=new Date(t.date); if(!isNaN(d)&&d.getFullYear()<2010){d=new Date(t.date+', '+new Date().getFullYear());} return isNaN(d)?t.date:d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}); })() + '</div>'
+        + '<div style="font-size:11px;color:var(--muted);padding:6px 16px;border-bottom:1px solid var(--border);">' + (function(){ if(!t.date) return ''; var d=new Date(t.date); if(!isNaN(d)&&d.getFullYear()<2010){d=new Date(t.date+', '+new Date().getFullYear());} return isNaN(d)?_esc(t.date):d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}); })() + '</div>'
         // Tags
         + (t.tags && t.tags.length ? '<div style="display:flex;flex-wrap:wrap;gap:5px;padding:8px 16px;border-bottom:1px solid var(--border);">' + t.tags.map(function(tag){ return '<span style="font-size:10px;padding:2px 8px;background:rgba(var(--gold-rgb),0.08);border:1px solid rgba(var(--gold-rgb),0.2);border-radius:4px;color:var(--gold);">' + _esc(tag) + '</span>'; }).join('') + '</div>' : '')
         // Notes
@@ -14861,7 +14895,7 @@ function enterRecoveryMode(autoLoss) {
 function cancelRecoveryCommit() { _recPendingLoss = null; renderRecoveryMode(); }
 function acceptRecoveryTerms() {
   if (!_recPendingLoss) return;
-  saveRecState({ active: true, loss: _recPendingLoss, start: new Date().toISOString().slice(0,10), stage: 0 });
+  saveRecState({ active: true, loss: _recPendingLoss, start: rtcLocalDay(), stage: 0 });
   _recPendingLoss = null;
   renderRecoveryMode();
   try { renderHudData(); renderSessionStrip(); updateRiskRemaining(); } catch(e) { rtcWarn(e); }
@@ -14909,7 +14943,7 @@ function completeRecovery() {
       var kk = 'rtc_recoveries_' + getActiveIdx();
       var arc = JSON.parse(RTCStore.get(kk) || '[]');
       var days = Math.max(1, Math.round((Date.now() - new Date(s.start + 'T00:00:00')) / 86400000));
-      arc.push({ loss: s.loss, start: s.start, end: new Date().toISOString().slice(0,10), days: days });
+      arc.push({ loss: s.loss, start: s.start, end: rtcLocalDay(), days: days });
       rtcSet(kk, JSON.stringify(arc));
     } catch(e) { rtcWarn(e); }
   }
@@ -15333,7 +15367,7 @@ rtcOnReady(function(){
     return {
       name:'supabase',
       hydrate:function(){
-        return sb.from('user_store').select('key,value').then(function(r){
+        return sb.from('user_store').select('key,value').eq('user_id',userId).then(function(r){
           if(r.error) throw r.error;
           var out={}; (r.data||[]).forEach(function(row){
             out[row.key] = (typeof row.value==='string') ? row.value : JSON.stringify(row.value);
@@ -15343,7 +15377,7 @@ rtcOnReady(function(){
       persist:function(k,v){
         return sb.from('user_store').upsert({user_id:userId,key:k,value:v},{onConflict:'user_id,key'}).then(function(r){ if(r.error) throw r.error; });
       },
-      drop:function(k){ return sb.from('user_store').delete().eq('key',k); }
+      drop:function(k){ return sb.from('user_store').delete().eq('user_id',userId).eq('key',k); }
     };
   }
 
