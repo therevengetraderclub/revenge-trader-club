@@ -988,9 +988,9 @@ html,body{background:var(--page);font-family:"Inter",sans-serif;color:var(--text
 .rec-step{display:flex;gap:14px;padding:13px;background:var(--bg3);border-radius:var(--r-sm);border:1px solid var(--border);}
 .rec-num{
   width:26px;height:26px;border-radius:50%;flex-shrink:0;
-  background:rgba(45,212,191,0.1);border:1.5px solid var(--orange);
+  background:rgba(var(--gold-rgb),0.1);border:1.5px solid var(--gold-dim);
   display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:900;color:var(--orange);
+  font-size:11px;font-weight:900;color:var(--gold);
 }
 .rec-txt{font-size:13px;color:var(--text2);line-height:1.5;}
 .rec-txt strong{color:var(--white);}
@@ -5949,7 +5949,8 @@ function openBadgeGallery() {
       + '</div>';
   }
   var h = '';
-  h += '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:8px;">// THIS MONTH\'S SEALS — reset every month</div>';
+  var _ml = (window._rtcCalData && window._rtcCalData.label) ? window._rtcCalData.label.toUpperCase() : "THIS MONTH";
+  h += '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:8px;">// ' + _ml + ' SEALS — these reset every month</div>';
   h += grid(seals.map(sealCard));
   h += '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:8px;">// LIFETIME — earned once, yours forever</div>';
   h += grid(life.map(lifeCard));
@@ -5987,7 +5988,13 @@ var RTC_SEAL_SVG = {
   bubble:   '<path d="M21 11.5a8.5 8.5 0 01-9 8.4L6 22l1.5-4.5A8.5 8.5 0 1121 11.5z"/>',
   phoenix:  '<path d="M12 22c-3 0-5-2-5-5 0-2 1-3.7 2-4.9.3 1.4 1 2.3 2 2.5-.5-2 0-4.4 1-6.6 1 2.2 5 4 5 9a5 5 0 01-5 5z"/><path d="M12 2v4M9.5 4.5L12 2l2.5 2.5"/>',
   bars:     '<rect x="4" y="13" width="4" height="7"/><rect x="10" y="9" width="4" height="11"/><rect x="16" y="5" width="4" height="15"/>',
-  cal365:   '<rect x="4" y="5" width="16" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="4" y1="10" x2="20" y2="10"/>'
+  cal365:   '<rect x="4" y="5" width="16" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="4" y1="10" x2="20" y2="10"/>',
+  flag:     '<path d="M5 21V4M5 4h11l-2 3.5L16 11H5"/>',
+  mountain: '<path d="M3 19l6-11 4 6 2-3 6 8z"/>',
+  star:     '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8z"/>',
+  bed:      '<path d="M3 18V9M3 13h18v5M3 13a4 4 0 014-4h9a5 5 0 015 4"/><circle cx="8" cy="11" r="0.1"/>',
+  smile:    '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 007 0"/><circle cx="9" cy="10" r="0.6"/><circle cx="15" cy="10" r="0.6"/>',
+  compass:  '<circle cx="12" cy="12" r="9"/><polygon points="15.5 8.5 10.5 10.5 8.5 15.5 13.5 13.5"/>'
 };
 function rtcSealIcon(k) {
   return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (RTC_SEAL_SVG[k] || '') + '</svg>';
@@ -6047,6 +6054,47 @@ function rtcMonthNets() {
   return nets;
 }
 
+
+// Every closed month's seals — the raw material for long-horizon badges.
+function rtcSealHistory() {
+  var out = [];
+  var firstD = null;
+  getTrades().forEach(function(t){ var d = rtcCalParseDate(t.date); if (d && (!firstD || d < firstD)) firstD = d; });
+  try { var a = getActiveAcc(); if (a && a.createdAt) { var c = new Date(a.createdAt); if (!isNaN(c) && (!firstD || c < firstD)) firstD = c; } } catch(e) {}
+  if (!firstD) return out;
+  var now = new Date();
+  var probe = new Date(firstD.getFullYear(), firstD.getMonth(), 1);
+  var lastClosed = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  var windowStart = new Date(now.getFullYear(), now.getMonth() - 120, 1);
+  if (probe < windowStart) probe = windowStart;   // keep the RECENT decade, not the first
+  var guard = 0;
+  while (probe <= lastClosed && guard++ < 121) {
+    out.push({ y: probe.getFullYear(), m: probe.getMonth(), seals: rtcMonthSeals(probe.getFullYear(), probe.getMonth()) });
+    probe.setMonth(probe.getMonth() + 1);
+  }
+  return out;
+}
+function rtcCleanTradingDays() {
+  try {
+    var rules = getAccRules(getActiveAcc()), byDay = {};
+    getTrades().forEach(function(t) {
+      var d = rtcCalParseDate(t.date); if (!d) return;
+      var k = d.toDateString();
+      var o = byDay[k] || (byDay[k] = { n:0, bad:false, scores:[] });
+      o.n++;
+      if (t.killed || t.pastLimit) o.bad = true;
+      if (t.pct) o.scores.push(t.pct);
+    });
+    var n = 0;
+    Object.keys(byDay).forEach(function(k) {
+      var o = byDay[k];
+      var avg = o.scores.length ? o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length : 100;
+      if (!o.bad && o.n <= rules.maxTrades && avg >= 70) n++;
+    });
+    return n;
+  } catch(e) { return 0; }
+}
+
 function rtcLifetimeBadges() {
   var trades = getTrades();
   var n = trades.length;
@@ -6057,7 +6105,11 @@ function rtcLifetimeBadges() {
   var paidTuition = trades.some(function(t){ return typeof t.tradePnl === 'number' && t.tradePnl < 0 && (t.pct||0) >= 70 && !t.killed && !t.pastLimit; });
   var maxStreak = rtcMaxCleanStreak();
   var firstD = null;
-  trades.forEach(function(t){ var d = new Date(t.date); if (!isNaN(d) && (!firstD || d < firstD)) firstD = d; });
+  trades.forEach(function(t){ var d = rtcCalParseDate(t.date); if (d && (!firstD || d < firstD)) firstD = d; });
+  try {
+    var _acc = getActiveAcc();
+    if (_acc && _acc.createdAt) { var cd = new Date(_acc.createdAt); if (!isNaN(cd) && (!firstD || cd < firstD)) firstD = cd; }
+  } catch(e) {}
   var memberDays = firstD ? Math.floor((Date.now() - firstD) / 86400000) : 0;
   // Green Quarter: 3 consecutive CLOSED months, each net positive
   var nets = rtcMonthNets(), gq = false;
@@ -6067,31 +6119,111 @@ function rtcLifetimeBadges() {
   for (var i = 0; i < 24; i++) {
     var k = probe.getFullYear() + '-' + probe.getMonth();
     if (nets[k] > 0) { run++; if (run >= 3) { gq = true; break; } }
-    else if (k in nets) { run = 0; }
-    else break;   // gap in history ends the search
+    else if (k in nets) { run = 0; }             // a flat/red month breaks the run
+    // a month with no trades at all is skipped, not fatal
     probe.setMonth(probe.getMonth() - 1);
   }
+  // ── long-horizon metrics ──
+  var hist = rtcSealHistory();
+  var cleanMonths = 0, greenMonths = 0, sealNames = {}, fullStackAfterRecovery = false, sawRecovery = false;
+  hist.forEach(function(mo) {
+    var names = mo.seals.map(function(x){ return x.name; });
+    names.forEach(function(nm){ sealNames[nm] = 1; });
+    if (names.indexOf('Clean Month') >= 0) cleanMonths++;
+    if (names.indexOf('Green Month') >= 0) greenMonths++;
+    if (names.indexOf('Comeback') >= 0) sawRecovery = true;
+    if (sawRecovery && names.indexOf('The Full Stack') >= 0) fullStackAfterRecovery = true;
+  });
+  var ALL_SEALS = ['Clean Month','Iron Discipline','Green Month','The Full Stack','Perfect Attendance','Well Rested','Sniper Month','The Wall','Cold Blooded','No Excuses','Sat On Hands','Zen','Comeback'];
+  var collected = ALL_SEALS.filter(function(nm){ return sealNames[nm]; }).length;
+  var cleanDaysLife = rtcCleanTradingDays();
+  var checkins = []; try { checkins = getCheckins(); } catch(e) {}
+  var checkinCount = checkins.length;
+
+  // ── goal / body / mind metrics ──
+  var goalsHit = 0;
+  try { goalsHit = JSON.parse(RTCStore.get('rtc_goals_hit_' + getActiveIdx()) || '[]').length; } catch(e) {}
+  var perfectDays = 0, aPlusTrades = 0;
+  trades.forEach(function(t){ if ((t.pct||0) >= 100) perfectDays++; if ((t.pct||0) >= 85) aPlusTrades++; });
+  var restedDays = 0, lockedInDays = 0, badMoodClean = 0;
+  checkins.forEach(function(c) {
+    if (typeof c.sleepHours === 'number' && c.sleepHours >= 7) restedDays++;
+    if (c.mood === 'Locked In') lockedInDays++;
+  });
+  // Traded well on a day you felt bad — the hardest discipline there is
+  try {
+    var moodByDay = {};
+    checkins.forEach(function(c){ var d = rtcCalParseDate(c.date); if (d) moodByDay[d.toDateString()] = c.mood; });
+    var dayAgg = {};
+    trades.forEach(function(t) {
+      var d = rtcCalParseDate(t.date); if (!d) return;
+      var k = d.toDateString();
+      var o = dayAgg[k] || (dayAgg[k] = { n:0, bad:false, scores:[] });
+      o.n++; if (t.killed || t.pastLimit) o.bad = true; if (t.pct) o.scores.push(t.pct);
+    });
+    var _r2 = getAccRules(getActiveAcc());
+    Object.keys(dayAgg).forEach(function(k) {
+      var o = dayAgg[k], md = moodByDay[k];
+      if (!md || ['Frustrated','Anxious','Defeated','Overconfident'].indexOf(md) === -1) return;
+      var avg = o.scores.length ? o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length : 100;
+      if (!o.bad && o.n <= _r2.maxTrades && avg >= 70) badMoodClean++;
+    });
+  } catch(e) { rtcWarn(e); }
+
   function b(name, sub, icon, earned, pct, note, tier) {
     return { name:name, sub:sub, icon:icon, earned:!!earned, pct:Math.min(100,Math.round(pct)), note:note, tier:tier||'' };
   }
   return [
     b('First Blood','First trade logged',rtcSealIcon('droplet'), n >= 1, n >= 1 ? 100 : 0, n >= 1 ? '' : 'Log your first trade'),
     b('Paid Tuition','First clean loss — lost money correctly',rtcSealIcon('grad'), paidTuition, paidTuition ? 100 : 0, paidTuition ? '' : 'A clean loss earns this'),
-    b('Untouchable','10 clean days in a row',rtcSealIcon('flame'), maxStreak >= 10, maxStreak/10*100, maxStreak + ' of 10'),
-    b('Iron Streak','30 clean days in a row',rtcSealIcon('flame'), maxStreak >= 30, maxStreak/30*100, maxStreak + ' of 30', 'rare'),
-    b('The Machine','90 clean days in a row',rtcSealIcon('gear'), maxStreak >= 90, maxStreak/90*100, maxStreak + ' of 90', 'legendary'),
+    b('Untouchable','10 clean trading days in a row',rtcSealIcon('flame'), maxStreak >= 10, maxStreak/10*100, maxStreak + ' of 10'),
+    b('Iron Streak','30 clean trading days in a row',rtcSealIcon('flame'), maxStreak >= 30, maxStreak/30*100, maxStreak + ' of 30', 'rare'),
+    b('The Machine','90 clean trading days in a row',rtcSealIcon('gear'), maxStreak >= 90, maxStreak/90*100, maxStreak + ' of 90', 'legendary'),
     b('Centurion','100 trades logged',rtcSealIcon('medal'), n >= 100, n/100*100, n + ' of 100'),
     b('The Scribe','50 journal entries',rtcSealIcon('quill'), logs >= 50, logs/50*100, logs + ' of 50'),
     b('Confessional','Named the mistake in 10 cooldowns',rtcSealIcon('bubble'), mistakes >= 10, mistakes/10*100, mistakes + ' of 10'),
     b('Phoenix','Completed 3 recoveries',rtcSealIcon('phoenix'), recovs >= 3, recovs/3*100, recovs + ' of 3', 'legendary'),
-    b('Green Quarter','3 green months in a row',rtcSealIcon('bars'), gq, gq ? 100 : 0, gq ? '' : 'Needs 3 closed green months', 'rare'),
-    b('365','One full year in the club',rtcSealIcon('cal365'), memberDays >= 365, memberDays/365*100, memberDays + ' of 365 days')
+    b('Green Quarter','3 green months in a row',rtcSealIcon('bars'), gq, gq ? 100 : Math.round(Math.min(run,3)/3*100), gq ? '' : Math.min(run,3) + ' of 3 green months', 'rare'),
+    b('365','One full year in the club',rtcSealIcon('cal365'), memberDays >= 365, memberDays/365*100, memberDays + ' of 365 days'),
+    b('The Vault','500 trades logged',rtcSealIcon('wall'), n >= 500, n/500*100, n + ' of 500', 'rare'),
+    b('The Grind','1,000 trades logged',rtcSealIcon('gear'), n >= 1000, n/1000*100, n + ' of 1,000', 'legendary'),
+    b('Unbroken','250 clean trading days',rtcSealIcon('shield'), cleanDaysLife >= 250, cleanDaysLife/250*100, cleanDaysLife + ' of 250', 'rare'),
+    b('The Monk','250 check-ins',rtcSealIcon('yinyang'), checkinCount >= 250, checkinCount/250*100, checkinCount + ' of 250', 'rare'),
+    b('The Historian','365 journal entries',rtcSealIcon('quill'), logs >= 365, logs/365*100, logs + ' of 365', 'rare'),
+    b('Perfect Ten','10 clean months',rtcSealIcon('crown'), cleanMonths >= 10, cleanMonths/10*100, cleanMonths + ' of 10', 'rare'),
+    b('The Collector','Earned all 13 monthly seals at least once',rtcSealIcon('medal'), collected >= 13, collected/13*100, collected + ' of 13 seals collected', 'legendary'),
+    b('Full Circle','Earned a Full Stack after coming back from a drawdown',rtcSealIcon('phoenix'), fullStackAfterRecovery, fullStackAfterRecovery ? 100 : (sawRecovery ? 50 : 0), fullStackAfterRecovery ? '' : (sawRecovery ? 'Recovered — now take a Full Stack month' : 'Needs a comeback first'), 'legendary'),
+    // ── GOALS ──
+    b('Goal Setter','Set your first goal plan',rtcSealIcon('flag'), goalsHit >= 1 || (typeof goalData !== 'undefined' && !!goalData), (goalsHit >= 1 || (typeof goalData !== 'undefined' && goalData)) ? 100 : 0, 'Set a goal on the Goals tab'),
+    b('Goal Crusher','Hit a goal you set',rtcSealIcon('mountain'), goalsHit >= 1, goalsHit ? 100 : 0, goalsHit ? '' : 'Reach a goal target'),
+    b('Serial Finisher','Hit 5 goals',rtcSealIcon('compass'), goalsHit >= 5, goalsHit/5*100, goalsHit + ' of 5 goals hit', 'rare'),
+    // ── DISCIPLINE ──
+    b('Flawless','A perfect 100% checklist score',rtcSealIcon('star'), perfectDays >= 1, perfectDays ? 100 : 0, perfectDays ? '' : 'Score 100% on every checklist item'),
+    b('A-Player','50 trades scored A+ (85%+)',rtcSealIcon('shield'), aPlusTrades >= 50, aPlusTrades/50*100, aPlusTrades + ' of 50 A+ trades', 'rare'),
+    // ── BODY ──
+    b('Well Rested Life','100 nights of 7+ hours',rtcSealIcon('bed'), restedDays >= 100, restedDays/100*100, restedDays + ' of 100 rested days', 'rare'),
+    // ── MIND ──
+    b('In The Zone','50 days you showed up Locked In',rtcSealIcon('smile'), lockedInDays >= 50, lockedInDays/50*100, lockedInDays + ' of 50 locked-in days', 'rare'),
+    b('Mind Over Market','25 clean days traded while feeling off',rtcSealIcon('yinyang'), badMoodClean >= 25, badMoodClean/25*100, badMoodClean + ' of 25 — clean days on bad-mood days', 'legendary')
   ];
 }
 
 // A month's earned seals, replayed from raw history (closed months only)
+var _rtcSealCache = null;
+function rtcSealCacheGet() {
+  if (_rtcSealCache) return _rtcSealCache;
+  var c = { checkins: [], logs: [], recoveries: [], kills: [] };
+  try { c.checkins = getCheckins(); } catch(e) {}
+  try { c.logs = getLog(); } catch(e) {}
+  try { c.recoveries = JSON.parse(RTCStore.get('rtc_recoveries_' + getActiveIdx()) || '[]'); } catch(e) {}
+  try { c.kills = JSON.parse(RTCStore.get('rtc_killlog_' + getActiveIdx()) || '[]'); } catch(e) {}
+  _rtcSealCache = c;
+  setTimeout(function(){ _rtcSealCache = null; }, 0);   // fresh on the next tick / render
+  return c;
+}
 function rtcMonthSeals(y, m) {
   var rules = getAccRules(getActiveAcc());
+  var _c = rtcSealCacheGet();
   var days = {};
   function day(n) { return days[n] || (days[n] = { trades:0, pnl:0, scores:[], bad:false, checkin:null, logs:0 }); }
   getTrades().forEach(function(t) {
@@ -6103,14 +6235,14 @@ function rtcMonthSeals(y, m) {
     if (t.pct) o.scores.push(t.pct);
     if (t.killed || t.pastLimit) o.bad = true;
   });
-  getCheckins().forEach(function(c) {
+  _c.checkins.forEach(function(c) {
     var d = rtcCalParseDate(c.date);
     if (d && d.getFullYear() === y && d.getMonth() === m && !day(d.getDate()).checkin) day(d.getDate()).checkin = c;
   });
-  try { getLog().forEach(function(e) {
+  _c.logs.forEach(function(e) {
     var d = rtcCalParseDate(e.date);
     if (d && d.getFullYear() === y && d.getMonth() === m) day(d.getDate()).logs++;
-  }); } catch(e) {}
+  });
   var td = [], net = 0, checkins = 0, sleep = [], satHands = 0;
   Object.keys(days).forEach(function(k) {
     var o = days[k];
@@ -6122,22 +6254,46 @@ function rtcMonthSeals(y, m) {
     var avg = o.scores.length ? o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length : 100;
     return avg >= 70 && o.trades <= rules.maxTrades && !o.bad;
   }
-  var out = [];
+  var out = [], seen = {};
+  function push(n, rare) { if (seen[n]) return; seen[n] = 1; out.push({ name:n, rare:!!rare }); }
   var vol = td.length >= 5;
   var allClean = td.length > 0 && td.every(cleanDay);
-  if (vol && allClean) out.push({ name:'Clean Month' });
-  if (vol && td.every(function(o){ return o.trades <= rules.maxTrades && !o.bad; })) out.push({ name:'Iron Discipline' });
-  if ((td.length > 0 || checkins > 0) && net > 0) out.push({ name:'Green Month' });
-  if (vol && allClean && net > 0) out.push({ name:'The Full Stack', rare:true });
-  if (vol && td.every(function(o){ return o.trades === 1; })) out.push({ name:'Sniper Month' });
-  if (td.filter(function(o){ return o.pnl < 0 && cleanDay(o); }).length >= 3 && td.filter(function(o){ return o.pnl < 0 && !cleanDay(o); }).length === 0 && vol) out.push({ name:'Cold Blooded' });
-  if (vol && td.every(function(o){ return o.checkin && o.logs; })) out.push({ name:'No Excuses' });
-  if (satHands >= 3) out.push({ name:'Sat On Hands' });
-  if (sleep.length >= 5 && (sleep.reduce(function(a,b){return a+b;},0)/sleep.length) >= 7) out.push({ name:'Well Rested' });
-  try { JSON.parse(RTCStore.get('rtc_recoveries_' + getActiveIdx()) || '[]').forEach(function(rc) {
+  if (vol && allClean) push('Clean Month');
+  if (vol && td.every(function(o){ return o.trades <= rules.maxTrades && !o.bad; })) push('Iron Discipline');
+  if ((td.length > 0 || checkins > 0) && net > 0) push('Green Month');
+  if (vol && allClean && net > 0) push('The Full Stack', true);
+  if (vol && td.every(function(o){ return o.trades === 1; })) push('Sniper Month');
+  if (td.filter(function(o){ return o.pnl < 0 && cleanDay(o); }).length >= 3 && td.filter(function(o){ return o.pnl < 0 && !cleanDay(o); }).length === 0 && vol) push('Cold Blooded');
+  if (vol && td.every(function(o){ return o.checkin && o.logs; })) push('No Excuses');
+  if (satHands >= 3) push('Sat On Hands');
+  if (sleep.length >= 5 && (sleep.reduce(function(a,b){return a+b;},0)/sleep.length) >= 7) push('Well Rested');
+  _c.recoveries.forEach(function(rc) {
     var e = new Date(rc.end + 'T00:00:00');
-    if (!isNaN(e) && e.getFullYear() === y && e.getMonth() === m) out.push({ name:'Comeback' });
-  }); } catch(e) {}
+    if (!isNaN(e) && e.getFullYear() === y && e.getMonth() === m) push('Comeback');
+  });
+  // Seals the replay used to forget entirely
+  var stressV = [], firstActive = 32, lastSeen = 0;
+  Object.keys(days).forEach(function(k) {
+    var o = days[k], n = parseInt(k, 10);
+    if (n < firstActive) firstActive = n;
+    if (n > lastSeen) lastSeen = n;
+    if (o.checkin && o.checkin.stress) stressV.push({Low:0,Medium:1,High:2}[o.checkin.stress] || 0);
+  });
+  if (checkins >= 10 && stressV.length >= 10 && (stressV.reduce(function(a,b){return a+b;},0)/stressV.length) <= 0.5) push('Zen');
+  if (firstActive <= 31) {
+    var wdE = 0, wdC = 0, endD = new Date(y, m + 1, 0).getDate();
+    for (var wd = firstActive; wd <= endD; wd++) {
+      var dw = new Date(y, m, wd).getDay();
+      if (dw !== 0 && dw !== 6) { wdE++; if (days[wd] && days[wd].checkin) wdC++; }
+    }
+    if (wdE > 0 && wdC === wdE) push('Perfect Attendance');
+  }
+  var walks = 0, brokeRed = td.some(function(o){ return o.bad; });
+  _c.kills.forEach(function(ds) {
+    var d = new Date(ds);
+    if (!isNaN(d) && d.getFullYear() === y && d.getMonth() === m) walks++;
+  });
+  if (walks >= 3 && !brokeRed) push('The Wall');
   return out;
 }
 
@@ -6153,8 +6309,10 @@ function renderTrophyCase() {
   if (firstD) {
     var probe = new Date(firstD.getFullYear(), firstD.getMonth(), 1);
     var lastClosed = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    var win = new Date(now.getFullYear(), now.getMonth() - 36, 1);
+    if (probe < win) probe = win;                  // show the most recent 3 years
     var guard = 0;
-    while (probe <= lastClosed && guard++ < 36) {
+    while (probe <= lastClosed && guard++ < 37) {
       var seals = rtcMonthSeals(probe.getFullYear(), probe.getMonth());
       if (seals.length) {
         months.unshift({ label: probe.toLocaleDateString('en-US',{month:'long',year:'numeric'}), seals: seals });
@@ -6795,8 +6953,12 @@ function renderCalendar() {
 
   // Weekdays elapsed (for attendance)
   var lastDay = isCurrentMonth ? now.getDate() : nDays;
+  // Only count from the day they actually started — a mid-month joiner can still earn this
+  var firstActive = 1;
+  var actDays = Object.keys(days).map(Number).sort(function(a,b){ return a-b; });
+  if (actDays.length) firstActive = actDays[0];
   var weekdaysElapsed = 0, weekdaysCheckedIn = 0;
-  for (var wd2 = 1; wd2 <= lastDay; wd2++) {
+  for (var wd2 = firstActive; wd2 <= lastDay; wd2++) {
     var dw = new Date(y, m, wd2).getDay();
     if (dw !== 0 && dw !== 6) { weekdaysElapsed++; if (days[wd2] && days[wd2].checkin) weekdaysCheckedIn++; }
   }
@@ -6804,9 +6966,9 @@ function renderCalendar() {
   // discipline 70%+ (grade A), inside your max trades, no kill-switch override.
   var cleanDays = tradedDays.filter(function(o){
     var avg = o.scores.length ? o.scores.reduce(function(a,b){return a+b;},0)/o.scores.length : 100;
-    return avg >= 70 && o.trades <= rules.maxTrades && !o.killedTrade;
+    return avg >= 70 && o.trades <= rules.maxTrades && !o.killedTrade && !o.revenge;
   }).length;
-  var slips = tradedDays.filter(function(o){ return o.trades > rules.maxTrades || o.killedTrade; }).length;
+  var slips = tradedDays.filter(function(o){ return o.trades > rules.maxTrades || o.killedTrade || o.revenge; }).length;
   var avgSleep = sleepVals.length ? (sleepVals.reduce(function(a,b){return a+b;},0)/sleepVals.length) : 0;
   // A month can only be EARNED once it's over and it holds real volume — otherwise
   // two clean trades on the 2nd would "win" the month. Live months show ON TRACK.
@@ -6841,11 +7003,11 @@ function renderCalendar() {
   }
 
   var defs = [
-    { name:'Clean Month', sub:'Every traded day inside your rules', icon:rtcSealIcon('shield'), needsVolume:true,
+    { name:'Clean Month', sub:'Every traded day scored 70%+ and stayed in bounds', icon:rtcSealIcon('shield'), needsVolume:true,
       met: tradedDays.length > 0 && cleanDays === tradedDays.length,
       pct: tradedDays.length ? Math.round(cleanDays / tradedDays.length * 100) : 0,
       note: tradedDays.length ? cleanDays + ' of ' + tradedDays.length + ' traded days clean' : 'No trades yet' },
-    { name:'Iron Discipline', sub:'Never went over your trade limit', icon:rtcSealIcon('lock'), needsVolume:true,
+    { name:'Iron Discipline', sub:'Never broke a hard limit — trades or kill switch', icon:rtcSealIcon('lock'), needsVolume:true,
       met: tradedDays.length > 0 && slips === 0,
       pct: tradedDays.length ? Math.round((tradedDays.length - slips) / tradedDays.length * 100) : 0,
       note: slips === 0 ? (tradedDays.length ? 'no slips yet' : 'No trades yet') : slips + ' slip' + (slips > 1 ? 's' : '') + ' this month' },
@@ -6861,20 +7023,20 @@ function renderCalendar() {
       note: weekdaysCheckedIn + ' of ' + weekdaysElapsed + ' weekdays checked in' },
     { name:'Well Rested', sub:'Averaged 7+ hours of sleep', icon:rtcSealIcon('moon'), needsVolume:false,
       met: sleepVals.length >= 5 && avgSleep >= 7,
-      pct: avgSleep ? Math.min(100, Math.round(avgSleep / 7 * 100)) : 0,
-      note: sleepVals.length ? avgSleep.toFixed(1) + ' hr average' : 'Log sleep at check-in' },
+      pct: Math.min(100, Math.round(Math.min(sleepVals.length / 5, avgSleep ? avgSleep / 7 : 0) * 100)),
+      note: sleepVals.length < 5 ? sleepVals.length + ' of 5 nights logged' : avgSleep.toFixed(1) + ' hr average (need 7+)' },
     { name:'Sniper Month', sub:'Every traded day: one and done', icon:rtcSealIcon('target'), needsVolume:true,
       met: allOneTrade,
       pct: tradedDays.length ? Math.round(tradedDays.filter(function(o){return o.trades===1;}).length / tradedDays.length * 100) : 0,
       note: tradedDays.length ? tradedDays.filter(function(o){return o.trades===1;}).length + ' of ' + tradedDays.length + ' days one-and-done' : 'No trades yet' },
     { name:'The Wall', sub:'Kill switch fired 3+, walked away every time', icon:rtcSealIcon('wall'), needsVolume:false,
       met: killWalkDays >= 3 && !tradedDays.some(function(o){ return o.killedTrade; }),
-      pct: Math.min(100, Math.round(killWalkDays / 3 * 100)),
-      note: killWalkDays + ' of 3 walk-aways' },
+      pct: tradedDays.some(function(o){ return o.killedTrade; }) ? 0 : Math.min(100, Math.round(killWalkDays / 3 * 100)),
+      note: tradedDays.some(function(o){ return o.killedTrade; }) ? 'Broken — you traded through the kill switch' : killWalkDays + ' of 3 walk-aways' },
     { name:'Cold Blooded', sub:'3+ clean losses, zero tilt after', icon:rtcSealIcon('snow'), needsVolume:true,
       met: cleanLossDays >= 3 && tiltDayCount === 0,
-      pct: Math.min(100, Math.round(cleanLossDays / 3 * 100)),
-      note: cleanLossDays + ' clean loss' + (cleanLossDays !== 1 ? 'es' : '') + (tiltDayCount ? ' · ' + tiltDayCount + ' tilt day' + (tiltDayCount > 1 ? 's' : '') : '') },
+      pct: tiltDayCount ? 0 : Math.min(100, Math.round(cleanLossDays / 3 * 100)),
+      note: tiltDayCount ? 'Broken — ' + tiltDayCount + ' tilt day' + (tiltDayCount > 1 ? 's' : '') + ' this month' : cleanLossDays + ' of 3 clean losses' },
     { name:'No Excuses', sub:'Checked in and journaled every traded day', icon:rtcSealIcon('pen'), needsVolume:true,
       met: noExcusesOK,
       pct: tradedDays.length ? Math.round(tradedDays.filter(function(o){return o.checkin && o.logs;}).length / tradedDays.length * 100) : 0,
@@ -6884,9 +7046,9 @@ function renderCalendar() {
       pct: Math.min(100, Math.round(satHandsDays / 3 * 100)),
       note: satHandsDays + ' of 3 discipline days' },
     { name:'Zen', sub:'10+ check-ins, stress stayed low', icon:rtcSealIcon('yinyang'), needsVolume:false,
-      met: checkinDays >= 10 && avgStress <= 0.5,
-      pct: Math.min(100, Math.round(checkinDays / 10 * 100)),
-      note: checkinDays < 10 ? checkinDays + ' of 10 check-ins' : (avgStress <= 0.5 ? 'stress low' : 'stress ran high') },
+      met: checkinDays >= 10 && stressVals.length >= 10 && avgStress <= 0.5,
+      pct: Math.min(100, Math.round(Math.min(checkinDays, stressVals.length) / 10 * 100)),
+      note: stressVals.length < 10 ? stressVals.length + ' of 10 stress check-ins' : (avgStress <= 0.5 ? 'stress stayed low' : 'stress ran high this month') },
     (function() {
       // Comeback — recovered a drawdown without breaking a rule. Instant: a finished
       // climb doesn't wait for the calendar. Progress bar shows a live recovery.
@@ -8130,7 +8292,6 @@ function animateDollarCountUp(el, targetVal, duration) {
 }
 
 // ── RECOVERY ────────────────────────────────────────────────────
-function calcRecovery() { /* replaced by calcRecoveryTime */ }
 function checkGoalReady() {
   const amt  = parseFloat((document.getElementById('goalAmt')  || {}).value) || 0;
   const days = parseInt  ((document.getElementById('goalDays') || {}).value) || 0;
@@ -8212,6 +8373,19 @@ function renderGoals() {
   const totalEarned = pnlLog.reduce((s, e) => s + (e ? e.pnl : 0), 0);
   const pct  = Math.min(100, Math.round((totalEarned / amt) * 100));
   const daysLeft = Math.max(0, days - pnlLog.length);
+  // Record the win once, permanently — this is what the goal badges read
+  if (pct >= 100) {
+    try {
+      var _gk = 'rtc_goals_hit_' + getActiveIdx();
+      var _gh = JSON.parse(RTCStore.get(_gk) || '[]');
+      var _sig = (name || 'goal') + '|' + amt;
+      if (!_gh.some(function(g){ return g && g.sig === _sig; })) {
+        _gh.push({ sig: _sig, name: name, amt: amt, at: new Date().toISOString().slice(0,10) });
+        rtcSet(_gk, JSON.stringify(_gh));
+        playSound('chime');
+      }
+    } catch(e) { rtcWarn(e); }
+  }
   const sumEl = document.getElementById('goalSummary');
   const calEl = document.getElementById('goalCalendar');
   const isFirstReveal = sumEl && sumEl.style.display !== 'block';
@@ -12366,7 +12540,7 @@ const FEATURE_DETAILS = {
     body: '<p>Most traders blow accounts not because they cannot find good setups, but because they do not have a clear, pre-decided number for how much they are allowed to lose in a day. Without that number, every loss becomes a negotiation with yourself in the heat of the moment \u2014 and that negotiation almost always ends in revenge trading.</p>'
       + '<p>The Divide By 7 system removes the negotiation entirely. Enter your account balance once, and the app instantly calculates your maximum daily loss and your maximum risk per individual trade, based on a maximum of three trades per day. No formulas to remember, no math to do under pressure.</p>'
       + '<p>The name comes from the underlying principle: dividing your account into seven working days creates a sustainable, survivable daily risk number instead of an arbitrary guess. It is the same category of math professional risk managers use, simplified into one clear number a beginner can act on immediately.</p>'
-      + '<p><strong>Built in: the Drawdown Alarm.</strong> Set your account limit — funded or personal — and RTC warns you <em>before</em> you breach it, not after. One undisciplined session can end a Topstep, Apex, or FTMO evaluation that took weeks to build. This is the guardrail that keeps you in the game.</p>',
+      + '<p><strong>Built in: your own risk rules.</strong> Set your limits once — funded or personal — and RTC warns you <em>before</em> you breach it, not after. One undisciplined session can end a Topstep, Apex, or FTMO evaluation that took weeks to build. This is the guardrail that keeps you in the game.</p>',
   },
   goals: {
     icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
@@ -13119,7 +13293,7 @@ function tmLogPnl() {
   if (isNaN(val)) { input.style.borderColor = 'var(--red)'; setTimeout(function(){ input.style.borderColor=''; }, 800); return; }
 
   const today = new Date();
-  const dateStr = today.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const dateStr = today.toLocaleDateString('en-US',{month:'short',day:'numeric'});   // must match logPnl's key exactly
   pnlLog.push({ pnl: val, date: dateStr });
   savePnl(pnlLog);
   input.value = '';
@@ -14375,7 +14549,7 @@ const OB_STEPS = [
       return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>', 'Risk Tab', 'Know your exact numbers before you size a position.',
         [ 'Divide By 7 calculates your max risk per trade automatically from your balance',
           'Risk Per Trade calculator shows exact dollar risk for any position size',
-          'Drawdown Alarm tracks your daily P&L against your max loss limit in real time',
+          'Risk Rules track your daily P&L against your own limits in real time',
           'When the alarm hits red \u2014 stop trading. The account is more important than the trade.' ]);
     }
   },
@@ -14592,7 +14766,11 @@ function pickMistake(el, label) {
   try {
     var mk = 'rtc_mistakes_' + getActiveIdx();
     var ml = JSON.parse(RTCStore.get(mk) || '[]');
-    ml.push({ d: new Date().toDateString(), m: label });
+    var today = new Date().toDateString();
+    var idx = -1;
+    for (var mi = 0; mi < ml.length; mi++) if (ml[mi] && ml[mi].d === today) idx = mi;
+    if (idx >= 0) ml[idx].m = label;            // changed their mind — replace, don't stack
+    else ml.push({ d: today, m: label });
     rtcSet(mk, JSON.stringify(ml));
   } catch(e) { rtcWarn(e); }
   document.querySelectorAll('.mistake-chip').forEach(function(c) {
