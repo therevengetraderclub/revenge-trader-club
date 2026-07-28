@@ -409,6 +409,59 @@ html,body{background:var(--page);font-family:"Inter",sans-serif;color:var(--text
   grid-template-columns:1fr 1fr;
   gap:8px;width:100%;margin-bottom:28px;
 }
+
+/* ═══ ARSENAL · HERO + STRIP ═══
+   Eleven equal cards made the landing page six rows tall and gave the same
+   weight to the thing competitors cannot copy as to "Multi-Account Support". */
+.wf-hero{
+  display:flex; align-items:flex-start; gap:16px; width:100%;
+  background:linear-gradient(135deg,rgba(var(--gold-rgb),0.07),rgba(var(--gold-rgb),0.02));
+  border:1px solid var(--gold-dim); border-radius:var(--r-sm);
+  padding:20px; text-align:left; margin-bottom:8px; cursor:pointer;
+  transition:border-color .2s, background .2s;
+}
+.wf-hero:hover{ border-color:var(--gold); }
+.wf-hero-icon{
+  width:44px; height:44px; border-radius:4px; flex-shrink:0;
+  background:rgba(var(--gold-rgb),0.1); border:1px solid var(--gold-dim);
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .25s, box-shadow .25s;
+}
+.wf-hero:hover .wf-hero-icon{ transform:scale(1.06); box-shadow:0 0 16px rgba(var(--gold-rgb),0.22); }
+.wf-hero-kicker{
+  font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:2px;
+  text-transform:uppercase; color:var(--gold); margin-bottom:6px;
+}
+.wf-hero-name{ font-size:18px; font-weight:700; color:var(--white); margin-bottom:5px; }
+.wf-hero-desc{ font-size:12.5px; color:var(--muted); line-height:1.65; max-width:460px; }
+
+.wf-strip{
+  display:grid; grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:5px; width:100%;
+}
+.wf-tile{
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:11px 6px; background:var(--bg2);
+  border:1px solid var(--border); border-radius:var(--r-sm);
+  font-size:10px; color:var(--text2); text-align:center; cursor:pointer;
+  transition:border-color .2s, color .2s; line-height:1.3;
+}
+.wf-tile:hover{ border-color:var(--gold-dim); color:var(--white); }
+.wf-tile svg{ width:16px; height:16px; opacity:.75; }
+.wf-tile:hover svg{ opacity:1; }
+.wf-strip-note{
+  font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px;
+  text-transform:uppercase; color:var(--faint);
+  text-align:center; margin:10px 0 28px;
+}
+@media (max-width:620px){
+  .wf-strip{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .wf-hero{ flex-direction:column; gap:12px; padding:17px; }
+  .wf-hero-name{ font-size:17px; }
+}
+@media (max-width:380px){
+  .wf-strip{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
 @media(max-width:480px){
   .welcome-features{ grid-template-columns:1fr; }
 }
@@ -1773,7 +1826,7 @@ button, .mood-btn, .sleep-btn, .wu-step, .cl-item, .kill-item,
 }
 .dash-acc-ring.ring-green{ border-color:var(--green); box-shadow:0 0 10px rgba(0,208,132,0.3); }
 .dash-acc-ring.ring-gold{ border-color:var(--gold); box-shadow:0 0 10px rgba(var(--gold-rgb),0.25); }
-.dash-acc-ring.ring-orange{ border-color:var(--orange); box-shadow:0 0 10px rgba(45,212,191,0.25); }
+.dash-acc-ring.ring-orange{ border-color:var(--orange); box-shadow:0 0 10px rgba(var(--gold-rgb),0.25); }
 .dash-acc-ring.ring-red{ border-color:var(--red); box-shadow:0 0 10px rgba(229,57,53,0.3); }
 .dash-acc-initials{
   position:relative; z-index:1;
@@ -1825,9 +1878,9 @@ button, .mood-btn, .sleep-btn, .wu-step, .cl-item, .kill-item,
   animation:recoveryLockedIn 0.9s cubic-bezier(.2,.8,.3,1);
 }
 @keyframes recoveryLockedIn{
-  0%{ box-shadow:0 0 0 0 rgba(45,212,191,0); }
-  30%{ box-shadow:0 0 0 6px rgba(45,212,191,0.18); }
-  100%{ box-shadow:0 0 0 0 rgba(45,212,191,0); }
+  0%{ box-shadow:0 0 0 0 rgba(var(--gold-rgb),0); }
+  30%{ box-shadow:0 0 0 6px rgba(var(--gold-rgb),0.18); }
+  100%{ box-shadow:0 0 0 0 rgba(var(--gold-rgb),0); }
 }
 
 /* Goals — summary reveal animation */
@@ -3326,6 +3379,55 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   .rbr-hint{ order:3; flex-basis:100%; }
 }
 
+/* ═══ RECOVERY ═══ Cooldown two-up; the static blocks fold away. */
+.cooldown-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.cooldown-step{
+  display:flex; align-items:center; gap:11px; padding:12px 13px;
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:var(--r-sm); cursor:pointer; transition:all .2s;
+}
+.cd-check{
+  width:22px; height:22px; border-radius:50%; border:2px solid var(--border2);
+  flex-shrink:0; display:flex; align-items:center; justify-content:center;
+}
+.cd-title{ font-size:12.5px; font-weight:700; color:var(--white); }
+.cd-sub{ font-size:11px; color:var(--text2); margin-top:2px; line-height:1.45; }
+.cd-btn{
+  padding:6px 11px; background:transparent; border:1px solid var(--gold-dim);
+  border-radius:var(--r-sm); color:var(--orange); font-size:9.5px; font-weight:700;
+  cursor:pointer; letter-spacing:1px; flex-shrink:0;
+}
+.mistake-chip{
+  padding:6px 12px; border:1px solid var(--border2); border-radius:var(--r-sm);
+  font-size:10.5px; font-weight:700; color:var(--muted); cursor:pointer;
+}
+.rec-fold{ padding-top:14px !important; padding-bottom:14px !important; }
+.rec-fold-head{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; cursor:pointer;
+}
+.rec-fold-title{ font-size:13px; font-weight:700; color:var(--white); }
+.rec-fold-sub{ font-size:11.5px; color:var(--muted); margin-top:3px; line-height:1.5; }
+.rec-fold-mark{ color:var(--gold); font-size:17px; line-height:1; flex-shrink:0; }
+.rec-fold-body{ display:none; margin-top:14px; }
+.rec-fold-body.open{ display:block; }
+.rec-term{
+  display:flex; gap:12px; padding:9px 0;
+  border-top:1px solid var(--border); font-size:12px; line-height:1.6;
+}
+.rec-term-k{
+  flex:0 0 82px; font-family:'IBM Plex Mono',monospace; font-size:10px;
+  letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); padding-top:2px;
+}
+.rec-term-v{ color:var(--text2); }
+.rec-what{ font-size:12.5px; color:var(--text2); line-height:1.8; margin-bottom:10px; }
+.rec-what:last-child{ margin-bottom:0; }
+@media (max-width:640px){
+  .cooldown-grid{ grid-template-columns:1fr; }
+  .rec-term{ flex-direction:column; gap:3px; }
+  .rec-term-k{ flex:none; }
+}
+
 /* DANGER ZONE stays red — semantics beat consistency */
 #tab-settings .card-title[style*="--red"], #tab-settings .card-title.danger{ color:var(--red) !important; }
 
@@ -3684,65 +3786,31 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <div class="welcome-sub">You've blown accounts. You've chased losses.<br><strong style="color:var(--white);font-weight:600;">That stops today.</strong></div>
     <div class="feat-head">// THE ARSENAL <span>11 SYSTEMS</span></div>
 
-    <div class="welcome-features">
-
-      <div class="wf-row" onclick="openFeatureModal('mindset')" style="cursor:pointer;">
-        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 01-4.96-.44 2.5 2.5 0 01-2.96-3.08 3 3 0 01-.34-5.58 2.5 2.5 0 013.32-3.97A2.5 2.5 0 019.5 2z"/><path d="M14.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 004.96-.44 2.5 2.5 0 002.96-3.08 3 3 0 00.34-5.58 2.5 2.5 0 00-3.32-3.97A2.5 2.5 0 0014.5 2z"/></svg></div>
-        <div><div class="wf-name">Daily Mindset Message</div><div class="wf-desc">365 unique messages — one every morning to keep you focused and grounded</div></div>
+    <!-- One argument, then proof of depth. Eleven equal cards buried the only
+         feature a competitor cannot copy between "Trade Journal" and
+         "Multi-Account Support". -->
+    <div class="wf-hero" onclick="openFeatureModal('performance')">
+      <div class="wf-hero-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+      <div style="min-width:0;">
+        <div class="wf-hero-kicker">// The one nobody else has</div>
+        <div class="wf-hero-name">The Mirror</div>
+        <div class="wf-hero-desc">It names your Kryptonite &mdash; the thing quietly wrecking your discipline &mdash; and your Edge, when you are sharpest. In your own numbers, from your own trades. Not advice. Evidence.</div>
       </div>
-
-      <div class="wf-row" onclick="openFeatureModal('checklist')" style="cursor:pointer;">
-        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9l2 2 4-4"/><path d="M9 14l2 2 4-4"/></svg></div>
-        <div><div class="wf-name">Pre-Trade Checklist</div><div class="wf-desc">8 trading styles — each checklist built for your specific struggles. Score dial. Kill switch.</div></div>
-      </div>
-
-      <div class="wf-row" onclick="openFeatureModal('checkin')" style="cursor:pointer;">
-        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 2.61 1.41 4.88 3.5 6.19V17a1 1 0 001 1h5a1 1 0 001-1v-1.81C17.59 13.88 19 11.61 19 9c0-3.87-3.13-7-7-7z"/><path d="M9 21h6"/></svg></div>
-        <div><div class="wf-name">Daily Check-In</div><div class="wf-desc">Mood, sleep quality, a live US / London / Asia economic calendar & a customizable pre-market warmup</div></div>
-      </div>
-
-      <div class="wf-row" onclick="openFeatureModal('risk')" style="cursor:pointer;">
-        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
-        <div><div class="wf-name">Risk &amp; Drawdown System</div><div class="wf-desc">Auto-calculated max daily loss and per-trade risk from your balance — plus a drawdown alarm before you blow your limit</div></div>
-      </div>
-
-
-      <div class="wf-row" onclick="openFeatureModal('goals')" style="cursor:pointer;">
-        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <div><div class="wf-name">Goal Planner + Calendar</div><div class="wf-desc">Set a profit goal, get a daily target, log your P&L — and earn a seal on the calendar for every clean month</div></div>
-      </div>
-
-      <div class="wf-row" onclick="openFeatureModal('journal')" style="cursor:pointer;">
-        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="14" rx="2"/><line x1="3" y1="21" x2="21" y2="21"/><line x1="7" y1="21" x2="7" y2="17"/><line x1="17" y1="21" x2="17" y2="17"/></svg></div>
-        <div><div class="wf-name">Trade Journal + Chart Upload</div><div class="wf-desc">Log every trade with your chart screenshot, notes, score, and mood — study your patterns</div></div>
-      </div>
-
-      <div class="wf-row" onclick="openFeatureModal('performance')" style="cursor:pointer;">
-        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
-        <div><div class="wf-name">Performance Intelligence</div><div class="wf-desc">The Mirror names your Kryptonite and your Edge in your own numbers — plus best hours, tag performance & a weekly risk report</div></div>
-      </div>
-
-      <div class="wf-row" onclick="openFeatureModal('recovery')" style="cursor:pointer;">
-        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></div>
-        <div><div class="wf-name">Recovery Mode</div><div class="wf-desc">Took a hit? Accept the terms and the app takes the wheel — one trade a day, one mission a morning, four stages back</div></div>
-      </div>
-
-      <div class="wf-row" onclick="openFeatureModal('tradingmode')" style="cursor:pointer;">
-        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-        <div><div class="wf-name">Trading Mode</div><div class="wf-desc">A live command center for an active session — risk, trades left, drawdown and P&L on one screen, with a kill switch before you tilt</div></div>
-      </div>
-
-      <div class="wf-row" onclick="openFeatureModal('badges')" style="cursor:pointer;">
-        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.9L7 22l5-3 5 3-1.2-8.1"/></svg></div>
-        <div><div class="wf-name">Seals &amp; Trophy Case</div><div class="wf-desc">46 badges for discipline, honesty, sleep and showing up — none of them reward trading bigger</div></div>
-      </div>
-
-      <div class="wf-row" onclick="openFeatureModal('multiaccount')" style="grid-column:1/-1;cursor:pointer;">
-        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></div>
-        <div><div class="wf-name">Multi-Account Support</div><div class="wf-desc">Separate journals, goals, checklists, and risk settings for every funded or personal account you run</div></div>
-      </div>
-
     </div>
+
+    <div class="wf-strip">
+        <div class="wf-tile" onclick="openFeatureModal('mindset')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 01-4.96-.44 2.5 2.5 0 01-2.96-3.08 3 3 0 01-.34-5.58 2.5 2.5 0 013.32-3.97A2.5 2.5 0 019.5 2z"/><path d="M14.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 004.96-.44 2.5 2.5 0 002.96-3.08 3 3 0 00.34-5.58 2.5 2.5 0 00-3.32-3.97A2.5 2.5 0 0014.5 2z"/></svg><span>Daily Mindset</span></div>
+        <div class="wf-tile" onclick="openFeatureModal('checklist')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9l2 2 4-4"/><path d="M9 14l2 2 4-4"/></svg><span>Pre-Trade Checklist</span></div>
+        <div class="wf-tile" onclick="openFeatureModal('checkin')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 2.61 1.41 4.88 3.5 6.19V17a1 1 0 001 1h5a1 1 0 001-1v-1.81C17.59 13.88 19 11.61 19 9c0-3.87-3.13-7-7-7z"/><path d="M9 21h6"/></svg><span>Daily Check-In</span></div>
+        <div class="wf-tile" onclick="openFeatureModal('risk')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg><span>Risk System</span></div>
+        <div class="wf-tile" onclick="openFeatureModal('goals')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Goals + Calendar</span></div>
+        <div class="wf-tile" onclick="openFeatureModal('journal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="14" rx="2"/><line x1="3" y1="21" x2="21" y2="21"/><line x1="7" y1="21" x2="7" y2="17"/><line x1="17" y1="21" x2="17" y2="17"/></svg><span>Trade Journal</span></div>
+        <div class="wf-tile" onclick="openFeatureModal('recovery')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg><span>Recovery Mode</span></div>
+        <div class="wf-tile" onclick="openFeatureModal('tradingmode')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Trading Mode</span></div>
+        <div class="wf-tile" onclick="openFeatureModal('badges')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.9L7 22l5-3 5 3-1.2-8.1"/></svg><span>Seals</span></div>
+        <div class="wf-tile" onclick="openFeatureModal('multiaccount')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg><span>Multi-Account</span></div>
+    </div>
+    <div class="wf-strip-note">Tap any system for the full breakdown</div>
 
     <div style="width:100%;margin-bottom:12px;">
       <button class="btn-primary" onclick="rtcEnterClub()" style="width:100%;"><span class="skfix">Enter The Club &rarr;</span></button>
@@ -4787,25 +4855,9 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
   <!-- RECOVERY -->
   <div class="tab-body" id="tab-recovery" style="display:none;">
-    <div class="guide-box guide-box-orange" style="padding:6px;">
-      <div class="card-title" style="margin:12px 10px 3px;">What Is Recovery Mode?</div>
-      <div style="font-size:12px;color:var(--muted);margin:0 10px 10px;">Lose the right way &mdash; survive, recover, come back sharper.</div>
-      <div class="rk-step teal">
-        <div class="rk-badge teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div>
-        <div><div class="rk-title">Log what you lost</div><div class="rk-desc">Get your path back: 1% of your balance per day at half size. Time, not luck, is the plan.</div></div>
-      </div>
-      <div class="rk-step teal">
-        <div class="rk-badge teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <div><div class="rk-title">Run the Cooldown Protocol</div><div class="rk-desc">After every loss &mdash; step away, name the mistake, journal it, decide if you're done for the day.</div></div>
-      </div>
-      <div class="rk-step teal">
-        <div class="rk-badge teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-        <div><div class="rk-title">Your limit adjusts as you grow</div><div class="rk-desc">Hit your daily max loss &mdash; stop. Come back tomorrow. Never revenge trade.</div></div>
-      </div>
-      <div style="padding:10px;"><div class="guide-callout guide-callout-orange" style="margin-top:0;">Recovery Mode is NOT about getting rich fast. It's about surviving long enough to trade another day.</div></div>
-    </div>
 
-    <!-- RECOVERY MODE (stateful) -->
+    <!-- Live state leads. Every other tab opens with the trader's numbers;
+         this one used to open with three paragraphs defining the word. -->
     <div class="card">
       <div class="card-title card-title-display" style="color:var(--orange);">Recovery Mode</div>
       <div id="recoveryModeBody"></div>
@@ -4814,64 +4866,86 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <!-- COOLDOWN PROTOCOL -->
     <div class="card">
       <div class="card-title" style="color:var(--orange);">Cooldown Protocol</div>
-      <div class="card-sub">Right after a loss, run this before you even think about the next trade. All four steps — no shortcuts.</div>
+      <div class="card-sub">Run this right after a loss, before you think about the next trade. All four — no shortcuts.</div>
 
-      <div id="cooldownSteps" style="display:flex;flex-direction:column;gap:8px;">
-        <div class="cooldown-step" data-step="0" onclick="toggleCooldownStep(0)" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all .2s;">
-          <div class="cd-check" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;color:var(--white);">Step away from the charts</div>
-            <div style="font-size:12px;color:var(--text2);margin-top:3px;">15 minutes minimum. Phone down. Walk.</div>
+      <div id="cooldownSteps" class="cooldown-grid">
+        <div class="cooldown-step" data-step="0" onclick="toggleCooldownStep(0)">
+          <div class="cd-check"></div>
+          <div style="flex:1;min-width:0;">
+            <div class="cd-title">Step away from the charts</div>
+            <div class="cd-sub">15 minutes minimum. Phone down. Walk.</div>
           </div>
         </div>
-        <div class="cooldown-step" data-step="1" onclick="toggleCooldownStep(1)" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all .2s;">
-          <div class="cd-check" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;color:var(--white);">Name the mistake</div>
-            <div style="font-size:12px;color:var(--text2);margin-top:3px;">Pick what actually happened below.</div>
+        <div class="cooldown-step" data-step="1" onclick="toggleCooldownStep(1)">
+          <div class="cd-check"></div>
+          <div style="flex:1;min-width:0;">
+            <div class="cd-title">Name the mistake</div>
+            <div class="cd-sub">Pick what actually happened.</div>
           </div>
         </div>
-        <div id="mistakeChips" style="display:none;flex-wrap:wrap;gap:8px;padding:4px 2px 4px 52px;">
-          <div class="mistake-chip" onclick="pickMistake(this,'FOMO Entry')" style="padding:7px 14px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;">FOMO ENTRY</div>
-          <div class="mistake-chip" onclick="pickMistake(this,'Revenge Trade')" style="padding:7px 14px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;">REVENGE TRADE</div>
-          <div class="mistake-chip" onclick="pickMistake(this,'Oversized')" style="padding:7px 14px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;">OVERSIZED</div>
-          <div class="mistake-chip" onclick="pickMistake(this,'No Stop Loss')" style="padding:7px 14px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;">NO STOP</div>
-          <div class="mistake-chip" onclick="pickMistake(this,'Traded News')" style="padding:7px 14px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;">TRADED NEWS</div>
-          <div class="mistake-chip" onclick="pickMistake(this,'Good Trade, Bad Luck')" style="padding:7px 14px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;">GOOD TRADE, BAD LUCK</div>
-        </div>
-        <div class="cooldown-step" data-step="2" onclick="toggleCooldownStep(2)" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all .2s;">
-          <div class="cd-check" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;color:var(--white);">Journal the trade</div>
-            <div style="font-size:12px;color:var(--text2);margin-top:3px;">Log it while it's fresh — the lesson is in the details.</div>
+        <div class="cooldown-step" data-step="2" onclick="toggleCooldownStep(2)">
+          <div class="cd-check"></div>
+          <div style="flex:1;min-width:0;">
+            <div class="cd-title">Journal the trade</div>
+            <div class="cd-sub">Log it while it is fresh.</div>
           </div>
-          <button onclick="event.stopPropagation();switchTab('checklist',document.querySelector('[onclick*=checklist]'))" style="padding:8px 14px;background:transparent;border:1px solid var(--gold-dim);border-radius:4px;color:var(--orange);font-size:10px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;flex-shrink:0;">LOG IT</button>
+          <button onclick="event.stopPropagation();switchTab('checklist',document.querySelector('[onclick*=checklist]'))" class="cd-btn">Log It</button>
         </div>
-
-        <div class="cooldown-step" data-step="3" onclick="toggleCooldownStep(3)" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all .2s;">
-          <div class="cd-check" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;color:var(--white);">Decide: am I done for today?</div>
-            <div style="font-size:12px;color:var(--text2);margin-top:3px;">If you hit your daily max loss, the answer is yes.</div>
+        <div class="cooldown-step" data-step="3" onclick="toggleCooldownStep(3)">
+          <div class="cd-check"></div>
+          <div style="flex:1;min-width:0;">
+            <div class="cd-title">Am I done for today?</div>
+            <div class="cd-sub">If you hit your daily max, yes.</div>
           </div>
         </div>
       </div>
 
-      <div id="cooldownComplete" style="display:none;margin-top:14px;padding:16px;background:rgba(0,208,132,0.06);border:1px solid rgba(0,208,132,0.3);border-radius:4px;text-align:center;">
-        <div style="font-size:13px;font-weight:800;color:var(--green);letter-spacing:1px;margin-bottom:4px;">COOLDOWN COMPLETE</div>
+      <div id="mistakeChips" style="display:none;flex-wrap:wrap;gap:6px;margin-top:10px;">
+        <div class="mistake-chip" onclick="pickMistake(this,'FOMO Entry')">FOMO ENTRY</div>
+        <div class="mistake-chip" onclick="pickMistake(this,'Revenge Trade')">REVENGE TRADE</div>
+        <div class="mistake-chip" onclick="pickMistake(this,'Oversized')">OVERSIZED</div>
+        <div class="mistake-chip" onclick="pickMistake(this,'No Stop Loss')">NO STOP</div>
+        <div class="mistake-chip" onclick="pickMistake(this,'Traded News')">TRADED NEWS</div>
+        <div class="mistake-chip" onclick="pickMistake(this,'Good Trade, Bad Luck')">GOOD TRADE, BAD LUCK</div>
+      </div>
+
+      <div id="cooldownComplete" style="display:none;margin-top:14px;padding:14px;background:rgba(0,208,132,0.06);border:1px solid rgba(0,208,132,0.3);border-radius:var(--r-sm);text-align:center;">
+        <div style="font-size:12px;font-weight:800;color:var(--green);letter-spacing:1.5px;margin-bottom:4px;">COOLDOWN COMPLETE</div>
         <div style="font-size:12px;color:var(--text2);line-height:1.6;">You handled the loss like a professional. Tomorrow is a fresh session.</div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title">Recovery Rules</div>
-      <div class="rec-steps">
-        <div class="rec-step"><div class="rec-num">1</div><div class="rec-txt"><strong>Stop panicking.</strong> What's left is enough to work with if you're disciplined.</div></div>
-        <div class="rec-step"><div class="rec-num">2</div><div class="rec-txt"><strong>Cut your size in half.</strong> Half your normal risk per trade until you're back to even. Your confidence needs small wins, not big swings.</div></div>
-        <div class="rec-step"><div class="rec-num">3</div><div class="rec-txt"><strong>Hit small targets.</strong> Don't try to recover everything in one trade.</div></div>
-        <div class="rec-step"><div class="rec-num">4</div><div class="rec-txt"><strong>One trade per session.</strong> Quality beats quantity every time.</div></div>
-        <div class="rec-step"><div class="rec-num">5</div><div class="rec-txt"><strong>Log everything.</strong> Every trade logged shows you your patterns.</div></div>
-        <div class="rec-step"><div class="rec-num">6</div><div class="rec-txt"><strong>Protect at 20% growth.</strong> Once up 20%, drop back to conservative sizing.</div></div>
+    <!-- These were six "rules" telling the trader to do what the app now does
+         for them. They are the contract, not advice — so they collapse. -->
+    <div class="card rec-fold">
+      <div class="rec-fold-head" onclick="rtcToggleRecFold('recTerms')">
+        <div>
+          <div class="rec-fold-title">The terms &mdash; and what the app enforces</div>
+          <div class="rec-fold-sub">Half size, one trade a session, until you earn it back.</div>
+        </div>
+        <span class="rec-fold-mark" id="recTermsMark">+</span>
+      </div>
+      <div id="recTerms" class="rec-fold-body">
+        <div class="rec-term"><span class="rec-term-k">Size</span><span class="rec-term-v">Half your normal risk per trade. Enforced in Risk, Trading Mode and the gutter &mdash; not a suggestion.</span></div>
+        <div class="rec-term"><span class="rec-term-k">Frequency</span><span class="rec-term-v">One trade per session. The app stops you at one.</span></div>
+        <div class="rec-term"><span class="rec-term-k">Target</span><span class="rec-term-v">One mission a morning, sized to your pace. Hit it and stop &mdash; do not chase the whole hole in a day.</span></div>
+        <div class="rec-term"><span class="rec-term-k">Progress</span><span class="rec-term-v">Read from your journal, never typed in. Clean days move the ladder; a big win does not skip a stage.</span></div>
+        <div class="rec-term"><span class="rec-term-k">Exit</span><span class="rec-term-v">Your standing rules return in full. Nothing you earned before recovery is erased.</span></div>
+      </div>
+    </div>
+
+    <div class="card rec-fold">
+      <div class="rec-fold-head" onclick="rtcToggleRecFold('recWhat')">
+        <div>
+          <div class="rec-fold-title">What is Recovery Mode?</div>
+          <div class="rec-fold-sub">You climb out by staying clean, not by winning big.</div>
+        </div>
+        <span class="rec-fold-mark" id="recWhatMark">+</span>
+      </div>
+      <div id="recWhat" class="rec-fold-body">
+        <div class="rec-what">Everyone tells you to stop revenge trading. Nobody gives you a system for the moment right after a loss &mdash; when you are down, emotional, and one click from making it worse. That moment is what this is for.</div>
+        <div class="rec-what">It does not start quietly. You read the terms and accept them. From that moment the limits are no longer something you can talk yourself past.</div>
+        <div class="rec-what">Four stages, and only clean days move you up. Recovery is not about making it back fast. It is about rebuilding the discipline before you rebuild the account.</div>
       </div>
     </div>
   </div>
@@ -15444,9 +15518,9 @@ function pickMistake(el, label) {
     c.style.color = 'var(--muted)';
     c.style.background = 'transparent';
   });
-  el.style.borderColor = 'var(--orange)';
-  el.style.color = 'var(--orange)';
-  el.style.background = 'rgba(45,212,191,0.08)';
+  el.style.borderColor = 'var(--gold)';
+  el.style.color = 'var(--gold)';
+  el.style.background = 'rgba(var(--gold-rgb),0.08)';
 }
 
 
@@ -15591,6 +15665,15 @@ function exitRecoveryMode() {
   saveRecState(null);
   renderRecoveryMode();
   try { renderHudData(); renderSessionStrip(); updateRiskRemaining(); } catch(e) { rtcWarn(e); }
+}
+
+function rtcToggleRecFold(id) {
+  var body = document.getElementById(id);
+  var mark = document.getElementById(id + 'Mark');
+  if (!body) return;
+  var open = body.classList.toggle('open');
+  if (mark) mark.textContent = open ? '\u2212' : '+';
+  playSound('tick');
 }
 
 function renderRecoveryMode() {
