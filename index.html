@@ -3206,6 +3206,8 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 /* NOTE: no overflow:hidden on .card — the ticker/direction dropdowns are
    absolutely positioned inside cards and would be clipped shut. */
 
+#tab-settings:not(.active){ display:none !important; }
+
 /* ═══ SETTINGS · BENTO GRID ═══
    Twelve full-width cards meant a lot of scrolling to reach a one-line button.
    Each card is now sized to what is actually inside it. Placement is pure CSS
@@ -3213,7 +3215,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
    resolves, and the phone layout below the breakpoint is exactly as it was. */
 @media (min-width:900px){
   #tab-settings{
-    display:grid;
+    display:grid !important;
     grid-template-columns:repeat(4,minmax(0,1fr));
     gap:12px;
     align-items:stretch;
@@ -3243,14 +3245,17 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   /* Push each tile's action to the bottom so buttons line up across a row */
   #tab-settings :is(.set-sound,.set-club,.set-tour){ display:flex; flex-direction:column; }
   #tab-settings :is(.set-sound,.set-club,.set-tour) > :last-child{ margin-top:auto; }
-  /* Market and Currency stack their options in the narrower column */
-  #tab-settings :is(.set-market,.set-currency) > div[style*="grid-template-columns"]{
+  /* Narrow column: Market wraps to 2×2, Currency keeps its 3 symbols on one row */
+  #tab-settings .set-market > div[style*="grid-template-columns"]{
     grid-template-columns:1fr 1fr !important;
   }
+  #tab-settings .set-currency #currencyRow > div{ padding:9px 2px !important; }
+  #tab-settings :is(.set-market,.set-currency) .card-sub,
+  #tab-settings :is(.set-market,.set-currency) > div[style*="font-size:13px"]{ margin-bottom:10px !important; }
 }
 /* One wide column between tablet and desktop — two-across, nothing fancy */
 @media (min-width:640px) and (max-width:899px){
-  #tab-settings{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; align-items:stretch; }
+  #tab-settings{ display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; align-items:stretch; }
   #tab-settings > div:first-child{ grid-column:1 / -1; margin-bottom:0 !important; }
   #tab-settings > .card{ margin-bottom:0 !important; }
   #tab-settings :is(.set-account,.set-creed,.set-accounts,.set-data,.set-danger){ grid-column:1 / -1; }
@@ -5348,7 +5353,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <div class="card set-currency">
       <div class="card-title">Currency</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">How this account's numbers display. No conversion — just your symbol.</div>
-      <div id="currencyRow" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+      <div id="currencyRow" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;">
         <div class="ccy-opt" data-ccy="$" onclick="setAccCurrency('$')" style="padding:12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center;transition:all .15s;">
           <div style="font-size:16px;font-weight:800;color:var(--white);">$</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px;">Dollar</div>
@@ -5419,15 +5424,14 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <div class="card set-data" style="border-color:rgba(var(--gold-rgb),0.15);">
       <div class="card-title">Your Data</div>
       <div class="card-sub" style="margin-bottom:14px;">Export all your trades, journals, goals, and settings as a backup file. Keep it safe — it’s your entire trading history.</div>
-      <button onclick="exportAllData()" class="btn-gold" style="width:100%;font-size:13px;font-weight:700;letter-spacing:1px;padding:13px;">Export My Data (JSON)</button>
-      <input type="file" id="rtcImportInput" accept="application/json,.json" style="display:none"
-             onchange="importAllData(this.files[0]); this.value='';">
-      <button onclick="document.getElementById('rtcImportInput').click()" class="btn-calc"
-              style="width:100%;font-size:13px;letter-spacing:1px;padding:13px;margin-top:8px;">Restore From Backup</button>
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--muted);margin-top:8px;text-transform:uppercase;">
-        Backups include every account, trade, screenshot and log
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button onclick="exportAllData()" class="btn-gold" style="font-size:12px;font-weight:700;letter-spacing:1px;padding:12px;">Export (JSON)</button>
+        <input type="file" id="rtcImportInput" accept="application/json,.json" style="display:none"
+               onchange="importAllData(this.files[0]); this.value='';">
+        <button onclick="document.getElementById('rtcImportInput').click()" class="btn-calc"
+                style="font-size:12px;letter-spacing:1px;padding:12px;">Restore</button>
       </div>
-      <div style="font-size:11px;color:var(--faint);text-align:center;margin-top:8px;">Save this file somewhere safe. You can restore it later.</div>
+      <div style="font-size:11px;color:var(--faint);margin-top:9px;line-height:1.6;">Every account, trade, screenshot and log. Save it somewhere safe.</div>
     </div>
 
     <div class="card set-danger" style="border-color:#2a1212;">
@@ -8212,7 +8216,7 @@ function switchTab(tab, el) {
   if (tab === 'checklist') { renderChecklist(); try{renderSavedTickers();}catch(e){ rtcWarn(e); } }
   if (tab === 'goals')     { renderGoals(); try{renderMonthlyLetter();}catch(e){ rtcWarn(e); } try{renderTradingTimeline();}catch(e){ rtcWarn(e); } }
   if (tab === 'settings')  renderSettings();
-  if (tab === 'risk')      { try{ calcRiskPerTrade(); renderRiskRules(); }catch(e){ rtcWarn(e); } }
+  if (tab === 'risk')      { try{ renderRiskRules(); }catch(e){ rtcWarn(e); } }
   try{renderSessionStrip();}catch(e){ rtcWarn(e); }
   if (tab === 'recovery')  { try{renderRecoveryMode();}catch(e){ rtcWarn(e); } }
   if (tab === 'checkin')   { renderMindset(); renderStreakBanner(); renderNewsCalendar(); try{renderWarmup();}catch(e){ rtcWarn(e); } try{renderTodaysFocus();}catch(e){ rtcWarn(e); } try{renderComebackCard();}catch(e){ rtcWarn(e); } }
@@ -9486,10 +9490,10 @@ function renderRiskRules() {
       el.appendChild(t);
     }
   });
-  var tn = document.getElementById('d7TitleNum');
-  if (tn) tn.innerHTML = '&divide; ' + rules.divisor;
-  var rn = document.getElementById('d7RuleNote');
-  if (rn) rn.textContent = 'Using your rule: \u00f7' + rules.divisor + ' across ' + rules.maxTrades + ' trade' + (rules.maxTrades !== 1 ? 's' : '') + '.';
+  // The "Your Number Today" card is owned entirely by calcRiskPerTrade(). It used
+  // to have its title written here and its tiles written there, which is how the
+  // header could read "÷ 10" while the numbers underneath were still on ÷ 7.
+  try { calcRiskPerTrade(); } catch(e) { rtcWarn(e); }
   var out = document.getElementById('rrReadout');
   if (out && recActive()) {
     var hs = recHalfSizeNums();
@@ -15776,6 +15780,7 @@ function cancelPendingRules() {
   delete accs[i].pendingRules;
   saveAccounts(accs);
   try { renderRiskRules(); } catch(e) { rtcWarn(e); }
+  try { renderHudData(); renderSessionStrip(); } catch(e) { rtcWarn(e); }
   playSound('tick');
 }
 function setAccRiskRule(kind, val) {
@@ -15796,8 +15801,7 @@ function setAccRiskRule(kind, val) {
     looser = false;
   }
   saveAccounts(accs);
-  try { renderRiskRules(); } catch(e) { rtcWarn(e); }
-  try { updateRiskRemaining(); } catch(e) { rtcWarn(e); }
+  try { renderRiskRules(); } catch(e) { rtcWarn(e); }   // recomputes the card too
   try { renderHudData(); renderSessionStrip(); } catch(e) { rtcWarn(e); }
   playSound(looser ? 'warn' : 'tick');
 }
