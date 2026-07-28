@@ -5192,6 +5192,12 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
 
     <div class="card">
+      <div class="card-title">Tour</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">A walk through every tab and what it is for. Replay it any time — your goal and risk rules are left exactly as they are.</div>
+      <button class="btn-plain" onclick="rtcReplayTour()" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--gold-dim);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">Replay the Tour</button>
+    </div>
+
+    <div class="card">
       <div class="card-title">Sound</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Checklist ticks, check-in notes, and badge unlocks. If you can't hear anything, this button tells you why.</div>
       <button class="btn-plain" onclick="rtcSoundTest()" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--gold-dim);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">Play Test Sound</button>
@@ -14966,7 +14972,7 @@ const OB_STEPS = [
     render: function() {
       return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>', 'Check-In Tab', 'Start every morning here before you open a chart.',
         [ 'Log your mood, hours of sleep, and stress level \u2014 the raw data your Mirror learns from',
-          'See today\u2019s economic calendar so a news event never catches you off guard',
+          'See today\u2019s economic calendar \u2014 tap US, London, or Asia to follow the session you actually trade',
           'Run your pre-market warmup to lock in before the session',
           'Tap the gold button any time for your Daily Brief \u2014 the system\u2019s read on how you\u2019re doing' ]);
     }
@@ -14989,9 +14995,9 @@ const OB_STEPS = [
     tab: 'risk',
     render: function() {
       return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>', 'Risk Tab', 'Know your exact numbers before you size a position.',
-        [ 'Divide By 7 calculates your max risk per trade automatically from your balance',
+        [ 'Pick your divisor \u2014 5, 7, or 10 \u2014 and your daily max loss is calculated from your live balance',
           'Risk Per Trade calculator shows exact dollar risk for any position size',
-          'Risk Rules track your daily P&L against your own limits in real time',
+          'Loosening a rule takes effect tomorrow, never mid-session. Tightening is instant.',
           'When the alarm hits red \u2014 stop trading. The account is more important than the trade.' ]);
     }
   },
@@ -15000,11 +15006,11 @@ const OB_STEPS = [
     type: 'tour',
     tab: 'recovery',
     render: function() {
-      return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>', 'Recovery Tab', 'For when you take a loss. This keeps you grounded.',
-        [ 'Enter your loss and see exactly how many days it takes to recover at your current pace',
-          'Visual 7-day grid shows your recovery timeline day by day',
-          'Reminds you that one bad day doesn\u2019t end the mission \u2014 it\u2019s just one data point',
-          'Keeps you from chasing losses. The math is clear. Let time do the work.' ]);
+      return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>', 'Recovery Tab', 'For after a bad loss. It takes the wheel so you can\u2019t.',
+        [ 'You accept the terms before it starts \u2014 one trade a day, smaller size, until you\u2019ve earned your way back',
+          'Every morning it gives you one number: TODAY\u2019S MISSION. Hit it and stop.',
+          'Four stages, each one loosening the clamp a little. You climb out by staying clean, not by winning big.',
+          'The app enforces it. Your old rules come back when recovery ends \u2014 nothing you already earned is erased.' ]);
     }
   },
   // ── STEP 8: Tour — Goals ─────────────────────────────
@@ -15016,6 +15022,7 @@ const OB_STEPS = [
         [ 'Set a profit target and number of trading days \u2014 you get an automatic daily target to hit',
           'Your P&L flows in automatically from your trade reviews \u2014 log it once, it lands here',
           'Tap any date to see that day\u2019s trades, notes, and screenshots; Goal Pace shows if you\u2019re on track',
+          'Finish a month clean and its seal is stamped on the calendar \u2014 permanently',
           'Write a monthly letter to yourself. You\u2019ll read it next month \u2014 it will surprise you.' ]);
     }
   },
@@ -15054,6 +15061,17 @@ const OB_STEPS = [
           'The Session Read at the bottom is the system’s full summary of your day — your Mirror, in the moment.' ]);
     }
   },
+  // ── STEP: Tour — Badges & Trophy Case ────────────────
+  {
+    type: 'tour',
+    render: function() {
+      return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.9L7 22l5-3 5 3-1.2-8.1"/></svg>', 'Badges & Trophy Case', 'Proof you showed up, not proof you got lucky.',
+        [ 'Monthly seals are stamped on your calendar when you finish a month clean \u2014 they repeat, and each one keeps a count',
+          'Lifetime badges are earned once: streaks, honesty, sleep, showing up, and cumulative P&L milestones',
+          'Nothing rewards trade size. You cannot buy a badge by risking more \u2014 only by holding the line',
+          'Your Trophy Case holds all of it, month by month. Unlocks announce themselves the moment they land.' ]);
+    }
+  },
   // ── STEP 11: Done ────────────────────────────────────
   {
     type: 'done',
@@ -15062,8 +15080,13 @@ const OB_STEPS = [
         + '<div style="width:64px;height:64px;border-radius:50%;background:rgba(var(--gold-rgb),0.1);border:1.5px solid rgba(var(--gold-rgb),0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"><svg width=\"28\" height=\"28\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"var(--gold)\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg></div>'
         + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:36px;letter-spacing:4px;background:linear-gradient(135deg,var(--gold),var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:12px;">YOU\u2019RE READY</div>'
         + '<div style="font-size:13px;color:var(--muted);line-height:1.9;margin-bottom:20px;">Your account is set up. You know where everything lives.<br>Now go use it every single day.<br><br><strong style="color:var(--white);">Start with Check-In every morning.<br>Run the Checklist before every trade.<br>Log everything in the Journal.</strong></div>'
-        + '<div style="background:rgba(var(--gold-rgb),0.06);border:1px solid rgba(var(--gold-rgb),0.15);border-radius:4px;padding:14px 16px;font-size:12px;color:var(--muted);line-height:1.7;">'
+        + '<div style="background:rgba(var(--gold-rgb),0.06);border:1px solid rgba(var(--gold-rgb),0.15);border-radius:4px;padding:14px 16px;font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px;">'
         + 'The traders who use this platform consistently \u2014 every day, every trade \u2014 are the ones who stop blowing accounts. That\u2019s the whole point.'
+        + '</div>'
+        + '<div style="text-align:left;font-size:12px;color:var(--muted);line-height:1.8;">'
+        + '<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">Two more things</div>'
+        + '<div style="margin-bottom:6px;"><strong style="color:var(--white);">Settings</strong> \u2014 three themes, your creed, sound, and currency. Make it yours.</div>'
+        + '<div>Trading alone is how discipline dies quietly. The Discord icon in the header is the rest of the club.</div>'
         + '</div></div>';
     }
   }
@@ -15089,6 +15112,15 @@ function obTourCard(icon, title, subtitle, points) {
 function startOnboarding() {
   const key = OB_KEY + getActiveIdx();
   if (RTCStore.get(key)) return; // already done
+  obCurrentStep = 0;
+  const overlay = document.getElementById('onboardingOverlay');
+  if (overlay) overlay.style.display = 'flex';
+  obRender();
+}
+
+// Replay the tour on demand. Skips the setup steps so it never overwrites a
+// goal or risk rules the trader has already dialled in.
+function rtcReplayTour() {
   obCurrentStep = 0;
   const overlay = document.getElementById('onboardingOverlay');
   if (overlay) overlay.style.display = 'flex';
