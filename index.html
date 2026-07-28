@@ -288,6 +288,7 @@ html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-data .hd-v:not(
 html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-clock .wc-v:not([class*="st-"]){ color:var(--text) !important; opacity:1 !important; }
 /* A live session and the market status carry meaning, not decoration — the blanket
    darkening above was flattening them to plain black on light and rose. */
+html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-clock .wc.open .wc-k,
 html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-clock .wc.open .wc-v,
 html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-clock .wc-fut .wc-v.st-rth,
 html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-clock .wc-fut .wc-v.st-open{ color:var(--green) !important; opacity:1 !important; }
@@ -5200,6 +5201,19 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
 
     <div class="card">
+      <div class="card-title">Clock</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">The session clock in your gutter. Show only the sessions you trade.</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Time Format</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <div id="clkFmt24" onclick="rtcSetClock12h(false)" style="flex:1;padding:12px;text-align:center;cursor:pointer;border-radius:var(--r-sm);border:1.5px solid var(--border2);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;">24-Hour<div style="font-size:10px;font-weight:400;margin-top:2px;opacity:.8;">14:10:50</div></div>
+        <div id="clkFmt12" onclick="rtcSetClock12h(true)" style="flex:1;padding:12px;text-align:center;cursor:pointer;border-radius:var(--r-sm);border:1.5px solid var(--border2);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;">12-Hour<div style="font-size:10px;font-weight:400;margin-top:2px;opacity:.8;">2:10:50 PM</div></div>
+      </div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Sessions Shown</div>
+      <div id="clockCityRow" style="display:flex;gap:8px;"></div>
+      <div style="font-size:11px;color:var(--faint);margin-top:10px;line-height:1.6;">Tap to hide a session. At least one always stays.</div>
+    </div>
+
+    <div class="card">
       <div class="card-title">Tour</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">A walk through every tab and what it is for. Replay it any time — your goal and risk rules are left exactly as they are.</div>
       <button class="btn-plain" onclick="rtcReplayTour()" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--gold-dim);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">Replay the Tour</button>
@@ -5987,8 +6001,10 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
   var MKT_LABEL={futures:'FUTURES',stocks:'STOCKS',crypto:'CRYPTO',forex:'FOREX'};
   var LABEL={tokyo:'TOKYO',london:'LONDON',ny:'NY'};
   function tick(){
+    var h12=false;try{h12=RTCStore.get('rtc_clock_12h')==='true';}catch(e){}
+    var fmt=h12?{hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true}:{hour12:false};
     var els=document.querySelectorAll('#hudClock [data-tz]');
-    for(var i=0;i<els.length;i++){var z=els[i].getAttribute('data-tz');try{els[i].textContent=new Date().toLocaleTimeString('en-US',{hour12:false,timeZone:z});}catch(e){els[i].textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}}
+    for(var i=0;i<els.length;i++){var z=els[i].getAttribute('data-tz');var o={};for(var p in fmt)o[p]=fmt[p];o.timeZone=z;try{els[i].textContent=new Date().toLocaleTimeString('en-US',o);}catch(e){els[i].textContent=new Date().toLocaleTimeString('en-US',fmt);}}
     var openCities=[];
     Object.keys(CITY).forEach(function(k){var on=false;try{on=CITY[k]();}catch(e){ rtcWarn(e); }var row=document.querySelector('#hudClock .wc[data-city="'+k+'"]');if(row){row.classList.toggle('open',on);var st=row.querySelector('.wc-s');if(st)st.textContent=on?'● LIVE':'';}if(on)openCities.push(LABEL[k]);});
     var mkt='futures';try{if(typeof getAccMarket==='function'&&typeof getActiveAcc==='function')mkt=getAccMarket(getActiveAcc());}catch(e){ rtcWarn(e); }
@@ -6002,8 +6018,70 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
     if(sessEl&&sessTxt){var label;if(openCities.length)label=openCities.join(' + ');else if(fs==='HOLIDAY')label='MARKET HOLIDAY';else if(fs==='OPEN')label=(mkt==='forex'?'FOREX · OPEN':'FUTURES · OVERNIGHT');else if(fs==='OPEN247')label='CRYPTO · 24/7';else if(fs==='HALT')label='DAILY HALT';else label='MARKETS CLOSED';sessTxt.textContent=label;sessEl.classList.toggle('closed',!openCities.length&&!isOpen);}
   }
   setInterval(tick,1000);tick();
+  try{ rtcApplyClockPrefs(); }catch(e){ rtcWarn(e); }
 })();
 function rtcStorageUsage() { return RTCStore.usage(); }
+
+// ═══════════════════════════════════════════════════════
+// CLOCK PREFERENCES — 24-hour time is a trading-desk habit, not a
+// universal one. Let the trader pick the format and the sessions that
+// actually matter to them; hiding a city they never trade is a feature.
+// ═══════════════════════════════════════════════════════
+var RTC_CLOCK_CITIES = [
+  { k:'tokyo',  label:'Tokyo'    },
+  { k:'london', label:'London'   },
+  { k:'ny',     label:'New York' }
+];
+function rtcClockHidden() {
+  try {
+    var raw = RTCStore.get('rtc_clock_hidden');
+    var arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch(e) { return []; }
+}
+function rtcApplyClockPrefs() {
+  var hidden = rtcClockHidden();
+  RTC_CLOCK_CITIES.forEach(function(c) {
+    var row = document.querySelector('#hudClock .wc[data-city="' + c.k + '"]');
+    if (row) row.style.display = hidden.indexOf(c.k) >= 0 ? 'none' : '';
+  });
+}
+function rtcToggleClockCity(k) {
+  var hidden = rtcClockHidden();
+  var i = hidden.indexOf(k);
+  if (i >= 0) hidden.splice(i, 1);
+  else if (hidden.length < RTC_CLOCK_CITIES.length - 1) hidden.push(k); // never hide the last one
+  rtcSet('rtc_clock_hidden', JSON.stringify(hidden));
+  rtcApplyClockPrefs();
+  renderClockPrefs();
+  playSound('tick');
+}
+function rtcSetClock12h(on) {
+  rtcSet('rtc_clock_12h', on ? 'true' : 'false');
+  renderClockPrefs();
+  playSound('tick');
+}
+function renderClockPrefs() {
+  var h12 = false;
+  try { h12 = RTCStore.get('rtc_clock_12h') === 'true'; } catch(e) {}
+  ['24','12'].forEach(function(v) {
+    var el = document.getElementById('clkFmt' + v);
+    if (!el) return;
+    var on = (v === '12') === h12;
+    el.style.borderColor = on ? 'var(--gold)' : 'var(--border2)';
+    el.style.background  = on ? 'rgba(var(--gold-rgb),0.08)' : 'var(--bg3)';
+    el.style.color       = on ? 'var(--gold)' : 'var(--muted)';
+  });
+  var hidden = rtcClockHidden();
+  var row = document.getElementById('clockCityRow');
+  if (row) {
+    row.innerHTML = RTC_CLOCK_CITIES.map(function(c) {
+      var on = hidden.indexOf(c.k) < 0;
+      return '<div onclick="rtcToggleClockCity(\'' + c.k + '\')" style="flex:1;padding:11px 4px;text-align:center;cursor:pointer;border-radius:var(--r-sm);border:1.5px solid ' + (on ? 'var(--gold)' : 'var(--border2)') + ';background:' + (on ? 'rgba(var(--gold-rgb),0.08)' : 'var(--bg3)') + ';color:' + (on ? 'var(--gold)' : 'var(--muted)') + ';font-size:12px;font-weight:700;">' + c.label + '</div>';
+    }).join('');
+  }
+}
+
 
 // ═══════════════════════════════════════════════════════
 // LIVE CALENDAR — region tabs. Asia is live while New York sleeps;
