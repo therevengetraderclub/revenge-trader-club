@@ -7,7 +7,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#080808">
-<title>The Revenge Trader Club v2.1</title>
+<title>The Revenge Trader Club — Trading Discipline Journal</title>
+<meta name="description" content="A trading journal built around discipline, not dopamine. Track trades, enforce daily loss limits, run recovery mode, and earn your seals. Done losing. Protect capital. Master yourself.">
+<link rel="canonical" href="https://therevengetraderclub.com/">
+<meta property="og:title" content="The Revenge Trader Club">
+<meta property="og:description" content="A trading journal built around discipline, not dopamine. Done losing. Protect capital. Master yourself.">
+<meta property="og:url" content="https://therevengetraderclub.com/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://therevengetraderclub.com/logo.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="The Revenge Trader Club">
+<meta name="twitter:description" content="A trading journal built around discipline, not dopamine.">
+<meta name="twitter:image" content="https://therevengetraderclub.com/logo.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script>try{var _t=localStorage.getItem('rtc_theme');if(_t&&_t!=='dark')document.documentElement.setAttribute('data-theme',_t);}catch(e){/* pre-boot: runs before the logger exists; a theme read failing is harmless */}</script>
 <style>
@@ -5955,6 +5966,77 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
 })();
 function rtcStorageUsage() { return RTCStore.usage(); }
 
+// ═══════════════════════════════════════════════════════
+// LIVE CALENDAR — region tabs. Asia is live while New York sleeps;
+// the trader picks the session that matters to them and it sticks.
+// ═══════════════════════════════════════════════════════
+var RTC_NEWS_REGIONS = {
+  us:   { label: 'US',     countries: ['USD','CAD','ALL'] },
+  eu:   { label: 'LONDON', countries: ['GBP','EUR','CHF','ALL'] },
+  asia: { label: 'ASIA',   countries: ['JPY','CNY','AUD','NZD','ALL'] }
+};
+function rtcNewsRegion(r) {
+  try { rtcSet('rtc_news_region', r); } catch(e) {}
+  rtcRenderNewsRegion();
+  playSound('tick');
+}
+function rtcRenderNewsRegion() {
+  var feed = window._rtcNewsFeed;
+  var calEl = document.getElementById('newsCalendar');
+  if (!feed || !calEl) return;
+  var region = 'us';
+  try { region = RTCStore.get('rtc_news_region') || 'us'; } catch(e) {}
+  if (!RTC_NEWS_REGIONS[region]) region = 'us';
+  var countries = RTC_NEWS_REGIONS[region].countries;
+  var tNow = new Date();
+  var todays = feed.filter(function(ev){
+    if (!ev.date) return false;
+    var d = new Date(ev.date);
+    return d.getFullYear() === tNow.getFullYear()
+        && d.getMonth() === tNow.getMonth()
+        && d.getDate() === tNow.getDate()
+        && countries.indexOf(ev.country) !== -1;
+  });
+  todays.sort(function(a,b){ return new Date(a.date) - new Date(b.date); });
+  var impMap = { 'High':'high', 'Medium':'medium', 'Low':'low', 'Holiday':'none' };
+  // On-brand impact colors: red / gold / quiet — no more stray teal
+  var colors2 = {
+    high:  { bg:'rgba(var(--red-rgb),0.08)', border:'rgba(var(--red-rgb),0.3)', dot:'var(--red)', lbl:'HIGH' },
+    medium:{ bg:'rgba(var(--gold-rgb),0.08)', border:'rgba(var(--gold-rgb),0.3)', dot:'var(--gold)', lbl:'MED' },
+    low:   { bg:'var(--bg3)', border:'var(--border)', dot:'var(--muted)', lbl:'LOW' },
+    none:  { bg:'var(--bg3)', border:'var(--border)', dot:'var(--faint)', lbl:'' }
+  };
+  var liveHtml = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;">'
+    + '<div style="display:flex;align-items:center;gap:6px;">'
+    + '<div style="width:6px;height:6px;border-radius:50%;background:var(--green);"></div>'
+    + '<div style="font-size:10px;color:var(--muted);letter-spacing:1px;">LIVE · ' + tNow.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) + '</div></div>'
+    + '<div style="display:flex;gap:5px;">'
+    + Object.keys(RTC_NEWS_REGIONS).map(function(k){
+        var on = k === region;
+        return '<button class="btn-plain" onclick="rtcNewsRegion(\'' + k + '\')" style="padding:5px 12px;background:' + (on ? 'rgba(var(--gold-rgb),0.1)' : 'var(--bg3)') + ';border:1px solid ' + (on ? 'var(--gold)' : 'var(--border2)') + ';border-radius:14px;color:' + (on ? 'var(--gold)' : 'var(--muted)') + ';font-size:9.5px;font-weight:800;cursor:pointer;letter-spacing:1.5px;">' + RTC_NEWS_REGIONS[k].label + '</button>';
+      }).join('')
+    + '</div></div>';
+  if (!todays.length) {
+    liveHtml += '<div style="padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;text-align:center;font-size:12px;color:var(--muted);">No scheduled ' + RTC_NEWS_REGIONS[region].label + ' events today. Watch for unscheduled headlines.</div>';
+  }
+  todays.forEach(function(ev){
+    var c = colors2[impMap[ev.impact] || 'low'];
+    var timeStr = new Date(ev.date).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    liveHtml += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+c.bg+';border:1px solid '+c.border+';border-radius:4px;margin-bottom:5px;">'
+      + '<div style="width:7px;height:7px;border-radius:50%;background:'+c.dot+';flex-shrink:0;"></div>'
+      + '<div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--white);">' + String(ev.title||'').replace(/</g,'&lt;') + (RTC_NEWS_REGIONS[region].countries.length > 2 ? ' <span style="font-weight:600;color:var(--faint);font-size:11px;">' + String(ev.country||'').replace(/</g,'&lt;') + '</span>' : '') + '</div>'
+      + '<div style="font-size:12px;color:var(--text2);margin-top:3px;">' + timeStr + (ev.forecast ? ' · Forecast: ' + String(ev.forecast).replace(/</g,'&lt;') : '') + (ev.previous ? ' · Prev: ' + String(ev.previous).replace(/</g,'&lt;') : '') + '</div></div>'
+      + (c.lbl ? '<div style="font-size:11px;font-weight:800;color:'+c.dot+';letter-spacing:1px;">'+c.lbl+'</div>' : '')
+      + '</div>';
+  });
+  var footer = '<div style="display:flex;gap:8px;margin-top:10px;">'
+    + '<a href="https://www.federalreserve.gov/newsevents/calendar.htm" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Fed Speeches</a>'
+    + '<a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Full Calendar</a></div>'
+    + '<div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.6;">Presidential remarks and surprise pressers are unscheduled — keep news alerts on and never hold size through breaking headlines.</div>';
+  calEl.innerHTML = liveHtml + footer;
+}
+
+
 // One button that settles "why can't I hear anything" definitively.
 // Plays TWO beeps through two different pathways so we can tell which link is broken.
 function rtcSoundTest() {
@@ -9836,8 +9918,8 @@ function renderNewsCalendar() {
   const events = weeklyEvents[dow] || [];
   const colors = {
     high:  {bg:'rgba(229,57,53,0.08)',  border:'rgba(229,57,53,0.25)',  dot:'#e53935', lbl:'HIGH'},
-    medium:{bg:'rgba(45,212,191,0.08)', border:'rgba(45,212,191,0.25)', dot:'#2dd4bf', lbl:'MED'},
-    low:   {bg:'rgba(var(--gold-rgb),0.06)', border:'rgba(var(--gold-rgb),0.2)',  dot:'var(--gold)', lbl:'LOW'},
+    medium:{bg:'rgba(var(--gold-rgb),0.08)', border:'rgba(var(--gold-rgb),0.3)', dot:'var(--gold)', lbl:'MED'},
+    low:   {bg:'var(--bg3)', border:'var(--border)',  dot:'var(--muted)', lbl:'LOW'},
     none:  {bg:'var(--bg3)',            border:'var(--border)',          dot:'#404040', lbl:''},
   };
 
@@ -9911,49 +9993,8 @@ function renderNewsCalendar() {
       .then(function(r){ if (!r.ok) throw 0; return r.json(); })
       .then(function(feed){
         if (!Array.isArray(feed) || !feed.length) return;
-        var tNow = new Date();
-        var todays = feed.filter(function(ev){
-          if (!ev.date) return false;
-          var d = new Date(ev.date);
-          return d.getFullYear() === tNow.getFullYear()
-              && d.getMonth() === tNow.getMonth()
-              && d.getDate() === tNow.getDate()
-              && (ev.country === 'USD' || ev.country === 'ALL');
-        });
-        if (!todays.length) {
-          // No US events today — show a calm all-clear instead of the template
-          todays = [];
-        }
-        var impMap = { 'High':'high', 'Medium':'medium', 'Low':'low', 'Holiday':'none' };
-        var colors2 = {
-          high:  { bg:'rgba(229,57,53,0.08)', border:'rgba(229,57,53,0.3)', dot:'#e53935', lbl:'HIGH' },
-          medium:{ bg:'rgba(45,212,191,0.08)', border:'rgba(45,212,191,0.25)', dot:'#2dd4bf', lbl:'MED' },
-          low:   { bg:'rgba(var(--gold-rgb),0.06)', border:'rgba(var(--gold-rgb),0.2)', dot:'var(--gold)', lbl:'LOW' },
-          none:  { bg:'var(--bg3)', border:'var(--border)', dot:'#707070', lbl:'' }
-        };
-        var liveHtml = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">'
-          + '<div style="width:6px;height:6px;border-radius:50%;background:var(--green);"></div>'
-          + '<div style="font-size:10px;color:var(--muted);letter-spacing:1px;">LIVE \u00b7 ' + tNow.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) + '</div></div>';
-        if (!todays.length) {
-          liveHtml += '<div style="padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;text-align:center;font-size:12px;color:var(--muted);">No scheduled US economic events today. Watch for unscheduled headlines.</div>';
-        }
-        todays.sort(function(a,b){ return new Date(a.date) - new Date(b.date); });
-        todays.forEach(function(ev){
-          var c = colors2[impMap[ev.impact] || 'low'];
-          var timeStr = new Date(ev.date).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-          liveHtml += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+c.bg+';border:1px solid '+c.border+';border-radius:4px;margin-bottom:5px;">'
-            + '<div style="width:7px;height:7px;border-radius:50%;background:'+c.dot+';flex-shrink:0;"></div>'
-            + '<div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--white);">' + String(ev.title||'').replace(/</g,'&lt;') + '</div>'
-            + '<div style="font-size:12px;color:var(--text2);margin-top:3px;">' + timeStr + (ev.forecast ? ' \u00b7 Forecast: ' + ev.forecast : '') + (ev.previous ? ' \u00b7 Prev: ' + ev.previous : '') + '</div></div>'
-            + (c.lbl ? '<div style="font-size:11px;font-weight:800;color:'+c.dot+';letter-spacing:1px;">'+c.lbl+'</div>' : '')
-            + '</div>';
-        });
-        // Rebuild: fed banner + live events + links footer (reuse pieces)
-        var footer = '<div style="display:flex;gap:8px;margin-top:10px;">'
-          + '<a href="https://www.federalreserve.gov/newsevents/calendar.htm" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Fed Speeches</a>'
-          + '<a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Full Calendar</a></div>'
-          + '<div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.6;">Presidential remarks and surprise pressers are unscheduled \u2014 keep news alerts on and never hold size through breaking headlines.</div>';
-        calEl.innerHTML = liveHtml + footer;
+        window._rtcNewsFeed = feed;
+        rtcRenderNewsRegion();
       })
       .catch(function(){ /* fallback template already rendered */ });
   } catch(e) { /* file:// or no fetch — fallback stays */ }
