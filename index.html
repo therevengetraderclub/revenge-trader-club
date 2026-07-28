@@ -1675,7 +1675,7 @@ button, .mood-btn, .sleep-btn, .wu-step, .cl-item, .kill-item,
 .sound-toggle:hover{ opacity:1; border-color:var(--gold-dim); }
 /* ON = gold and awake. OFF = dimmed with a slash. The old version only dimmed an
    already-dim icon, so nobody could tell sound was muted. */
-.sound-toggle{ opacity:1 !important; position:relative; }
+.sound-toggle{ opacity:1 !important; }   /* fixed positioning comes from the base rule */
 .sound-toggle svg{ stroke:var(--gold) !important; }
 .sound-toggle.muted{ opacity:.55 !important; border-color:var(--border2) !important; }
 .sound-toggle.muted svg{ stroke:var(--muted) !important; }
