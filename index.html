@@ -5166,6 +5166,15 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       </div>
     </div>
 
+    <!-- ═══ THE CLUB · Discord ═══
+         Discipline is easier with witnesses. This is the only place
+         in the app that points outward. -->
+    <div class="card" style="border-left:2px solid var(--gold-dim);">
+      <div class="card-title">The Club</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.7;">Trading alone is how discipline dies quietly. Accountability threads, updates, and the people doing the same work you are.</div>
+      <a href="https://discord.gg/PBfzWCQxnp" target="_blank" rel="noopener noreferrer" style="display:block;width:100%;box-sizing:border-box;padding:13px;background:rgba(var(--gold-rgb),0.08);border:1px solid var(--gold-dim);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;text-align:center;">Join the Discord</a>
+    </div>
+
     <div class="card">
       <div class="card-title">Sound</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Checklist ticks, check-in notes, and badge unlocks. If you can't hear anything, this button tells you why.</div>
@@ -6013,7 +6022,7 @@ function rtcRenderNewsRegion() {
     + '<div style="display:flex;gap:5px;">'
     + Object.keys(RTC_NEWS_REGIONS).map(function(k){
         var on = k === region;
-        return '<button class="btn-plain" onclick="rtcNewsRegion(\'' + k + '\')" style="padding:5px 12px;background:' + (on ? 'rgba(var(--gold-rgb),0.1)' : 'var(--bg3)') + ';border:1px solid ' + (on ? 'var(--gold)' : 'var(--border2)') + ';border-radius:14px;color:' + (on ? 'var(--gold)' : 'var(--muted)') + ';font-size:9.5px;font-weight:800;cursor:pointer;letter-spacing:1.5px;">' + RTC_NEWS_REGIONS[k].label + '</button>';
+        return '<button class="btn-plain" onclick="rtcNewsRegion(\'' + k + '\')" style="padding:3px 8px;background:' + (on ? 'rgba(var(--gold-rgb),0.1)' : 'var(--bg3)') + ';border:1px solid ' + (on ? 'var(--gold)' : 'var(--border2)') + ';border-radius:10px;color:' + (on ? 'var(--gold)' : 'var(--muted)') + ';font-size:8.5px;font-weight:800;cursor:pointer;letter-spacing:1px;line-height:1.4;">' + RTC_NEWS_REGIONS[k].label + '</button>';
       }).join('')
     + '</div></div>';
   if (!todays.length) {
