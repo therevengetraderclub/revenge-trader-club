@@ -402,40 +402,63 @@ html,body{background:var(--page);font-family:"Inter",sans-serif;color:var(--text
 @media (min-width:900px){
   .welcome-inner{ max-width:580px; padding:48px 40px 80px; }
 }
-/* ═══ ARSENAL · CLAIM + GRID ═══
-   Eleven equal cards read as inventory. The argument does the selling; the grid
-   is evidence it exists, not a list anyone is expected to read top to bottom. */
-.wf-claim{ width:100%; text-align:left; margin-bottom:16px; }
-.wf-claim-line{
-  font-family:Georgia,'Times New Roman',serif;
-  font-size:21px; line-height:1.55; color:var(--white);
-  max-width:560px; letter-spacing:.1px;
+/* ═══ ARSENAL · COLLAPSED CARDS, DESCRIPTION ON HOVER ═══
+   The original card language kept intact — numbered, gold left edge, icon
+   square. Only the description is hidden until you point at a card, which is
+   what made the section six screens tall. */
+.welcome-features{
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:5px; width:100%; margin-bottom:8px; counter-reset:feat;
 }
-.wf-claim-sub{
-  font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.5px;
-  color:var(--muted); margin-top:12px;
+.wf-row{
+  counter-increment:feat;
+  display:flex; align-items:center; gap:11px;
+  background:linear-gradient(90deg,rgba(var(--gold-rgb),0.045),var(--bg2) 55%);
+  border:1px solid var(--border); border-left:2px solid var(--gold-dim);
+  border-radius:4px; padding:10px 13px; text-align:left; cursor:pointer;
+  transition:border-color .18s, background .18s;
 }
-.wf-strip{
-  display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:5px; width:100%; margin-bottom:28px;
+.wf-row:hover, .wf-row:focus-visible, .wf-row.wf-open{
+  border-color:var(--gold); border-left-color:var(--gold);
+  background:linear-gradient(90deg,rgba(var(--gold-rgb),0.11),var(--bg2) 60%);
+  outline:none;
 }
-.wf-tile{
-  display:flex; align-items:center; justify-content:center; gap:7px;
-  padding:11px 8px; background:var(--bg2);
-  border:1px solid var(--border); border-radius:var(--r-sm);
-  font-size:11px; color:var(--text2); text-align:center; cursor:pointer;
-  transition:border-color .2s, color .2s; line-height:1.3;
+.wf-icon{
+  width:26px; height:26px; border-radius:4px; flex-shrink:0;
+  background:rgba(var(--gold-rgb),0.07); border:1px solid var(--gold-dim);
+  display:flex; align-items:center; justify-content:center;
+  transition:background .18s;
 }
-.wf-tile:hover{ border-color:var(--gold-dim); color:var(--white); }
-.wf-tile svg{ width:15px; height:15px; opacity:.7; flex-shrink:0; }
-.wf-tile:hover svg{ opacity:1; }
-.wf-tile-hint{
-  border-style:dashed; border-color:var(--gold-dim); color:var(--gold);
-  font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1px;
+.wf-icon svg{ width:14px; height:14px; }
+.wf-row:hover .wf-icon, .wf-row.wf-open .wf-icon{ background:rgba(var(--gold-rgb),0.16); }
+.wf-body{ min-width:0; }
+.wf-name{ font-size:12px; font-weight:700; color:var(--white); letter-spacing:.1px; }
+.wf-name::before{
+  content:counter(feat,decimal-leading-zero) "  ";
+  font-family:'IBM Plex Mono',monospace; font-weight:700; color:var(--gold); opacity:.75;
 }
-@media (max-width:620px){
-  .wf-strip{ grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .wf-claim-line{ font-size:18px; }
+/* Collapsed by default; grid-template-rows animates to auto without a fixed height */
+.wf-desc{
+  font-size:10.5px; color:var(--muted); line-height:1.5;
+  display:grid; grid-template-rows:0fr; opacity:0;
+  transition:grid-template-rows .2s ease, opacity .18s ease, margin-top .2s ease;
+  overflow:hidden; margin-top:0;
+}
+.wf-row:hover .wf-desc, .wf-row:focus-visible .wf-desc, .wf-row.wf-open .wf-desc{
+  grid-template-rows:1fr; opacity:1; margin-top:3px;
+}
+.wf-hint{
+  font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px;
+  text-transform:uppercase; color:var(--faint);
+  text-align:center; margin-bottom:28px;
+}
+/* Touch devices have no hover — open every description so nothing is hidden. */
+@media (hover:none){
+  .wf-desc{ grid-template-rows:1fr; opacity:1; margin-top:3px; }
+  .wf-hint{ font-size:9.5px; }
+}
+@media (max-width:560px){
+  .welcome-features{ grid-template-columns:1fr; }
 }
 
 .welcome-logo-ring{
@@ -1444,8 +1467,8 @@ input, select, textarea, button {
 
 /* Prevent double-tap zoom on buttons */
 button, .mood-btn, .sleep-btn, .wu-step, .cl-item, .kill-item,
-.style-card, .nav-tab, .wf-tile { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
-.wf-tile * { pointer-events: none; }
+.style-card, .nav-tab, .wf-row { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.wf-row * { pointer-events: none; }
 
 
 /* SAFETY: ensure non-active tabs are never visible */
@@ -3711,27 +3734,88 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <div class="welcome-sub">You've blown accounts. You've chased losses.<br><strong style="color:var(--white);font-weight:600;">That stops today.</strong></div>
     <div class="feat-head">// THE ARSENAL <span>11 SYSTEMS</span></div>
 
-    <!-- The claim carries the section; the grid is proof it was built, not a
-         feature list asking to be read. -->
-    <div class="wf-claim">
-      <div class="wf-claim-line">You don&rsquo;t have a strategy problem. You have a discipline problem &mdash; and discipline is the one thing no indicator measures.</div>
-      <div class="wf-claim-sub">Eleven systems. All of them measure it.</div>
+    <!-- Collapsed to titles so eleven systems fit in six tight rows. Point at
+         one (or tap, on a phone) and it opens to explain itself. -->
+    <div class="welcome-features">
+      <div class="wf-row" tabindex="0" onclick="openFeatureModal('performance')">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <div class="wf-body">
+          <div class="wf-name">The Mirror</div>
+          <div class="wf-desc">Names your Kryptonite and your Edge, in your own numbers</div>
+        </div>
+      </div>
+      <div class="wf-row" tabindex="0" onclick="openFeatureModal('recovery')">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></div>
+        <div class="wf-body">
+          <div class="wf-name">Recovery Mode</div>
+          <div class="wf-desc">After a bad loss the app takes the wheel until you earn it back</div>
+        </div>
+      </div>
+      <div class="wf-row" tabindex="0" onclick="openFeatureModal('risk')">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <div class="wf-body">
+          <div class="wf-name">Risk System</div>
+          <div class="wf-desc">One number, calculated before every trade</div>
+        </div>
+      </div>
+      <div class="wf-row" tabindex="0" onclick="openFeatureModal('tradingmode')">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="wf-body">
+          <div class="wf-name">Trading Mode</div>
+          <div class="wf-desc">Live command center with a kill switch before you tilt</div>
+        </div>
+      </div>
+      <div class="wf-row" tabindex="0" onclick="openFeatureModal('checklist')">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9l2 2 4-4"/><path d="M9 14l2 2 4-4"/></svg></div>
+        <div class="wf-body">
+          <div class="wf-name">Pre-Trade Checklist</div>
+          <div class="wf-desc">8 trading styles. Score dial. Kill switch.</div>
+        </div>
+      </div>
+      <div class="wf-row" tabindex="0" onclick="openFeatureModal('checkin')">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 2.61 1.41 4.88 3.5 6.19V17a1 1 0 001 1h5a1 1 0 001-1v-1.81C17.59 13.88 19 11.61 19 9c0-3.87-3.13-7-7-7z"/><path d="M9 21h6"/></svg></div>
+        <div class="wf-body">
+          <div class="wf-name">Daily Check-In</div>
+          <div class="wf-desc">Mood, sleep, and a live US / London / Asia calendar</div>
+        </div>
+      </div>
+      <div class="wf-row" tabindex="0" onclick="openFeatureModal('journal')">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="14" rx="2"/><line x1="3" y1="21" x2="21" y2="21"/><line x1="7" y1="21" x2="7" y2="17"/><line x1="17" y1="21" x2="17" y2="17"/></svg></div>
+        <div class="wf-body">
+          <div class="wf-name">Trade Journal</div>
+          <div class="wf-desc">Charts, notes, tags and mood on every trade</div>
+        </div>
+      </div>
+      <div class="wf-row" tabindex="0" onclick="openFeatureModal('goals')">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div class="wf-body">
+          <div class="wf-name">Goals + Calendar</div>
+          <div class="wf-desc">Daily target, and a seal for every clean month</div>
+        </div>
+      </div>
+      <div class="wf-row" tabindex="0" onclick="openFeatureModal('badges')">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.9L7 22l5-3 5 3-1.2-8.1"/></svg></div>
+        <div class="wf-body">
+          <div class="wf-name">Seals &amp; Trophy Case</div>
+          <div class="wf-desc">46 badges &mdash; none of them reward trading bigger</div>
+        </div>
+      </div>
+      <div class="wf-row" tabindex="0" onclick="openFeatureModal('mindset')">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 01-4.96-.44 2.5 2.5 0 01-2.96-3.08 3 3 0 01-.34-5.58 2.5 2.5 0 013.32-3.97A2.5 2.5 0 019.5 2z"/><path d="M14.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 004.96-.44 2.5 2.5 0 002.96-3.08 3 3 0 00.34-5.58 2.5 2.5 0 00-3.32-3.97A2.5 2.5 0 0014.5 2z"/></svg></div>
+        <div class="wf-body">
+          <div class="wf-name">Daily Mindset</div>
+          <div class="wf-desc">365 messages, one every morning</div>
+        </div>
+      </div>
+      <div class="wf-row" tabindex="0" onclick="openFeatureModal('multiaccount')">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></div>
+        <div class="wf-body">
+          <div class="wf-name">Multi-Account</div>
+          <div class="wf-desc">Separate journals, goals and rules per account</div>
+        </div>
+      </div>
     </div>
-
-    <div class="wf-strip">
-      <div class="wf-tile" onclick="openFeatureModal('performance')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>The Mirror</span></div>
-      <div class="wf-tile" onclick="openFeatureModal('recovery')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg><span>Recovery Mode</span></div>
-      <div class="wf-tile" onclick="openFeatureModal('risk')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg><span>Risk System</span></div>
-      <div class="wf-tile" onclick="openFeatureModal('tradingmode')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Trading Mode</span></div>
-      <div class="wf-tile" onclick="openFeatureModal('checklist')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9l2 2 4-4"/><path d="M9 14l2 2 4-4"/></svg><span>Checklist</span></div>
-      <div class="wf-tile" onclick="openFeatureModal('checkin')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 2.61 1.41 4.88 3.5 6.19V17a1 1 0 001 1h5a1 1 0 001-1v-1.81C17.59 13.88 19 11.61 19 9c0-3.87-3.13-7-7-7z"/><path d="M9 21h6"/></svg><span>Check-In</span></div>
-      <div class="wf-tile" onclick="openFeatureModal('journal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="14" rx="2"/><line x1="3" y1="21" x2="21" y2="21"/><line x1="7" y1="21" x2="7" y2="17"/><line x1="17" y1="21" x2="17" y2="17"/></svg><span>Journal</span></div>
-      <div class="wf-tile" onclick="openFeatureModal('goals')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Goals</span></div>
-      <div class="wf-tile" onclick="openFeatureModal('badges')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.9L7 22l5-3 5 3-1.2-8.1"/></svg><span>Seals</span></div>
-      <div class="wf-tile" onclick="openFeatureModal('mindset')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 01-4.96-.44 2.5 2.5 0 01-2.96-3.08 3 3 0 01-.34-5.58 2.5 2.5 0 013.32-3.97A2.5 2.5 0 019.5 2z"/><path d="M14.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 004.96-.44 2.5 2.5 0 002.96-3.08 3 3 0 00.34-5.58 2.5 2.5 0 00-3.32-3.97A2.5 2.5 0 0014.5 2z"/></svg><span>Mindset</span></div>
-      <div class="wf-tile" onclick="openFeatureModal('multiaccount')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg><span>Multi-Account</span></div>
-      <div class="wf-tile wf-tile-hint" onclick="openFeatureModal('performance')">Tap for detail</div>
-    </div>
+    <div class="wf-hint">Hover to read &middot; tap for the full breakdown</div>
 
     <div style="width:100%;margin-bottom:12px;">
       <button class="btn-primary" onclick="rtcEnterClub()" style="width:100%;"><span class="skfix">Enter The Club &rarr;</span></button>
