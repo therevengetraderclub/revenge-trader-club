@@ -2720,6 +2720,41 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   .mindset-quote{ font-size:18px; line-height:1.55; }
 }
 
+/* Event list: uncapped until it would dominate the page, then a bounded scroll
+   with a soft fade at the foot so it's obvious there is more below. */
+.news-scroll{ padding-right:2px; }
+.news-scroll.capped{
+  max-height:268px; overflow-y:auto; position:relative;
+  -webkit-mask-image:linear-gradient(to bottom, #000 calc(100% - 22px), transparent 100%);
+          mask-image:linear-gradient(to bottom, #000 calc(100% - 22px), transparent 100%);
+  scrollbar-width:thin; scrollbar-color:var(--gold-dim) transparent;
+}
+.news-scroll.capped::-webkit-scrollbar{ width:5px; }
+.news-scroll.capped::-webkit-scrollbar-track{ background:transparent; }
+.news-scroll.capped::-webkit-scrollbar-thumb{ background:var(--gold-dim); border-radius:3px; }
+.news-scroll.capped::-webkit-scrollbar-thumb:hover{ background:var(--gold); }
+@media (max-width:600px){ .news-scroll.capped{ max-height:212px; } }
+
+/* Region tabs sit beside a one-line timestamp — they should read as a quiet
+   filter, not as three call-to-action buttons. */
+.news-rgn{
+  padding:2px 7px !important;
+  font-size:8px !important;
+  font-weight:700 !important;
+  letter-spacing:.8px !important;
+  line-height:1.5 !important;
+  border-radius:9px !important;
+  background:var(--bg3) !important;
+  border:1px solid var(--border2) !important;
+  color:var(--muted) !important;
+  cursor:pointer;
+}
+.news-rgn.on{
+  background:rgba(var(--gold-rgb),0.1) !important;
+  border-color:var(--gold) !important;
+  color:var(--gold) !important;
+}
+
 /* mindset card + streak read as feature modules */
 #tab-checkin #mindsetCard{
   border-radius:0 !important;
@@ -3170,6 +3205,121 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 }
 /* NOTE: no overflow:hidden on .card — the ticker/direction dropdowns are
    absolutely positioned inside cards and would be clipped shut. */
+
+/* ═══ SETTINGS · BENTO GRID ═══
+   Twelve full-width cards meant a lot of scrolling to reach a one-line button.
+   Each card is now sized to what is actually inside it. Placement is pure CSS
+   and `order` — the DOM sequence is untouched, so every id and handler still
+   resolves, and the phone layout below the breakpoint is exactly as it was. */
+@media (min-width:900px){
+  #tab-settings{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:12px;
+    align-items:stretch;
+  }
+  /* The "// Settings" heading spans the full width and leads */
+  #tab-settings > div:first-child{ grid-column:1 / -1; order:0; margin-bottom:0 !important; }
+  #tab-settings > .card{ margin-bottom:0 !important; }
+
+  #tab-settings .set-account   { grid-column:span 2; grid-row:span 2; order:1; }
+  #tab-settings .set-appearance{ grid-column:span 2; order:2; }
+  #tab-settings .set-sound     { order:3; }
+  #tab-settings .set-club      { order:4; }
+  #tab-settings .set-clock     { grid-column:span 2; order:5; }
+  #tab-settings .set-market    { order:6; }
+  #tab-settings .set-currency  { order:7; }
+  #tab-settings .set-creed     { grid-column:span 3; order:8; }
+  #tab-settings .set-tour      { order:9; }
+  #tab-settings .set-accounts  { grid-column:span 2; order:10; }
+  #tab-settings .set-data      { grid-column:span 2; order:11; }
+  #tab-settings .set-danger    { grid-column:1 / -1; order:12; }
+
+  /* Narrow tiles hold a label and one control — let them breathe less */
+  #tab-settings :is(.set-sound,.set-club,.set-market,.set-currency,.set-tour) .card-sub,
+  #tab-settings :is(.set-sound,.set-club,.set-market,.set-currency,.set-tour) > div[style*="font-size:13px"]{
+    font-size:12px !important; line-height:1.6 !important;
+  }
+  /* Push each tile's action to the bottom so buttons line up across a row */
+  #tab-settings :is(.set-sound,.set-club,.set-tour){ display:flex; flex-direction:column; }
+  #tab-settings :is(.set-sound,.set-club,.set-tour) > :last-child{ margin-top:auto; }
+  /* Market and Currency stack their options in the narrower column */
+  #tab-settings :is(.set-market,.set-currency) > div[style*="grid-template-columns"]{
+    grid-template-columns:1fr 1fr !important;
+  }
+}
+/* One wide column between tablet and desktop — two-across, nothing fancy */
+@media (min-width:640px) and (max-width:899px){
+  #tab-settings{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; align-items:stretch; }
+  #tab-settings > div:first-child{ grid-column:1 / -1; margin-bottom:0 !important; }
+  #tab-settings > .card{ margin-bottom:0 !important; }
+  #tab-settings :is(.set-account,.set-creed,.set-accounts,.set-data,.set-danger){ grid-column:1 / -1; }
+}
+
+/* ═══ RISK · YOUR NUMBER TODAY ═══
+   Four numbers in a row instead of four full-width bars. The one the trader
+   acts on gets the wide tile; the rest are reference. */
+.risk-stats{
+  display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr; gap:8px; margin-bottom:14px;
+}
+.rs-tile{
+  background:var(--bg3); border:1px solid var(--border); border-radius:var(--r-sm);
+  padding:13px 14px; min-width:0;
+}
+.rs-tile.rs-hero{
+  background:linear-gradient(135deg,rgba(var(--gold-rgb),0.09),rgba(var(--gold-rgb),0.03));
+  border-color:var(--gold-dim);
+}
+.rs-lbl{
+  font-size:9.5px; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--muted); margin-bottom:6px; white-space:nowrap;
+}
+.rs-val{
+  font-family:'Inter',sans-serif; font-size:30px; font-weight:900;
+  color:var(--gold); line-height:1; letter-spacing:-1px;
+}
+.rs-val.rs-mid{ font-size:21px; color:var(--white); letter-spacing:-.5px; }
+.rs-note{ font-size:10.5px; color:var(--faint); margin-top:6px; line-height:1.45; }
+
+/* Balance sits on one line with its label and hint — no stranded button. */
+.risk-balance-row{
+  display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+  padding:10px 12px; background:var(--bg2); border:1px solid var(--border);
+  border-radius:var(--r-sm); margin-bottom:12px;
+}
+.rbr-lbl{ font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); }
+.risk-input.rbr-input{ width:118px !important; font-size:14px !important; padding:7px 10px !important; margin:0 !important; }
+.rbr-hint{ font-size:11px; color:var(--faint); flex:1; min-width:120px; }
+.rbr-reset{
+  display:none; padding:6px 11px; background:transparent; border:1px solid var(--border2);
+  border-radius:var(--r-sm); color:var(--muted); font-size:10px; cursor:pointer;
+}
+.risk-donebar{
+  display:none; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  padding:11px 14px; margin-bottom:12px; border-radius:var(--r-sm);
+  background:rgba(var(--red-rgb),0.07); border:1px solid rgba(var(--red-rgb),0.35);
+  font-size:12px; color:var(--text2);
+}
+.risk-donebar strong{ color:var(--red); letter-spacing:1px; font-size:11.5px; }
+.risk-stop{
+  padding:11px 14px; background:var(--bg3); border:1px solid var(--border);
+  border-radius:var(--r-sm); font-size:12px; color:var(--muted);
+  line-height:1.65; text-align:center;
+}
+/* One rule, one line, no nesting. */
+.risk-nonneg{
+  border-left:2px solid var(--red); border-radius:0;
+  background:rgba(var(--red-rgb),0.06);
+  padding:12px 15px; margin-bottom:12px;
+  font-size:12.5px; line-height:1.7; color:var(--text2);
+}
+.risk-nonneg strong{ color:var(--red); }
+@media (max-width:760px){
+  .risk-stats{ grid-template-columns:1fr 1fr; }
+  .rs-tile.rs-hero{ grid-column:1 / -1; }
+  .rs-val{ font-size:26px; }
+  .rbr-hint{ order:3; flex-basis:100%; }
+}
 
 /* DANGER ZONE stays red — semantics beat consistency */
 #tab-settings .card-title[style*="--red"], #tab-settings .card-title.danger{ color:var(--red) !important; }
@@ -4570,114 +4720,62 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div id="rrPendingNote" style="display:none;margin-top:10px;padding:9px 12px;background:rgba(var(--gold-rgb),0.07);border:1px solid rgba(var(--gold-rgb),0.3);border-radius:var(--r-sm);font-size:11px;color:var(--gold);line-height:1.6;"></div>
     </div>
 
+    <!-- ═══ YOUR NUMBER TODAY ═══
+         Was two cards asking for the same balance and dividing it the same way.
+         The app already knows the balance, so nothing is typed and nothing is
+         clicked — the four numbers are on screen the moment the tab opens. -->
     <div class="card">
-      <div class="card-title">The Divide Rule <span id="d7TitleNum" style="color:var(--gold);">&divide; 7</span></div>
-      <div class="card-sub">Enter your current balance to calculate your limits for today. <span id="d7RuleNote"></span></div>
-      <!-- Animated division visual -->
-      <div id="d7DivisionVisual" style="display:none;align-items:center;justify-content:center;gap:14px;margin-bottom:16px;padding:18px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);">
-        <div id="d7VisBalance" style="font-size:22px;font-weight:800;color:var(--white);">$0</div>
-        <div style="font-size:18px;color:var(--gold);font-weight:900;">÷</div>
-        <div id="d7VisDivisor" style="font-size:22px;font-weight:800;color:var(--gold);transform:scale(0.5);opacity:0;transition:transform .4s cubic-bezier(.34,1.56,.64,1), opacity .4s ease;">7</div>
-        <div style="font-size:18px;color:var(--muted);">=</div>
-        <div id="d7VisResult" style="font-size:24px;font-weight:900;color:var(--green);transform:scale(0.5);opacity:0;transition:transform .4s cubic-bezier(.34,1.56,.64,1) .2s, opacity .4s ease .2s;">$0</div>
+      <div class="card-title">Your Number Today <span id="d7TitleNum" style="color:var(--gold);font-size:12px;"></span></div>
+      <div class="card-sub" id="riskFormula" style="margin-bottom:14px;">&mdash;</div>
+
+      <div class="risk-stats">
+        <div class="rs-tile rs-hero">
+          <div class="rs-lbl">Max Risk Per Trade</div>
+          <div class="rs-val" id="psPerTrade">&mdash;</div>
+          <div class="rs-note">Never more than this on one trade</div>
+        </div>
+        <div class="rs-tile" id="psLeft">
+          <div class="rs-lbl">Left Today</div>
+          <div class="rs-val rs-mid" id="psLeftAmt">&mdash;</div>
+          <div class="rs-note" id="psLeftNote">Losses deducted automatically</div>
+        </div>
+        <div class="rs-tile">
+          <div class="rs-lbl">Daily Max Loss</div>
+          <div class="rs-val rs-mid" id="psDailyMax">&mdash;</div>
+          <div class="rs-note" id="psDivisorNote">&mdash;</div>
+        </div>
+        <div class="rs-tile">
+          <div class="rs-lbl">Trades Left</div>
+          <div class="rs-val rs-mid" id="psLeftTrades">&mdash;</div>
+          <div class="rs-note" id="psMaxTradesNote">&mdash;</div>
+        </div>
       </div>
 
-      <div class="risk-result" id="d7Result" style="display:none;">
-        <div class="risk-lbl">Max Daily Loss</div>
-        <div class="risk-amt" id="d7Amt">$0</div>
-        <div class="risk-sub" id="d7Sub">Per trade: $0</div>
+      <div class="risk-balance-row">
+        <span class="rbr-lbl">Balance</span>
+        <input class="risk-input rbr-input" id="psBalance" type="number" inputmode="decimal" oninput="calcRiskPerTrade()">
+        <span class="rbr-hint" id="psBalHint">Pulled from your account &mdash; edit to test a what-if</span>
+        <button class="btn-plain rbr-reset" onclick="rtcResetRiskBalance()" title="Back to your real balance">Reset</button>
       </div>
-      <div class="risk-row">
-        <div class="risk-field">
-          <div class="risk-lbl2">Current Balance ($)</div>
-          <input class="risk-input" id="d7Input" type="number" placeholder="5000">
-        </div>
-        <button class="btn-calc" onclick="calcD7()">Calculate</button>
+
+      <div id="psAllLost" class="risk-donebar">
+        <span id="psAllLostLbl">If you lose every trade today</span>
+        <strong>DONE &mdash; CLOSE THE PLATFORM</strong>
       </div>
+
+      <div class="risk-stop" id="psStopNote">&mdash;</div>
+    </div>
+
+    <!-- The rule needs weight, not a card wrapping a box wrapping a sentence. -->
+    <div class="risk-nonneg">
+      The moment you hit your daily max &mdash; you are <strong>DONE</strong> for the day. Close your platform. Walk away. No second chances. No &ldquo;just one more.&rdquo; <strong>No revenge.</strong>
     </div>
 
     <div class="card" id="d7BreakCard" style="display:none;">
-      <div class="card-title">7-Day Breakdown</div>
-      <div class="card-sub">Your limit adjusts daily as your balance changes. Recalculate after every loss.</div>
+      <div class="card-title">If Today Goes Wrong &mdash; The Next 7 Days</div>
+      <div class="card-sub">Your limit shrinks with your balance. This is what the hole looks like if you keep hitting the max.</div>
       <div class="d7-rows" id="d7Rows"></div>
-    </div>
-
-    <div class="card" style="border-color:#2a1212;">
-      <div class="card-title" style="color:var(--red);">The Non-Negotiable Rule</div>
-      <div style="padding:14px;background:var(--red-dim);border-radius:var(--r-sm);font-size:13px;color:#c07070;line-height:1.7;">
-        The moment you hit your daily max — you are <strong style="color:var(--white);">DONE</strong> for the day. Close your platform. Walk away. No second chances. No "just one more." <strong style="color:var(--white);">No revenge.</strong>
-      </div>
-    </div>
-
-    <!-- DRAWDOWN ALARM -->
-    <!-- Drawdown Alarm removed: duplicated the Risk Rules system and required manual entry of numbers the app already tracks. -->
-
-    <!-- HOW MUCH CAN I RISK -->
-    <div class="card" style="margin-top:4px;">
-      <div class="card-title">How Much Can I Risk Per Trade?</div>
-      <div class="card-sub" style="margin-bottom:16px;">Enter your account balance. We do the math — you get one number to follow before every trade.</div>
-
-      <div style="margin-bottom:14px;">
-        <div class="risk-lbl2" style="margin-bottom:6px;">Account Balance ($)</div>
-        <input class="risk-input" id="psBalance" type="number" placeholder="10000" style="width:100%;font-size:18px;" oninput="calcRiskPerTrade()">
-      </div>
-
-      <button class="btn-gold" style="width:100%;margin-bottom:16px;" onclick="calcRiskPerTrade()">Calculate</button>
-
-      <div id="psResult" style="display:none;">
-
-        <!-- Big answer -->
-        <div style="background:linear-gradient(135deg,rgba(var(--gold-rgb),0.08),rgba(var(--gold-rgb),0.03));border:1px solid var(--gold-dim);border-radius:var(--r);padding:24px;text-align:center;margin-bottom:12px;position:relative;overflow:hidden;">
-          <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent);"></div>
-          <div style="font-size:12px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Max Risk Per Trade Today</div>
-          <div style="font-size:56px;font-weight:900;color:var(--gold);letter-spacing:-1.5px;line-height:1;font-family:'Inter',sans-serif;" id="psPerTrade">$0</div>
-          <div style="font-size:13px;color:var(--muted);margin-top:8px;">Do not risk more than this on any single trade</div>
-        </div>
-
-        <!-- Live remaining budget — auto-updates as trades are logged -->
-        <div id="psLeft" style="display:none;justify-content:space-between;align-items:center;gap:14px;padding:14px 16px;background:var(--bg3);border:1px solid var(--border2);border-left:3px solid var(--green);border-radius:var(--r-sm);margin-bottom:12px;">
-          <div style="min-width:0;">
-            <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Left Today</div>
-            <div id="psLeftAmt" style="font-size:26px;font-weight:900;color:var(--green);font-family:'Inter',sans-serif;line-height:1;">$0</div>
-            <div id="psLeftNote" style="font-size:11px;color:var(--muted);margin-top:5px;">Auto-deducts your logged losses — no math needed</div>
-          </div>
-          <div style="text-align:right;flex-shrink:0;">
-            <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Trades Left</div>
-            <div id="psLeftTrades" style="font-size:26px;font-weight:900;color:var(--white);font-family:'Inter',sans-serif;line-height:1;">3</div>
-          </div>
-        </div>
-
-        <!-- Breakdown -->
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg3);border-radius:var(--r-sm);border:1px solid var(--border);">
-            <div>
-              <div style="font-size:13px;font-weight:700;color:var(--white);">Daily Max Loss</div>
-              <div id="psDivisorNote" style="font-size:12px;color:var(--text2);margin-top:3px;">Balance ÷ 7 — stop trading if you hit this</div>
-            </div>
-            <div style="font-size:20px;font-weight:900;color:var(--white);font-family:'Inter',sans-serif;" id="psDailyMax">$0</div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg3);border-radius:var(--r-sm);border:1px solid var(--border);">
-            <div>
-              <div style="font-size:13px;font-weight:700;color:var(--white);">Max Trades Per Day</div>
-              <div id="psMaxTradesNote" style="font-size:12px;color:var(--text2);margin-top:3px;">3 trades maximum — then you are done</div>
-            </div>
-            <div id="psMaxTradesVal" style="font-size:20px;font-weight:900;color:var(--white);font-family:'Inter',sans-serif;">3</div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(229,57,53,0.06);border-radius:var(--r-sm);border:1px solid #2a1212;">
-            <div>
-              <div style="font-size:13px;font-weight:700;color:var(--white);">If You Lose All 3 Trades</div>
-              <div style="font-size:12px;color:var(--text2);margin-top:3px;">Close the platform. Walk away. Done for the day.</div>
-            </div>
-            <div style="font-size:14px;font-weight:900;color:var(--red);">DONE</div>
-          </div>
-        </div>
-
-        <!-- Rule reminder -->
-        <div style="padding:14px 16px;background:var(--bg3);border-radius:var(--r-sm);border:1px solid var(--border);font-size:12px;color:var(--muted);line-height:1.7;text-align:center;">
-          Set your stop loss so that if it hits — you lose <strong style="color:var(--gold);" id="psPerTradeSmall">$0</strong> or less.<br>
-          That is your only job before you enter the trade.
-        </div>
-      </div>
+      <button class="btn-plain" onclick="document.getElementById('d7BreakCard').style.display='none'" style="width:100%;margin-top:10px;padding:10px;background:transparent;border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--muted);font-size:11px;cursor:pointer;">Hide</button>
     </div>
 
   </div>
@@ -5147,7 +5245,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
     <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold2);-webkit-text-fill-color:var(--gold2);margin:2px 2px 16px;">// Settings</div>
 
-    <div class="card card-top-gold">
+    <div class="card card-top-gold set-account">
       <div class="card-title">Account</div>
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
         <div class="settings-avatar" id="settingsAvatar">JM</div>
@@ -5160,7 +5258,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div id="logoutRow" style="display:none;"></div>
     </div>
 
-    <div class="card">
+    <div class="card set-appearance">
       <div class="card-title">Appearance</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Choose your theme — applies everywhere, instantly.</div>
       <div id="themePickerRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;">
@@ -5179,7 +5277,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       </div>
     </div>
 
-    <div class="card">
+    <div class="card set-market">
       <div class="card-title">Market</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">What this account trades — sets the session status and market hours in the gutter.</div>
       <div id="marketPickerRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;">
@@ -5202,7 +5300,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       </div>
     </div>
 
-    <div class="card">
+    <div class="card set-creed">
       <div class="card-title">Your Creed</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">The words in your gutter, on every screen, 24/7. One line per row — up to 6 lines, 22 characters each. Your last line gets the gold.</div>
       <textarea id="creedInput" rows="6" spellcheck="false" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-left:2px solid var(--gold-dim);border-radius:var(--r-sm);padding:12px 14px;color:var(--white);font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;line-height:1.9;resize:vertical;"></textarea>
@@ -5215,13 +5313,13 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <!-- ═══ THE CLUB · Discord ═══
          Discipline is easier with witnesses. This is the only place
          in the app that points outward. -->
-    <div class="card" style="border-left:2px solid var(--gold-dim);">
+    <div class="card set-club" style="border-left:2px solid var(--gold-dim);">
       <div class="card-title">The Club</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.7;">Trading alone is how discipline dies quietly. Accountability threads, updates, and the people doing the same work you are.</div>
       <a href="https://discord.gg/PBfzWCQxnp" target="_blank" rel="noopener noreferrer" style="display:block;width:100%;box-sizing:border-box;padding:13px;background:rgba(var(--gold-rgb),0.08);border:1px solid var(--gold-dim);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;text-align:center;">Join the Discord</a>
     </div>
 
-    <div class="card">
+    <div class="card set-clock">
       <div class="card-title">Clock</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">The session clock in your gutter. Show only the sessions you trade.</div>
       <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Time Format</div>
@@ -5234,20 +5332,20 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div style="font-size:11px;color:var(--faint);margin-top:10px;line-height:1.6;">Tap to hide a session. At least one always stays.</div>
     </div>
 
-    <div class="card">
+    <div class="card set-tour">
       <div class="card-title">Tour</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">A walk through every tab and what it is for. Replay it any time — your goal and risk rules are left exactly as they are.</div>
       <button class="btn-plain" onclick="rtcReplayTour()" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--gold-dim);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">Replay the Tour</button>
     </div>
 
-    <div class="card">
+    <div class="card set-sound">
       <div class="card-title">Sound</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Checklist ticks, check-in notes, and badge unlocks. If you can't hear anything, this button tells you why.</div>
       <button class="btn-plain" onclick="rtcSoundTest()" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--gold-dim);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">Play Test Sound</button>
       <div id="soundTestOut" style="font-size:12px;color:var(--text2);margin-top:10px;line-height:1.7;"></div>
     </div>
 
-    <div class="card">
+    <div class="card set-currency">
       <div class="card-title">Currency</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">How this account's numbers display. No conversion — just your symbol.</div>
       <div id="currencyRow" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
@@ -5266,7 +5364,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       </div>
     </div>
 
-    <div class="card">
+    <div class="card set-accounts">
       <div class="card-title">Trading Accounts <span id="settingsAccCount" style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);-webkit-text-fill-color:var(--muted);">—</span></div>
       <div class="card-sub">Each account has its own separate journal, stats, and goals. Switch anytime.</div>
       <div id="accountList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
@@ -5318,7 +5416,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
 
     <!-- DATA EXPORT -->
-    <div class="card" style="border-color:rgba(var(--gold-rgb),0.15);">
+    <div class="card set-data" style="border-color:rgba(var(--gold-rgb),0.15);">
       <div class="card-title">Your Data</div>
       <div class="card-sub" style="margin-bottom:14px;">Export all your trades, journals, goals, and settings as a backup file. Keep it safe — it’s your entire trading history.</div>
       <button onclick="exportAllData()" class="btn-gold" style="width:100%;font-size:13px;font-weight:700;letter-spacing:1px;padding:13px;">Export My Data (JSON)</button>
@@ -5332,7 +5430,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <div style="font-size:11px;color:var(--faint);text-align:center;margin-top:8px;">Save this file somewhere safe. You can restore it later.</div>
     </div>
 
-    <div class="card" style="border-color:#2a1212;">
+    <div class="card set-danger" style="border-color:#2a1212;">
       <div class="card-title" style="color:var(--red);">Danger Zone</div>
       <div style="display:flex;flex-direction:column;gap:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 14px;background:var(--bg3);border-radius:var(--r-sm);">
@@ -6147,16 +6245,19 @@ function rtcRenderNewsRegion() {
   var liveHtml = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;">'
     + '<div style="display:flex;align-items:center;gap:6px;">'
     + '<div style="width:6px;height:6px;border-radius:50%;background:var(--green);"></div>'
-    + '<div style="font-size:10px;color:var(--muted);letter-spacing:1px;">LIVE · ' + tNow.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) + '</div></div>'
+    + '<div style="font-size:10px;color:var(--muted);letter-spacing:1px;">LIVE · ' + tNow.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) + (todays.length ? ' · ' + todays.length + ' EVENT' + (todays.length === 1 ? '' : 'S') : '') + '</div></div>'
     + '<div style="display:flex;gap:5px;">'
     + Object.keys(RTC_NEWS_REGIONS).map(function(k){
         var on = k === region;
-        return '<button class="btn-plain" onclick="rtcNewsRegion(\'' + k + '\')" style="padding:3px 8px;background:' + (on ? 'rgba(var(--gold-rgb),0.1)' : 'var(--bg3)') + ';border:1px solid ' + (on ? 'var(--gold)' : 'var(--border2)') + ';border-radius:10px;color:' + (on ? 'var(--gold)' : 'var(--muted)') + ';font-size:8.5px;font-weight:800;cursor:pointer;letter-spacing:1px;line-height:1.4;">' + RTC_NEWS_REGIONS[k].label + '</button>';
+        return '<button class="btn-plain news-rgn' + (on ? ' on' : '') + '" onclick="rtcNewsRegion(\'' + k + '\')">' + RTC_NEWS_REGIONS[k].label + '</button>';
       }).join('')
     + '</div></div>';
   if (!todays.length) {
     liveHtml += '<div style="padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;text-align:center;font-size:12px;color:var(--muted);">No scheduled ' + RTC_NEWS_REGIONS[region].label + ' events today. Watch for unscheduled headlines.</div>';
   }
+  // A heavy news day should not push the check-in off the screen. Past four
+  // events the list becomes its own scroll region and the card stops growing.
+  if (todays.length) liveHtml += '<div class="news-scroll' + (todays.length > 4 ? ' capped' : '') + '">';
   todays.forEach(function(ev){
     var c = colors2[impMap[ev.impact] || 'low'];
     var timeStr = new Date(ev.date).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
@@ -6167,6 +6268,7 @@ function rtcRenderNewsRegion() {
       + (c.lbl ? '<div style="font-size:11px;font-weight:800;color:'+c.dot+';letter-spacing:1px;">'+c.lbl+'</div>' : '')
       + '</div>';
   });
+  if (todays.length) liveHtml += '</div>';
   var footer = '<div style="display:flex;gap:8px;margin-top:10px;">'
     + '<a href="https://www.federalreserve.gov/newsevents/calendar.htm" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Fed Speeches</a>'
     + '<a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:9px;border:1px solid var(--border2);border-radius:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">Full Calendar</a></div>'
@@ -8110,6 +8212,7 @@ function switchTab(tab, el) {
   if (tab === 'checklist') { renderChecklist(); try{renderSavedTickers();}catch(e){ rtcWarn(e); } }
   if (tab === 'goals')     { renderGoals(); try{renderMonthlyLetter();}catch(e){ rtcWarn(e); } try{renderTradingTimeline();}catch(e){ rtcWarn(e); } }
   if (tab === 'settings')  renderSettings();
+  if (tab === 'risk')      { try{ calcRiskPerTrade(); renderRiskRules(); }catch(e){ rtcWarn(e); } }
   try{renderSessionStrip();}catch(e){ rtcWarn(e); }
   if (tab === 'recovery')  { try{renderRecoveryMode();}catch(e){ rtcWarn(e); } }
   if (tab === 'checkin')   { renderMindset(); renderStreakBanner(); renderNewsCalendar(); try{renderWarmup();}catch(e){ rtcWarn(e); } try{renderTodaysFocus();}catch(e){ rtcWarn(e); } try{renderComebackCard();}catch(e){ rtcWarn(e); } }
@@ -8154,11 +8257,8 @@ function loadDash() {
   try { renderPerf(); }      catch(e) { console.warn('renderPerf failed:', e); }
   try { renderSettings(); }  catch(e) { console.warn('renderSettings failed:', e); }
 
-  // Prefill risk calculator
-  if (acc.balance > 0) {
-    const d7 = document.getElementById('d7Input');
-    if (d7) d7.value = acc.balance;
-  }
+  // Risk numbers derive from the live balance — nothing to prefill, just render.
+  try { calcRiskPerTrade(); } catch(e) { rtcWarn(e); }
   // Daily intelligence pack — fire immediately
   try { renderWelcomeBack(); } catch(e) { rtcWarn(e); }
   try { renderTodaysFocus(); } catch(e) { rtcWarn(e); }
@@ -8721,38 +8821,13 @@ function renderCustomItemsList() {
 }
 
 // ── RISK / DIV 7 ────────────────────────────────────────────────
-function calcD7() {
-  const bal = parseFloat((document.getElementById('d7Input') || {}).value);
+function calcD7(balance) {
+  const bal = parseFloat(balance);
   if (!bal || bal <= 0) return;
   const _dr = getAccRules(getActiveAcc());
   const maxRisk = bal / _dr.divisor, perTrade = maxRisk / _dr.maxTrades;
-  const result = document.getElementById('d7Result');
-  const card   = document.getElementById('d7BreakCard');
-  const amt    = document.getElementById('d7Amt');
-  const sub    = document.getElementById('d7Sub');
-  const rows   = document.getElementById('d7Rows');
+  const rows = document.getElementById('d7Rows');
 
-  // Animated division visual
-  const visWrap = document.getElementById('d7DivisionVisual');
-  const visBal  = document.getElementById('d7VisBalance');
-  const visDiv  = document.getElementById('d7VisDivisor');
-  const visRes  = document.getElementById('d7VisResult');
-  if (visWrap && visBal && visDiv && visRes) {
-    visWrap.style.display = 'flex';
-    visBal.textContent = '$' + bal.toLocaleString();
-    visDiv.style.transform = 'scale(0.5)'; visDiv.style.opacity = '0';
-    visRes.style.transform = 'scale(0.5)'; visRes.style.opacity = '0';
-    visRes.textContent = '$' + maxRisk.toFixed(2);
-    requestAnimationFrame(() => {
-      visDiv.style.transform = 'scale(1)'; visDiv.style.opacity = '1';
-      visRes.style.transform = 'scale(1)'; visRes.style.opacity = '1';
-    });
-  }
-
-  if (result) result.style.display = 'block';
-  if (amt) animateDollarCountUp(amt, maxRisk, 200);
-  if (sub) setTimeout(() => { sub.textContent = 'Per trade: ' + curSym() + perTrade.toFixed(2) + ' (' + _dr.maxTrades + ' max trade' + (_dr.maxTrades !== 1 ? 's' : '') + ')'; }, 400);
-  if (card) card.style.display = 'block';
 
   if (rows) {
     let rowsHtml = '', b = bal;
@@ -8769,14 +8844,6 @@ function calcD7() {
     });
   }
 
-  // Locked-in pulse on the card
-  if (result) {
-    result.classList.add('risk-locked-in');
-    setTimeout(() => result.classList.remove('risk-locked-in'), 900);
-  }
-
-  const btn = document.querySelector('[onclick="calcD7()"]');
-  if (btn) { const o=btn.textContent; btn.classList.add('fired'); btn.textContent='Done'; setTimeout(()=>{btn.classList.remove('fired');btn.textContent=o;},1800); }
 }
 
 // Dollar count-up helper (used by calcD7)
@@ -10571,45 +10638,54 @@ function openNativeFullscreen(img) {
 // ═══════════════════════════════════════════════════════
 
 function calcRiskPerTrade() {
-  const balance  = parseFloat(document.getElementById('psBalance')?.value) || 0;
-  const result   = document.getElementById('psResult');
-  if (!balance || balance <= 0) { if (result) result.style.display = 'none'; return; }
+  var input = document.getElementById('psBalance');
+  if (!input) return;
+  var real = rtcLiveBalance(getActiveAcc());
+  var typed = parseFloat(input.value);
+  var balance = (typed && typed > 0) ? typed : real;
 
-  const _rules    = getEffectiveRules(getActiveAcc());
-  const dailyMax  = balance / _rules.divisor;
-  const perTrade  = dailyMax / _rules.maxTrades;
-  // Keep the explainer copy in sync with the personal rules
-  (function(){
-    var dn = document.getElementById('psDivisorNote');
-    if (dn) dn.textContent = _rules.recovery ? 'RECOVERY MODE — half size until you earn it back' : ('Balance ÷ ' + _rules.divisor + ' — stop trading if you hit this');
-    var mn = document.getElementById('psMaxTradesNote');
-    if (mn) mn.textContent = _rules.recovery ? 'One trade per session — recovery rule' : (_rules.maxTrades + ' trade' + (_rules.maxTrades !== 1 ? 's' : '') + ' maximum — then you are done');
-    var mv = document.getElementById('psMaxTradesVal');
-    if (mv) mv.textContent = _rules.maxTrades;
-  })();
+  var hint = document.getElementById('psBalHint');
+  var reset = document.querySelector('.rbr-reset');
+  var isWhatIf = typed > 0 && Math.abs(typed - real) > 0.005;
+  if (hint) hint.textContent = isWhatIf
+    ? 'What-if \u2014 your real balance is ' + curSym() + real.toLocaleString()
+    : 'Pulled from your account \u2014 edit to test a what-if';
+  if (hint) hint.style.color = isWhatIf ? 'var(--gold)' : 'var(--faint)';
+  if (reset) reset.style.display = isWhatIf ? '' : 'none';
 
-  if (result) result.style.display = 'block';
-
-  const fmt = (n) => curSym() + n.toFixed(2);
-  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-
-  set('psPerTrade',      fmt(perTrade));
-  set('psPerTradeSmall', fmt(perTrade));
-  set('psDailyMax',      fmt(dailyMax));
-
-  // Also prefill D7 calculator
-  const d7 = document.getElementById('d7Input');
-  if (d7 && !d7.value) d7.value = balance;
-
-  // Button feedback
-  const btn = document.querySelector('[onclick="calcRiskPerTrade()"]');
-  if (btn) {
-    const o = btn.textContent;
-    btn.classList.add('fired'); btn.textContent = '✓ Done';
-    setTimeout(() => { btn.classList.remove('fired'); btn.textContent = o; }, 1800);
+  var set = function(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+  if (!balance || balance <= 0) {
+    ['psPerTrade','psLeftAmt','psDailyMax','psLeftTrades'].forEach(function(id){ set(id, '\u2014'); });
+    set('riskFormula', 'Set your account balance in Settings and these numbers appear here.');
+    set('psStopNote', '\u2014');
+    return;
   }
 
+  var r = getEffectiveRules(getActiveAcc());
+  var dailyMax = balance / r.divisor;
+  var perTrade = dailyMax / r.maxTrades;
+  var fmt = function(n) { return curSym() + n.toFixed(2); };
+
+  set('psPerTrade', fmt(perTrade));
+  set('psDailyMax', fmt(dailyMax));
+  set('riskFormula', curSym() + balance.toLocaleString() + ' \u00f7 ' + r.divisor + ' \u00f7 ' + r.maxTrades + ' trade' + (r.maxTrades !== 1 ? 's' : ''));
+  set('d7TitleNum', r.recovery ? 'RECOVERY' : '\u00f7 ' + r.divisor);
+  set('psDivisorNote', r.recovery ? 'Recovery clamp \u2014 half size until you earn it back' : 'Balance \u00f7 ' + r.divisor);
+  set('psMaxTradesNote', r.recovery ? 'One trade per session \u2014 recovery rule' : 'of ' + r.maxTrades + ' allowed today');
+  // The old copy hard-coded "3 trades" and lied whenever the rule was anything else.
+  set('psAllLostLbl', r.maxTrades === 1 ? 'If you lose your one trade today' : 'If you lose all ' + r.maxTrades + ' trades today');
+  set('psStopNote', 'Set your stop so that if it hits, you lose ' + fmt(perTrade) + ' or less. That is your only job before you enter.');
+
   try { updateRiskRemaining(); } catch(e) { rtcWarn(e); }
+  try { calcD7(balance); } catch(e) { rtcWarn(e); }
+}
+
+// Drop the what-if and return to the account's real balance.
+function rtcResetRiskBalance() {
+  var input = document.getElementById('psBalance');
+  if (input) input.value = '';
+  calcRiskPerTrade();
+  playSound('tick');
 }
 
 // ── LIVE DAILY-RISK BUDGET ────────────────────────────────
@@ -10619,7 +10695,7 @@ function updateRiskRemaining() {
   var wrap = document.getElementById('psLeft'); if (!wrap) return;
   var bal = parseFloat((document.getElementById('psBalance') || {}).value) || 0;
   if (!bal || bal <= 0) { bal = rtcLiveBalance(getActiveAcc()); }
-  if (!bal || bal <= 0) { wrap.style.display = 'none'; return; }
+  if (!bal || bal <= 0) { return; }
   var rules = getEffectiveRules(getActiveAcc());
   var dailyMax = bal / rules.divisor;
 
@@ -10647,25 +10723,21 @@ function updateRiskRemaining() {
   var trEl  = document.getElementById('psLeftTrades');
   var note  = document.getElementById('psLeftNote');
   if (amtEl) { amtEl.textContent = curSym() + left.toFixed(2); amtEl.style.color = col; }
-  wrap.style.borderLeftColor = col;
-  if (trEl) { trEl.textContent = tradesLeft; trEl.style.color = tradesLeft === 0 ? 'var(--red)' : tradesLeft === 1 ? 'var(--orange)' : 'var(--white)'; }
+  wrap.style.borderColor = col;
+  if (trEl) { trEl.textContent = tradesLeft; trEl.style.color = tradesLeft === 0 ? 'var(--red)' : tradesLeft === 1 ? 'var(--orange)' : ''; }
   if (note) {
-    if (left <= 0 || tradesLeft === 0) { note.textContent = 'DONE for today — close the platform. No revenge.'; note.style.color = 'var(--red)'; note.style.fontWeight = '700'; }
-    else if (net < 0) { note.textContent = curSym() + Math.abs(net).toFixed(2) + ' in losses already deducted today'; note.style.color = 'var(--muted)'; note.style.fontWeight = '400'; }
-    else { note.textContent = 'Auto-deducts your logged losses — no math needed'; note.style.color = 'var(--muted)'; note.style.fontWeight = '400'; }
+    if (left <= 0 || tradesLeft === 0) { note.textContent = 'Done for today — close the platform.'; note.style.color = 'var(--red)'; }
+    else if (net < 0) { note.textContent = curSym() + Math.abs(net).toFixed(2) + ' already deducted today'; note.style.color = ''; }
+    else { note.textContent = 'Losses deducted automatically'; note.style.color = ''; }
   }
-  wrap.style.display = 'flex';
+  // The blunt reminder only earns its space once the day can actually end.
+  var done = document.getElementById('psAllLost');
+  if (done) done.style.display = (left <= 0 || tradesLeft === 0) ? 'flex' : '';
 }
 
-// Prefill balance from active account
-function prefillPSBalance() {
-  const acc = getActiveAcc();
-  const bal = rtcLiveBalance(acc);   // starting balance + everything logged since
-  if (bal > 0) {
-    const balEl = document.getElementById('psBalance');
-    if (balEl) { balEl.value = Math.round(bal * 100) / 100; calcRiskPerTrade(); }
-  }
-}
+// Kept as a name other code calls. The balance field is now a what-if input that
+// stays empty by default, so this just recomputes from the live balance.
+function prefillPSBalance() { try { calcRiskPerTrade(); } catch(e) { rtcWarn(e); } }
 
 // (Drawdown Alarm removed — the live Risk Rules system replaced it.)
 
