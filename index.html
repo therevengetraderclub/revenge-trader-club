@@ -82,6 +82,17 @@ html:is([data-theme="light"],[data-theme="rose"]) #killTakeover{
 }
 /* The unlock moment used a dark scrim: on light themes the near-black headline
    sat on a near-black wash and vanished. Light themes get a light scrim. */
+/* Modal scrims were written at 0.85-0.92 black for the dark theme, where they read
+   as "the room dimmed". On light and rose that same value reads as "the app turned
+   off" — a black void with a pale card floating in it. Dim, don't extinguish. */
+html:is([data-theme="light"],[data-theme="rose"]) :is(
+  #calShareModal, #shareCardModal, #editTradeModal, #calDayPanel,
+  #editPnlModal, #reviewModal, #featureModal
+){ background:rgba(28,26,22,0.42) !important; }
+html:is([data-theme="light"],[data-theme="rose"]) :is(#logOverlay, #tmOutcomePrompt){
+  background:rgba(28,26,22,0.30) !important;
+}
+
 html:is([data-theme="light"],[data-theme="rose"]) #badgeUnlock{
   background:radial-gradient(ellipse at center, rgba(var(--gold-rgb),0.14) 0%, rgba(var(--gold-rgb),0) 60%), rgba(255,255,255,0.93) !important;
 }
@@ -3516,7 +3527,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     <div class="tape">ACCOUNTABILITY <b>//</b> DISCIPLINE <b>//</b> RESULTS <span class="beta">BETA</span></div>
     <div class="welcome-divider"></div>
     <div class="welcome-sub">You've blown accounts. You've chased losses.<br><strong style="color:var(--white);font-weight:600;">That stops today.</strong></div>
-    <div class="feat-head">// THE ARSENAL <span>09 SYSTEMS</span></div>
+    <div class="feat-head">// THE ARSENAL <span>11 SYSTEMS</span></div>
 
     <div class="welcome-features">
 
@@ -3527,12 +3538,12 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
       <div class="wf-row" onclick="openFeatureModal('checklist')" style="cursor:pointer;">
         <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9l2 2 4-4"/><path d="M9 14l2 2 4-4"/></svg></div>
-        <div><div class="wf-name">Pre-Trade Checklist</div><div class="wf-desc">7 trading styles — each checklist built for your specific struggles. Score dial. Kill switch.</div></div>
+        <div><div class="wf-name">Pre-Trade Checklist</div><div class="wf-desc">8 trading styles — each checklist built for your specific struggles. Score dial. Kill switch.</div></div>
       </div>
 
       <div class="wf-row" onclick="openFeatureModal('checkin')" style="cursor:pointer;">
         <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 2.61 1.41 4.88 3.5 6.19V17a1 1 0 001 1h5a1 1 0 001-1v-1.81C17.59 13.88 19 11.61 19 9c0-3.87-3.13-7-7-7z"/><path d="M9 21h6"/></svg></div>
-        <div><div class="wf-name">Daily Check-In</div><div class="wf-desc">Mood, sleep quality, economic calendar & customizable pre-market warmup</div></div>
+        <div><div class="wf-name">Daily Check-In</div><div class="wf-desc">Mood, sleep quality, a live US / London / Asia economic calendar & a customizable pre-market warmup</div></div>
       </div>
 
       <div class="wf-row" onclick="openFeatureModal('risk')" style="cursor:pointer;">
@@ -3543,7 +3554,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
       <div class="wf-row" onclick="openFeatureModal('goals')" style="cursor:pointer;">
         <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <div><div class="wf-name">Goal Planner + Calendar</div><div class="wf-desc">Set a profit goal, get a daily target, log your P&L — track every day on a visual calendar</div></div>
+        <div><div class="wf-name">Goal Planner + Calendar</div><div class="wf-desc">Set a profit goal, get a daily target, log your P&L — and earn a seal on the calendar for every clean month</div></div>
       </div>
 
       <div class="wf-row" onclick="openFeatureModal('journal')" style="cursor:pointer;">
@@ -3553,12 +3564,22 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
       <div class="wf-row" onclick="openFeatureModal('performance')" style="cursor:pointer;">
         <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
-        <div><div class="wf-name">Performance Intelligence</div><div class="wf-desc">Mood vs performance, best time to trade, pattern alerts & weekly risk report</div></div>
+        <div><div class="wf-name">Performance Intelligence</div><div class="wf-desc">The Mirror names your Kryptonite and your Edge in your own numbers — plus best hours, tag performance & a weekly risk report</div></div>
       </div>
 
       <div class="wf-row" onclick="openFeatureModal('recovery')" style="cursor:pointer;">
         <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></div>
-        <div><div class="wf-name">Recovery Mode</div><div class="wf-desc">Took a hit? A structured cooldown and step-by-step path back — rebuild discipline before you rebuild the account</div></div>
+        <div><div class="wf-name">Recovery Mode</div><div class="wf-desc">Took a hit? Accept the terms and the app takes the wheel — one trade a day, one mission a morning, four stages back</div></div>
+      </div>
+
+      <div class="wf-row" onclick="openFeatureModal('tradingmode')" style="cursor:pointer;">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div><div class="wf-name">Trading Mode</div><div class="wf-desc">A live command center for an active session — risk, trades left, drawdown and P&L on one screen, with a kill switch before you tilt</div></div>
+      </div>
+
+      <div class="wf-row" onclick="openFeatureModal('badges')" style="cursor:pointer;">
+        <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.9L7 22l5-3 5 3-1.2-8.1"/></svg></div>
+        <div><div class="wf-name">Seals &amp; Trophy Case</div><div class="wf-desc">46 badges for discipline, honesty, sleep and showing up — none of them reward trading bigger</div></div>
       </div>
 
       <div class="wf-row" onclick="openFeatureModal('multiaccount')" style="grid-column:1/-1;cursor:pointer;">
@@ -3771,7 +3792,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   </button>
 
   <!-- ONBOARDING OVERLAY -->
-  <div id="onboardingOverlay" style="display:none;position:fixed;inset:0;background:#060606;z-index:10003;align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
+  <div id="onboardingOverlay" style="display:none;position:fixed;inset:0;background:var(--page);z-index:10003;align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
     <div onclick="event.stopPropagation()" class="ob-panel" style="width:100%;max-width:480px;">
 
       <div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-path">rtc://onboarding — getting started</span><span class="term-stat"><i></i>LIVE</span></div>
@@ -6159,12 +6180,12 @@ function rtcRenderNewsRegion() {
 function rtcSoundTest() {
   var out = document.getElementById('soundTestOut');
   var say = function(msg, ok) { if (out) out.innerHTML = '<span style="color:' + (ok ? 'var(--green)' : 'var(--red)') + ';font-weight:700;">' + msg + '</span>'; };
-  if (!soundEnabled) { say('Sound is MUTED in the app — tap the speaker button in the bottom-right rail, then test again.', false); return; }
+  if (!soundEnabled) { say('Sound is muted in the app. Tap the speaker button in the bottom-right corner, then test again.', false); return; }
   var ctx = getAudioCtx();
-  if (!ctx) { say('This browser blocked audio entirely (no AudioContext). Try Safari or Chrome.', false); return; }
+  if (!ctx) { say('This browser blocked audio entirely. Try Chrome or Safari.', false); return; }
   var run = function() {
-    var errs = [];
-    // Beep 1 — straight from the sound engine, loud and unmissable
+    // One beep, straight from the same engine every other sound uses. If this
+    // is audible, the app is audible — there is no second pathway to check.
     try {
       var o = ctx.createOscillator(), g = ctx.createGain();
       o.type = 'sine'; o.frequency.value = 880;
@@ -6174,21 +6195,10 @@ function rtcSoundTest() {
       g.gain.linearRampToValueAtTime(0.3, t + 0.03);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
       o.start(t); o.stop(t + 0.6);
-    } catch(e) { errs.push('engine: ' + e.message); }
-    // Beep 2 — a plain media file, the same pathway YouTube uses
-    setTimeout(function() {
-      try {
-        var wav = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'
-          + btoa(String.fromCharCode.apply(null, (function(){ var a=[]; for (var i=0;i<8000;i++){ a.push(128 + Math.round(90*Math.sin(i*2*Math.PI*660/8000))); } return a; })()));
-        var au = new Audio(wav);
-        au.volume = 1;
-        au.play().catch(function(e){ if (out) out.innerHTML += '<br><span style="color:var(--red);">media: ' + e.message + '</span>'; });
-      } catch(e) { if (out) out.innerHTML += '<br><span style="color:var(--red);">media: ' + e.message + '</span>'; }
-    }, 900);
-    if (errs.length) say('Engine error: ' + errs.join(' · '), false);
-    else say('Engine running (state: ' + ctx.state + '). TWO beeps played — a high tone from the sound engine, then a lower tone from a media file. Tell me which you heard: both, only the second, or neither.', true);
+    } catch(e) { say('Engine error: ' + e.message, false); return; }
+    say('Sound engine running. You should have heard one short beep. If you did not, check your device volume and that this tab is not muted.', true);
   };
-  if (ctx.state === 'suspended') { try { ctx.resume().then(run).catch(function(){ say('Audio engine refused to start.', false); }); } catch(e) { say('Audio engine error: ' + e.message, false); } }
+  if (ctx.state === 'suspended') { try { ctx.resume().then(run).catch(function(){ say('Audio engine refused to start. Tap anywhere on the page, then test again.', false); }); } catch(e) { say('Audio engine error: ' + e.message, false); } }
   else run();
 }
 
@@ -13026,8 +13036,27 @@ const FEATURE_DETAILS = {
     title: 'Recovery Mode',
     tagline: 'The comeback, turned into a process',
     body: '<p>Everyone tells you to just stop revenge trading. Nobody gives you a system for the moment right after a loss — when you are down, emotional, and one click away from making it worse. That moment is exactly what Recovery Mode is built for.</p>'
-      + '<p>Took a hit? Enter what you lost and start the protocol. RTC puts you in a structured cooldown, walks you through a step-by-step path back, and tracks your progress out of the hole.</p>'
-      + '<p>It is not about making it back fast. It is about rebuilding your discipline before you rebuild the account — so the comeback is real, instead of the setup for another blowup. This is the heart of the club: the comeback starts here.</p>',
+      + '<p>It does not start quietly. You read the terms and accept them: one trade a day, smaller size, until you have earned your way out. From that moment the app enforces it — the limits are no longer a suggestion you can talk yourself past.</p>'
+      + '<p>Every morning it gives you a single number. That is today\u2019s mission. Hit it and stop. You climb out through four stages, and each one loosens the clamp a little, but only clean days move you forward. Winning big does not skip a stage.</p>'
+      + '<p>When it ends, your standing rules come back exactly as they were, and nothing you earned before recovery is erased. It is not about making it back fast. It is about rebuilding your discipline before you rebuild the account.</p>',
+  },
+  tradingmode: {
+    icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+    title: 'Trading Mode',
+    tagline: 'Your command center while the session is live',
+    body: '<p>Preparation happens before the bell. Trading Mode is for everything after it — the stretch where most damage gets done, because that is when you stop checking your rules and start reacting.</p>'
+      + '<p>One tap opens a focused overlay: risk per trade, trades left today, drawdown against your limit, live P&L, and your discipline score. No tab-hopping, no math in your head, no excuse for not knowing where you stand.</p>'
+      + '<p>A pre-trade kill switch sits beside it. Four honest questions — am I outside a valid window, is there no real setup, am I fighting the higher timeframe, have I already hit my max loss. Answer yes to any and the app says it plainly before you click.</p>'
+      + '<p>It is deliberately gated behind a warning screen. Trading Mode assumes you have already done the work. If you are still building the habit, the Checklist tab is where you belong.</p>',
+  },
+  badges: {
+    icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.9L7 22l5-3 5 3-1.2-8.1"/></svg>',
+    title: 'Seals & Trophy Case',
+    tagline: 'Proof you showed up, not proof you got lucky',
+    body: '<p>Most trading apps gamify the wrong thing. They celebrate your biggest win, which quietly teaches you that size is the goal — and size is exactly what blows accounts.</p>'
+      + '<p>RTC has 46 badges and not one of them rewards trading bigger. They are earned for clean months, honest journaling, sleep, streaks, showing up on days you did not feel like it, and cumulative milestones that take years rather than one lucky afternoon.</p>'
+      + '<p>Monthly seals are stamped on your calendar and repeat — each one keeps a count, because doing it twelve times means more than doing it once. Lifetime badges are earned a single time and never again.</p>'
+      + '<p>There are no hints and no progress nudges. You are not told what you are close to, on purpose — the moment you start trading to collect a badge, the badge has stopped working.</p>',
   },
   mindset: {
     icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 01-4.96-.44 2.5 2.5 0 01-2.96-3.08 3 3 0 01-.34-5.58 2.5 2.5 0 013.32-3.97A2.5 2.5 0 019.5 2z"/><path d="M14.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 004.96-.44 2.5 2.5 0 002.96-3.08 3 3 0 00.34-5.58 2.5 2.5 0 00-3.32-3.97A2.5 2.5 0 0014.5 2z"/></svg>',
@@ -15105,7 +15134,7 @@ const OB_STEPS = [
     tab: 'goals',
     render: function() {
       return obTourCard('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>', 'Goals Tab', 'Watch your target get closer as your trades roll in.',
-        [ 'Set a profit target and number of trading days \u2014 you get an automatic daily target to hit',
+        [ 'The goal you just set lives here \u2014 change the target or the number of days any time',
           'Your P&L flows in automatically from your trade reviews \u2014 log it once, it lands here',
           'Tap any date to see that day\u2019s trades, notes, and screenshots; Goal Pace shows if you\u2019re on track',
           'Finish a month clean and its seal is stamped on the calendar \u2014 permanently',
