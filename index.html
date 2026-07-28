@@ -3780,7 +3780,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
   </div>
 
   <!-- TRADING MODE FIRST-TIME INTRO -->
-  <div id="tradingModeIntro" onclick="event.stopPropagation()" style="display:none;position:fixed;inset:0;background:#060606;z-index:10001;align-items:center;justify-content:center;padding:28px;">
+  <div id="tradingModeIntro" onclick="event.stopPropagation()" style="display:none;position:fixed;inset:0;background:var(--page);z-index:10001;align-items:center;justify-content:center;padding:28px;">
     <div style="width:100%;max-width:480px;text-align:center;">
 
       <!-- Icon -->
@@ -3808,7 +3808,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           <div style="font-size:13px;color:var(--text2);line-height:1.6;">Use this <strong style="color:var(--white);">between trades</strong> during a live session — not instead of preparation. It is a command center, not a replacement for discipline.</div>
         </div>
-        <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:var(--bg3);border-radius:4px;border-left:2px solid rgba(229,57,53,0.4);">
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:var(--bg3);border-radius:4px;border-left:2px solid rgba(var(--red-rgb),0.4);">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><polyline points="20 6 9 17 4 12"/></svg>
           <div style="font-size:13px;color:var(--text2);line-height:1.6;">If you are still <strong style="color:var(--white);">building your habits</strong>, close this and use the Checklist tab first. Come back when the process is second nature.</div>
         </div>
@@ -3908,6 +3908,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
 <!-- TRADING MODE OVERLAY -->
   <div id="tradingModeOverlay" onclick="closeTradingMode()" style="display:none;position:fixed;inset:0;background:var(--page);z-index:9999;align-items:flex-start;justify-content:center;padding:20px 24px 28px;overflow-y:auto;">
+    <button onclick="event.stopPropagation();closeTradingMode()" title="Close Trading Mode" aria-label="Close Trading Mode" style="position:fixed;top:16px;right:16px;z-index:10000;width:38px;height:38px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);color:var(--muted);font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
     <div onclick="event.stopPropagation()" style="width:100%;max-width:1240px;">
 
       <!-- ── HEADER ── -->
@@ -4063,7 +4064,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
       <!-- ── SESSION READ — the system's summary of your day ── -->
       <div id="tmSummary" style="background:var(--bg2);border:1px solid #2a2413;border-radius:4px;padding:16px 18px;margin-top:12px;display:none;"></div>
 
-      <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--faint);letter-spacing:2px;text-transform:uppercase;">Tap anywhere outside to close</div>
+      <button onclick="event.stopPropagation();closeTradingMode()" class="btn-plain" style="display:block;width:100%;margin-top:14px;padding:13px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--muted);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">End Session &mdash; Close</button>
 
       <!-- OUTCOME PROMPT — slides in after LOG TRADE -->
       <div id="tmOutcomePrompt" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;padding:20px;" onclick="event.stopPropagation()">
@@ -4126,6 +4127,11 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
         </button>
+        <!-- THE CLUB — the only outbound link in the header. Same size as Home
+             so it reads as a peer, not an ad. -->
+        <a href="https://discord.gg/PBfzWCQxnp" target="_blank" rel="noopener noreferrer" title="Join the Discord" aria-label="Join the Discord" style="width:32px;height:32px;border-radius:4px;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;text-decoration:none;" onmouseenter="this.style.borderColor='var(--gold-dim)'" onmouseleave="this.style.borderColor='var(--border2)'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--text2)" aria-hidden="true"><path d="M19.54 5.34A16.1 16.1 0 0015.55 4.1a.06.06 0 00-.06.03c-.17.3-.36.7-.5 1.02a14.9 14.9 0 00-4.47 0c-.14-.33-.34-.72-.51-1.02a.06.06 0 00-.06-.03c-1.4.24-2.74.66-3.99 1.24a.05.05 0 00-.03.02C2.4 9.1 1.7 12.75 2.05 16.36a.07.07 0 00.02.05 16.2 16.2 0 004.88 2.47.06.06 0 00.07-.02c.38-.51.71-1.05.99-1.62a.06.06 0 00-.03-.08 10.7 10.7 0 01-1.53-.73.06.06 0 01-.01-.1l.3-.24a.06.06 0 01.06 0 11.55 11.55 0 009.82 0 .06.06 0 01.07 0l.3.24a.06.06 0 010 .1c-.49.28-1 .53-1.54.73a.06.06 0 00-.3.08c.29.57.62 1.11 1 1.62a.06.06 0 00.06.02 16.15 16.15 0 004.9-2.47.06.06 0 00.02-.05c.42-4.18-.7-7.8-2.96-11a.05.05 0 00-.03-.02zM8.68 14.16c-.97 0-1.77-.89-1.77-1.98s.78-1.98 1.77-1.98c1 0 1.79.9 1.77 1.98 0 1.09-.78 1.98-1.77 1.98zm6.55 0c-.97 0-1.77-.89-1.77-1.98s.78-1.98 1.77-1.98c1 0 1.79.9 1.77 1.98 0 1.09-.77 1.98-1.77 1.98z"/></svg>
+        </a>
         <div class="dash-acc-badge" id="dashAccBadge" title="Account menu" onclick="rtcToggleAcctMenu(event)" style="cursor:pointer;">
           <div class="dash-acc-ring" id="dashAccRing"></div>
           <div class="dash-acc-initials" id="dashAccInitials">—</div>
@@ -13520,7 +13526,18 @@ function openTradingMode() {
 function closeTradingMode() {
   const overlay = document.getElementById('tradingModeOverlay');
   if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
 }
+
+// Trading Mode fills the whole screen, so "click outside" isn't reachable.
+// Escape is the keyboard exit; the X and the End Session button are the rest.
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  var ov = document.getElementById('tradingModeOverlay');
+  if (ov && ov.style.display !== 'none' && ov.style.display !== '') { closeTradingMode(); return; }
+  var intro = document.getElementById('tradingModeIntro');
+  if (intro && intro.style.display !== 'none' && intro.style.display !== '') closeTmIntro();
+});
 
 function populateTradingMode() {
   const acc = getActiveAcc();
