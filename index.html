@@ -2689,6 +2689,20 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 #tab-checkin .mood-btn.on,
 #tab-checkin .sleep-btn.on{ border-color:var(--gold) !important; }
 
+/* The oversized quote mark: an anchor, not a shout. Sits behind the text,
+   ignores pointer events, and rides the gold var so all three themes agree. */
+.mindset-mark{
+  position:absolute; top:-18px; right:16px;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:104px; line-height:1;
+  color:var(--gold); opacity:.12;
+  pointer-events:none; user-select:none;
+}
+html:is([data-theme="light"],[data-theme="rose"]) .mindset-mark{ opacity:.16; }
+@media (max-width:600px){
+  .mindset-mark{ font-size:78px; top:-12px; right:12px; }
+}
+
 /* mindset card + streak read as feature modules */
 #tab-checkin #mindsetCard{
   border-radius:4px !important;
@@ -4188,11 +4202,12 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
 
     <!-- DAILY MINDSET MESSAGE -->
-    <div id="mindsetCard" style="background:linear-gradient(135deg,rgba(var(--gold-rgb),0.08),rgba(var(--gold-rgb),0.03));border:1px solid var(--gold-dim);border-radius:var(--r);padding:18px;margin-bottom:12px;position:relative;overflow:hidden;">
+    <div id="mindsetCard" style="background:linear-gradient(135deg,rgba(var(--gold-rgb),0.08),rgba(var(--gold-rgb),0.03));border:1px solid var(--gold-dim);border-radius:var(--r);padding:20px 24px;margin-bottom:12px;position:relative;overflow:hidden;">
       <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent);"></div>
-      <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;opacity:.7;">Today's Mindset</div>
-      <div id="mindsetQuote" style="font-family:'Inter',sans-serif;font-size:15px;font-style:normal;font-weight:300;color:var(--white);line-height:1.8;margin-bottom:8px;letter-spacing:.3px;">"Loading..."</div>
-      <div id="mindsetAuthor" style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:1px;"></div>
+      <div class="mindset-mark" aria-hidden="true">&rdquo;</div>
+      <div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;position:relative;">Today's Mindset</div>
+      <div id="mindsetQuote" style="font-family:'Inter',sans-serif;font-size:16px;font-weight:400;color:var(--white);line-height:1.75;margin-bottom:12px;letter-spacing:.2px;position:relative;">Loading...</div>
+      <div id="mindsetAuthor" style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:2px;text-transform:uppercase;position:relative;"></div>
     </div>
 
     <!-- STREAK PROTECTION BANNER (shows when streak > 0) -->
@@ -9866,8 +9881,8 @@ function renderMindset() {
   const msg = getDailyMindset();
   const qEl = document.getElementById('mindsetQuote');
   const aEl = document.getElementById('mindsetAuthor');
-  if (qEl) qEl.textContent = '"' + msg.q + '"';
-  if (aEl) aEl.textContent = '— ' + msg.a;
+  if (qEl) qEl.textContent = msg.q;
+  if (aEl) aEl.textContent = msg.a;
 }
 
 function renderStreakBanner() {
