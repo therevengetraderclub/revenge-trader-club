@@ -5156,6 +5156,13 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
     </div>
 
     <div class="card">
+      <div class="card-title">Sound</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Checklist ticks, check-in notes, and badge unlocks. If you can't hear anything, this button tells you why.</div>
+      <button class="btn-plain" onclick="rtcSoundTest()" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--gold-dim);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">Play Test Sound</button>
+      <div id="soundTestOut" style="font-size:12px;color:var(--text2);margin-top:10px;line-height:1.7;"></div>
+    </div>
+
+    <div class="card">
       <div class="card-title">Currency</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">How this account's numbers display. No conversion — just your symbol.</div>
       <div id="currencyRow" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
@@ -5947,6 +5954,23 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
   setInterval(tick,1000);tick();
 })();
 function rtcStorageUsage() { return RTCStore.usage(); }
+
+// One button that settles "why can't I hear anything" definitively.
+function rtcSoundTest() {
+  var out = document.getElementById('soundTestOut');
+  var say = function(msg, ok) { if (out) out.innerHTML = '<span style="color:' + (ok ? 'var(--green)' : 'var(--red)') + ';font-weight:700;">' + msg + '</span>'; };
+  if (!soundEnabled) { say('Sound is MUTED in the app — tap the speaker button in the bottom-right rail to unmute, then test again.', false); return; }
+  var ctx = getAudioCtx();
+  if (!ctx) { say('This browser blocked audio entirely (AudioContext failed). Try Safari or Chrome.', false); return; }
+  var go = function() {
+    say('Engine running (state: ' + ctx.state + '). Playing test chime — if you hear nothing now, check the phone\'s mute switch / volume, or the browser tab\'s mute.', true);
+    playSound('chime');
+    setTimeout(function(){ playSound('unlockRare'); }, 700);
+  };
+  if (ctx.state === 'suspended') { try { ctx.resume().then(go).catch(function(){ say('Audio engine refused to start (state: ' + ctx.state + ').', false); }); } catch(e) { say('Audio engine error: ' + e.message, false); } }
+  else go();
+}
+
 
 // ═══════════════════════════════════════════════════════
 // BADGE UNLOCK MOMENT — silent seeding on first run, then every new
@@ -11251,7 +11275,9 @@ function animateCountUp(elId, targetVal, suffix) {
 // SOUND SYSTEM — subtle, toggleable, Web Audio (no files)
 // ═══════════════════════════════════════════════════════
 
-let soundEnabled = RTCStore.get('rtc_sound_enabled') !== 'false'; // default ON
+let soundEnabled = (function(){
+  try { return localStorage.getItem('rtc_sound_enabled') !== 'false'; } catch(e) { return true; }
+})(); // default ON — localStorage is readable synchronously, unlike the async store
 let audioCtx = null;
 
 function getAudioCtx() {
@@ -11259,9 +11285,6 @@ function getAudioCtx() {
     try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
     catch(e) { return null; }
   }
-  // Safari starts the audio engine suspended (and re-suspends it after idle).
-  // Every play happens on a user click, so resuming here is always allowed.
-  if (audioCtx && audioCtx.state === 'suspended') { try { audioCtx.resume(); } catch(e) {} }
   return audioCtx;
 }
 
@@ -11269,7 +11292,15 @@ function playSound(type, freq) {
   if (!soundEnabled) return;
   const ctx = getAudioCtx();
   if (!ctx) return;
-
+  // iOS/Safari: scheduling into a still-suspended context is silently dropped.
+  // Wake the engine first, then schedule.
+  if (ctx.state === 'suspended') {
+    try { ctx.resume().then(function(){ _rtcPlayNow(type, freq, ctx); }).catch(function(){}); } catch(e) {}
+    return;
+  }
+  _rtcPlayNow(type, freq, ctx);
+}
+function _rtcPlayNow(type, freq, ctx) {
   const now = ctx.currentTime;
   const gain = ctx.createGain();
   gain.connect(ctx.destination);
@@ -15781,6 +15812,7 @@ rtcOnReady(function(){
       // Re-apply the saved theme now that cloud data has hydrated — covers a fresh
       // device where localStorage was empty but the account has a theme in the cloud.
       try{ var _th=getTheme(); if(_th && _th!=='dark') document.documentElement.setAttribute('data-theme',_th); else document.documentElement.removeAttribute('data-theme'); localStorage.setItem('rtc_theme', _th||'dark'); }catch(e){ rtcWarn(e); }
+      try { soundEnabled = RTCStore.get('rtc_sound_enabled') !== 'false'; renderSoundToggle(); } catch(e) { rtcWarn(e); }
       var lo=document.getElementById('logoutRow'); if(lo) lo.style.display='block';   // signed in -> show Log Out
       hide();
       rtcEnterApp();
