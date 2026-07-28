@@ -5956,19 +5956,41 @@ else document.addEventListener('DOMContentLoaded', function(){ renderThemePicker
 function rtcStorageUsage() { return RTCStore.usage(); }
 
 // One button that settles "why can't I hear anything" definitively.
+// Plays TWO beeps through two different pathways so we can tell which link is broken.
 function rtcSoundTest() {
   var out = document.getElementById('soundTestOut');
   var say = function(msg, ok) { if (out) out.innerHTML = '<span style="color:' + (ok ? 'var(--green)' : 'var(--red)') + ';font-weight:700;">' + msg + '</span>'; };
-  if (!soundEnabled) { say('Sound is MUTED in the app — tap the speaker button in the bottom-right rail to unmute, then test again.', false); return; }
+  if (!soundEnabled) { say('Sound is MUTED in the app — tap the speaker button in the bottom-right rail, then test again.', false); return; }
   var ctx = getAudioCtx();
-  if (!ctx) { say('This browser blocked audio entirely (AudioContext failed). Try Safari or Chrome.', false); return; }
-  var go = function() {
-    say('Engine running (state: ' + ctx.state + '). Playing test chime — if you hear nothing now, check the phone\'s mute switch / volume, or the browser tab\'s mute.', true);
-    playSound('chime');
-    setTimeout(function(){ playSound('unlockRare'); }, 700);
+  if (!ctx) { say('This browser blocked audio entirely (no AudioContext). Try Safari or Chrome.', false); return; }
+  var run = function() {
+    var errs = [];
+    // Beep 1 — straight from the sound engine, loud and unmissable
+    try {
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = 880;
+      o.connect(g); g.connect(ctx.destination);
+      var t = ctx.currentTime;
+      g.gain.setValueAtTime(0.001, t);
+      g.gain.linearRampToValueAtTime(0.3, t + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+      o.start(t); o.stop(t + 0.6);
+    } catch(e) { errs.push('engine: ' + e.message); }
+    // Beep 2 — a plain media file, the same pathway YouTube uses
+    setTimeout(function() {
+      try {
+        var wav = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'
+          + btoa(String.fromCharCode.apply(null, (function(){ var a=[]; for (var i=0;i<8000;i++){ a.push(128 + Math.round(90*Math.sin(i*2*Math.PI*660/8000))); } return a; })()));
+        var au = new Audio(wav);
+        au.volume = 1;
+        au.play().catch(function(e){ if (out) out.innerHTML += '<br><span style="color:var(--red);">media: ' + e.message + '</span>'; });
+      } catch(e) { if (out) out.innerHTML += '<br><span style="color:var(--red);">media: ' + e.message + '</span>'; }
+    }, 900);
+    if (errs.length) say('Engine error: ' + errs.join(' · '), false);
+    else say('Engine running (state: ' + ctx.state + '). TWO beeps played — a high tone from the sound engine, then a lower tone from a media file. Tell me which you heard: both, only the second, or neither.', true);
   };
-  if (ctx.state === 'suspended') { try { ctx.resume().then(go).catch(function(){ say('Audio engine refused to start (state: ' + ctx.state + ').', false); }); } catch(e) { say('Audio engine error: ' + e.message, false); } }
-  else go();
+  if (ctx.state === 'suspended') { try { ctx.resume().then(run).catch(function(){ say('Audio engine refused to start.', false); }); } catch(e) { say('Audio engine error: ' + e.message, false); } }
+  else run();
 }
 
 
@@ -11300,6 +11322,15 @@ function playSound(type, freq) {
   }
   _rtcPlayNow(type, freq, ctx);
 }
+var _rtcMaster = null;
+function rtcMasterOut(ctx) {
+  if (!_rtcMaster || _rtcMaster.context !== ctx) {
+    _rtcMaster = ctx.createGain();
+    _rtcMaster.gain.value = 2.0;          // the raw oscillators were too quiet on laptop speakers
+    _rtcMaster.connect(ctx.destination);
+  }
+  return _rtcMaster;
+}
 function _rtcPlayNow(type, freq, ctx) {
   const now = ctx.currentTime;
   const gain = ctx.createGain();
@@ -11314,7 +11345,7 @@ function _rtcPlayNow(type, freq, ctx) {
       const g   = ctx.createGain();
       osc.type = p[2];
       osc.frequency.value = p[0];
-      osc.connect(g); g.connect(ctx.destination);
+      osc.connect(g); g.connect(rtcMasterOut(ctx));
       g.gain.setValueAtTime(0, now);
       g.gain.linearRampToValueAtTime(p[1], now + 0.012);
       g.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
@@ -11327,7 +11358,7 @@ function _rtcPlayNow(type, freq, ctx) {
       const g   = ctx.createGain();
       osc.type = 'sine';
       osc.frequency.value = freq;
-      osc.connect(g); g.connect(ctx.destination);
+      osc.connect(g); g.connect(rtcMasterOut(ctx));
       const t = now + i * 0.09;
       g.gain.setValueAtTime(0, t);
       g.gain.linearRampToValueAtTime(0.08, t + 0.02);
@@ -11341,7 +11372,7 @@ function _rtcPlayNow(type, freq, ctx) {
     osc.type = 'sine';
     osc.frequency.setValueAtTime(220, now);
     osc.frequency.exponentialRampToValueAtTime(160, now + 0.3);
-    osc.connect(g); g.connect(ctx.destination);
+    osc.connect(g); g.connect(rtcMasterOut(ctx));
     g.gain.setValueAtTime(0, now);
     g.gain.linearRampToValueAtTime(0.07, now + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
@@ -11353,7 +11384,7 @@ function _rtcPlayNow(type, freq, ctx) {
       const g   = ctx.createGain();
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(i === 0 ? 196 : 147, now + d);
-      osc.connect(g); g.connect(ctx.destination);
+      osc.connect(g); g.connect(rtcMasterOut(ctx));
       g.gain.setValueAtTime(0, now + d);
       g.gain.linearRampToValueAtTime(0.09, now + d + 0.015);
       g.gain.exponentialRampToValueAtTime(0.0001, now + d + 0.22);
@@ -11364,7 +11395,7 @@ function _rtcPlayNow(type, freq, ctx) {
     function _t(f, at, dur, vol, wave) {
       var o = ctx.createOscillator(), g = ctx.createGain();
       o.type = wave || 'sine'; o.frequency.value = f;
-      o.connect(g); g.connect(ctx.destination);
+      o.connect(g); g.connect(rtcMasterOut(ctx));
       var t0 = now + at;
       g.gain.setValueAtTime(0, t0);
       g.gain.linearRampToValueAtTime(vol, t0 + 0.02);
@@ -11387,7 +11418,7 @@ function _rtcPlayNow(type, freq, ctx) {
     const g   = ctx.createGain();
     osc.type = 'sine';
     osc.frequency.value = 800;
-    osc.connect(g); g.connect(ctx.destination);
+    osc.connect(g); g.connect(rtcMasterOut(ctx));
     g.gain.setValueAtTime(0.05, now);
     g.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
     osc.start(now); osc.stop(now + 0.08);
