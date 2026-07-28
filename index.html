@@ -457,6 +457,8 @@ html,body{background:var(--page);font-family:"Inter",sans-serif;color:var(--text
   text-transform:uppercase; color:var(--faint);
   text-align:center; margin:-20px 0 26px;
 }
+/* An odd count leaves a hole in the last row — the final card takes the width. */
+.welcome-features > .wf-row:last-child:nth-child(odd){ grid-column:1 / -1; }
 @media (max-width:560px){
   .welcome-features{ grid-template-columns:1fr; }
   .wf-desc{ white-space:normal; }
