@@ -17,7 +17,7 @@
   --border:#2e2e2e; --border2:#3b3b3b; --border3:#4d4d4d;
   --gold-rgb:201,168,76;
   --gold:#c9a84c; --gold2:#e8c97a; --gold-dim:#5a4520; --gold-glow:rgba(var(--gold-rgb),0.15);
-  --green:#00d084; --green-dim:rgba(0,208,132,0.12);
+  --green:#00d084;--red-rgb:229,57,53; --green-dim:rgba(0,208,132,0.12);
   --red:#e53935; --red-dim:rgba(229,57,53,0.12);
   --warn:#c55452;   /* dim red — weak setup. Same hue as --red, lower saturation.
                        Separated from KILL by intensity, not hue, so it can't drift orange. */
@@ -34,7 +34,7 @@ html[data-theme="rose"]{
   --bg:#ffffff; --bg2:#f6efee; --bg3:#efe3e1; --bg4:#e2d5d2; --bg5:#d4c6c2;
   --border:#ecdedb; --border2:#ddccc8; --border3:#c9b6b1;
   --gold:#b56b62; --gold2:#c98a82; --gold-rgb:181,107,98; --gold-dim:#e2c8c4;
-  --green:#077a4a; --red:#c0392b; --warn:#b5563a; --orange:#0e9e8e;
+  --green:#077a4a;--red-rgb:192,57,43; --red:#c0392b; --warn:#b5563a; --orange:#0e9e8e;
   --white:#161210;
   --text:#1a1613; --text2:#413530; --muted:#6d5f5a; --faint:#8f817b;
   --shadow:0 4px 24px rgba(0,0,0,0.12);
@@ -49,7 +49,7 @@ html[data-theme="light"]{
   --bg:#ffffff; --bg2:#f4f2ec; --bg3:#ebe8df; --bg4:#ddd9cd; --bg5:#cfcabb;
   --border:#e4e0d5; --border2:#d4cfc0; --border3:#c0b9a8;
   --gold:#9c7b2a; --gold2:#b8933a; --gold-rgb:156,123,42; --gold-dim:#d6c69f;
-  --green:#077a4a; --red:#c0392b; --warn:#b5563a; --orange:#0e9e8e;
+  --green:#077a4a;--red-rgb:192,57,43; --red:#c0392b; --warn:#b5563a; --orange:#0e9e8e;
   --white:#161512;
   --text:#1a1815; --text2:#403c34; --muted:#6d685e; --faint:#8f897d;
   --shadow:0 4px 24px rgba(0,0,0,0.12);
@@ -68,6 +68,11 @@ html:is([data-theme="light"],[data-theme="rose"]) #hudFrame .hud-br{ border-colo
    accent glow, dark readable text (instead of the dark dramatic version). */
 html:is([data-theme="light"],[data-theme="rose"]) #killTakeover{
   background:radial-gradient(ellipse at center, rgba(229,57,53,0.15) 0%, rgba(229,57,53,0) 58%), var(--page) !important;
+}
+/* The unlock moment used a dark scrim: on light themes the near-black headline
+   sat on a near-black wash and vanished. Light themes get a light scrim. */
+html:is([data-theme="light"],[data-theme="rose"]) #badgeUnlock{
+  background:radial-gradient(ellipse at center, rgba(var(--gold-rgb),0.14) 0%, rgba(var(--gold-rgb),0) 60%), rgba(255,255,255,0.93) !important;
 }
 html:is([data-theme="light"],[data-theme="rose"]) #limitTakeover{
   background:radial-gradient(ellipse at center, rgba(229,57,53,0.15) 0%, rgba(229,57,53,0) 58%), var(--page) !important;
@@ -152,15 +157,15 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
 .seal-card.earned .seal-name{ color:var(--gold); }
 .seal-sub{ font-size:10.5px; color:var(--muted); line-height:1.5; margin-top:3px; }
 .seal-bar{ width:100%; height:4px; background:var(--bg4); border-radius:2px; overflow:hidden; margin-top:9px; }
-.seal-bar i{ display:block; height:100%; background:var(--gold-dim); }
+.seal-bar i{ display:block; height:100%; background:var(--gold); }
 .seal-note{ font-size:9.5px; color:var(--muted); margin-top:5px; letter-spacing:.5px; }
 .seal-note.earned{ color:var(--gold); font-weight:800; letter-spacing:2px; margin-top:9px; }
 .seal-card.ontrack{ border-color:var(--border3); background:var(--bg2); }
 .seal-ring.ontrack{ color:var(--gold-dim); border:2px solid var(--gold-dim); background:transparent; }
 .seal-card.ontrack .seal-name{ color:var(--text2); }
-.seal-note.ontrack{ color:var(--gold-dim); font-weight:700; }
+.seal-note.ontrack{ color:var(--text2); font-weight:700; }
 .mark-card{
-  padding:12px 10px; background:rgba(229,57,53,0.06); border:1px solid rgba(229,57,53,0.35);
+  padding:12px 10px; background:rgba(var(--red-rgb),0.07); border:1px solid rgba(var(--red-rgb),0.38);
   border-radius:10px; text-align:center; display:flex; flex-direction:column; align-items:center;
 }
 .mark-ring{
@@ -201,6 +206,12 @@ html:is([data-theme="light"],[data-theme="rose"]) #acctMenu{
   #calShareCard [style*="font-size:30px"]{ font-size:22px !important; }
   #calShareCard [style*="min-height:66px"]{ min-height:48px !important; }
   #calShareCard [style*="font-size:15px"]{ font-size:11px !important; }
+  /* Badge gallery: two columns on a phone instead of one full-width card */
+  #bgBody > div{ grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:8px !important; }
+  #badgeGallery{ padding-top:max(26px, env(safe-area-inset-top)) !important; }
+  .seal-card{ padding:12px 8px; }
+  .seal-name{ font-size:11.5px; }
+  .seal-sub{ font-size:10px; }
   /* Journal capture sheet takes the whole screen — thumb-friendly writing */
   #logOverlay{ padding:0 !important; }
   #logSheet{ max-width:100% !important; min-height:100vh; border-radius:0 !important; border-left:none; border-right:none; }
@@ -1662,7 +1673,16 @@ button, .mood-btn, .sleep-btn, .wu-step, .cl-item, .kill-item,
   opacity:.55;
 }
 .sound-toggle:hover{ opacity:1; border-color:var(--gold-dim); }
-.sound-toggle.muted svg{ opacity:.4; }
+/* ON = gold and awake. OFF = dimmed with a slash. The old version only dimmed an
+   already-dim icon, so nobody could tell sound was muted. */
+.sound-toggle{ opacity:1 !important; position:relative; }
+.sound-toggle svg{ stroke:var(--gold) !important; }
+.sound-toggle.muted{ opacity:.55 !important; border-color:var(--border2) !important; }
+.sound-toggle.muted svg{ stroke:var(--muted) !important; }
+.sound-toggle.muted::after{
+  content:''; position:absolute; left:50%; top:50%; width:26px; height:2px;
+  background:var(--red); transform:translate(-50%,-50%) rotate(-45deg); border-radius:2px;
+}
 
 /* Weekly report envelope reveal */
 .week-report-reveal{
@@ -3793,7 +3813,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
 
 
 <!-- ══ BADGE UNLOCK — the moment it lands ══ -->
-<div id="badgeUnlock" onclick="rtcUnlockNext()" style="display:none;position:fixed;inset:0;z-index:100005;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:24px;">
+<div id="badgeUnlock" onclick="rtcUnlockNext()" style="display:none;position:fixed;inset:0;z-index:100005;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:24px;overflow-y:auto;">
   <div onclick="event.stopPropagation()" style="width:100%;max-width:380px;text-align:center;">
     <div id="buTier" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--gold);margin-bottom:16px;">UNLOCKED</div>
     <div id="buRing" style="width:112px;height:112px;margin:0 auto 18px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid var(--gold);background:rgba(var(--gold-rgb),0.12);color:var(--gold);box-shadow:0 0 0 6px rgba(var(--gold-rgb),0.10),0 0 40px rgba(var(--gold-rgb),0.28);animation:buStamp .5s cubic-bezier(.2,1.4,.35,1);"></div>
@@ -3812,7 +3832,7 @@ input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0
         <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:3px;color:var(--white);line-height:1;">THE BADGES</div>
         <div id="bgCount" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);margin-top:6px;">—</div>
       </div>
-      <button onclick="closeBadgeGallery()" style="background:var(--gold);border:none;border-radius:6px;color:#0d0b08;font-size:13px;font-weight:800;box-shadow:0 3px 14px rgba(0,0,0,0.3);padding:8px 16px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;">✕ Close</button>
+      <button onclick="closeBadgeGallery()" style="position:fixed;top:16px;right:16px;z-index:100004;background:var(--gold);border:none;border-radius:6px;color:var(--page);font-size:13px;font-weight:800;box-shadow:var(--shadow);padding:8px 16px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;">✕ Close</button>
     </div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">Every badge rewards process — none of them care how big you win.</div>
     <div id="bgBody"></div>
@@ -6051,12 +6071,22 @@ function openBadgeGallery() {
   h += grid(life.map(lifeCard));
   body.innerHTML = h;
   g.style.display = 'block';
+  document.body.style.overflow = 'hidden';   // stop the page behind scrolling with it
   playSound('tick');
 }
 function closeBadgeGallery() {
   var g = document.getElementById('badgeGallery');
   if (g) g.style.display = 'none';
+  document.body.style.overflow = '';
 }
+// Escape closes any full-screen badge surface
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  var g = document.getElementById('badgeGallery');
+  if (g && g.style.display === 'block') { closeBadgeGallery(); return; }
+  var u = document.getElementById('badgeUnlock');
+  if (u && u.style.display === 'flex') rtcUnlockNext();
+});
 
 
 // ── SEAL ICONS — hand-drawn stroke icons, same style as the rest of the app ──
@@ -6069,7 +6099,7 @@ var RTC_SEAL_SVG = {
   moon:     '<path d="M20 13A8 8 0 1111 4a6.5 6.5 0 009 9z"/>',
   target:   '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>',
   wall:     '<rect x="3" y="5" width="18" height="14"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="14.5" x2="21" y2="14.5"/><line x1="9" y1="5" x2="9" y2="10"/><line x1="15" y1="10" x2="15" y2="14.5"/><line x1="9" y1="14.5" x2="9" y2="19"/>',
-  snow:     '<line x1="12" y1="3" x2="12" y2="21"/><line x1="4.2" y1="7.5" x2="19.8" y2="16.5"/><line x1="19.8" y1="7.5" x2="4.2" y2="16.5"/>',
+  snow:     '<path d="M2.6 9.4C7 4.4 14.2 3.4 20 6.4c-5.6.1-10.4 1.9-14 5.6z"/><path d="M17.2 6.1L8.4 21"/><path d="M11.4 14.6l3.3 1.7"/>',
   pen:      '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/>',
   hourglass:'<path d="M6 3h12M6 21h12M8 3v3l4 4 4-4V3M8 21v-3l4-4 4 4v3"/>',
   yinyang:  '<circle cx="12" cy="12" r="9"/><path d="M12 3a4.5 4.5 0 010 9 4.5 4.5 0 000 9"/><circle cx="12" cy="7.5" r="0.8"/><circle cx="12" cy="16.5" r="0.8"/>',
@@ -6086,19 +6116,19 @@ var RTC_SEAL_SVG = {
   cal365:   '<rect x="4" y="5" width="16" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="4" y1="10" x2="20" y2="10"/>',
   flag:     '<path d="M5 21V4M5 4h11l-2 3.5L16 11H5"/>',
   mountain: '<path d="M3 19l6-11 4 6 2-3 6 8z"/>',
-  star:     '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8z"/>',
+  star:     '<path d="M5 6v12M9 6v12M13 6v12M17 6v12"/><path d="M3.5 18.5L18.5 5.5"/>',
   bed:      '<path d="M3 18V9M3 13h18v5M3 13a4 4 0 014-4h9a5 5 0 015 4"/><circle cx="8" cy="11" r="0.1"/>',
-  smile:    '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 007 0"/><circle cx="9" cy="10" r="0.6"/><circle cx="15" cy="10" r="0.6"/>',
+  smile:    '<path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="3.2"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/>',
   compass:  '<circle cx="12" cy="12" r="9"/><polygon points="15.5 8.5 10.5 10.5 8.5 15.5 13.5 13.5"/>',
   coin:     '<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10h4a1.5 1.5 0 010 3h-3a1.5 1.5 0 000 3h4"/>',
   vault:    '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="12" r="4"/><path d="M12 8v-1M12 17v-1M8 12h-1M17 12h-1"/>',
   anchor:   '<circle cx="12" cy="5" r="2.5"/><path d="M12 7.5V21M5 13a7 7 0 0014 0"/><path d="M3 13h4M17 13h4"/>',
   fold:     '<rect x="3.5" y="6" width="8" height="12" rx="1.5"/><path d="M13 7.5l5.5 1.8a1.5 1.5 0 011 1.9l-2.4 7.2"/><path d="M6.5 9.5h2M6.5 12h2"/>',
-  chain:    '<path d="M9 12a3 3 0 013-3h2a3 3 0 010 6h-1"/><path d="M15 12a3 3 0 01-3 3h-2a3 3 0 010-6h1"/>',
-  anvil:    '<path d="M4 8h9l3 3h4l-2 4H8l-2-4H4z"/><path d="M9 15v3H7v2h10v-2h-2v-3"/>',
+  chain:    '<path d="M4 11.5L12 4l8 7.5"/><path d="M4 15.5L12 8l8 7.5"/><path d="M4 19.5L12 12l8 7.5"/>',
+  anvil:    '<path d="M2.5 9.5c1.5-1 3-1.5 4.5-1.5h9l4.5 3.5-3 2.5H9c-2.5 0-5-1.5-6.5-4.5z"/><path d="M11 14v3.5H8.5V20h8v-2.5H14V14"/>',
   book:     '<path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M8 7h7M8 10h7"/>',
   cycle:    '<path d="M4 12a8 8 0 0113.5-5.8"/><polyline points="18 3 18 7 14 7"/><path d="M20 12a8 8 0 01-13.5 5.8"/><polyline points="6 21 6 17 10 17"/>',
-  lotus:    '<path d="M12 20c-4 0-7-2.5-7-5 0-1.5 1-2.5 2.5-2.5.5 0 1 .2 1.5.5C9 10 10.3 8 12 6c1.7 2 3 4 3 7 .5-.3 1-.5 1.5-.5C18 12.5 19 13.5 19 15c0 2.5-3 5-7 5z"/>',
+  lotus:    '<path d="M12 19.5c-2 0-3.6-2.6-3.6-5.6 0-2.4 1.4-4.8 3.6-6.4 2.2 1.6 3.6 4 3.6 6.4 0 3-1.6 5.6-3.6 5.6z"/><path d="M12 19.5c-3.4 0-6.2-1.8-6.2-4.2 0-1.3.9-2.2 2.1-2.2 1.6 0 3.1 1.6 4.1 3.4"/><path d="M12 19.5c3.4 0 6.2-1.8 6.2-4.2 0-1.3-.9-2.2-2.1-2.2-1.6 0-3.1 1.6-4.1 3.4"/><path d="M4 20.5c2.2.9 5 1.3 8 1.3s5.8-.4 8-1.3"/>',
   brain:    '<path d="M9 4a3 3 0 00-3 3 3 3 0 00-1 5.8V15a3 3 0 003 3h1V4z"/><path d="M15 4a3 3 0 013 3 3 3 0 011 5.8V15a3 3 0 01-3 3h-1V4z"/><line x1="12" y1="4" x2="12" y2="20"/>',
   diamond:  '<path d="M6 3h12l3 6-9 12L3 9z"/><path d="M3 9h18M9 3l-3 6 6 12M15 3l3 6-6 12"/>',
   grade:    '<path d="M7 18l5-12 5 12"/><line x1="9" y1="14" x2="15" y2="14"/>',
@@ -6120,8 +6150,8 @@ function rtcSealIcon(k, size) {
 // rarity at a glance even when the badge is still locked and dark.
 function rtcMedallion(k, tier, earned, size) {
   size = size || 92;
-  var gold = earned ? 'var(--gold)' : 'var(--border2)';
-  var edge = earned ? 'var(--gold2)' : 'var(--border2)';
+  var gold = earned ? 'var(--gold)' : 'var(--border3)';
+  var edge = earned ? 'var(--gold2)' : 'var(--border3)';
   var fill = earned ? 'rgba(var(--gold-rgb),0.12)' : 'none';
   var ink  = earned ? 'var(--gold)' : 'var(--faint)';
   var dash = earned ? '' : ' stroke-dasharray="5 4"';
@@ -7305,12 +7335,12 @@ function renderCalendar() {
       hh += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">'
         + wins.map(function(x) {
             var on = x.state === 'earned';
-            return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:' + (on ? 'var(--gold)' : 'var(--gold-dim)') + ';border:1px solid ' + (on ? (x.rare ? 'var(--gold)' : 'var(--gold-dim)') : 'var(--border2)') + ';background:' + (on ? 'rgba(var(--gold-rgb),0.08)' : 'var(--bg2)') + ';border-radius:20px;padding:6px 12px;"><span style="display:inline-flex;width:15px;height:15px;">' + rtcSealIcon(x.icon, 15) + '</span>' + x.name + (on ? '' : ' · on track') + '</span>';
+            return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:' + (on ? 'var(--gold)' : 'var(--muted)') + ';border:1px solid ' + (on ? (x.rare ? 'var(--gold)' : 'var(--gold-dim)') : 'var(--border3)') + ';background:' + (on ? 'rgba(var(--gold-rgb),0.08)' : 'var(--bg2)') + ';border-radius:20px;padding:6px 12px;"><span style="display:inline-flex;width:15px;height:15px;">' + rtcSealIcon(x.icon, 15) + '</span>' + x.name + (on ? '' : ' · on track') + '</span>';
           }).join('')
         + '</div>';
     }
-    hh += '<button class="btn-plain" onclick="openBadgeGallery()" style="width:100%;padding:11px;background:var(--bg3);border:1px dashed var(--gold-dim);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;">'
-      + (wins.length ? lockedCount + ' more to unlock — view all badges' : 'View all ' + sealStates.length + ' badges to unlock') + '</button>';
+    // The Trophy Case below owns the "view all" button — no need for a second one here
+    if (!wins.length) hh += '<div style="font-size:12px;color:var(--muted);">No seals yet this month. They appear here as you earn them.</div>';
     bEl.innerHTML = hh;
     bEl.style.display = 'block';
   }
@@ -11336,13 +11366,15 @@ function playSound(type, freq) {
 function toggleSound() {
   soundEnabled = !soundEnabled;
   rtcSet('rtc_sound_enabled', soundEnabled);
+  try { localStorage.setItem('rtc_sound_enabled', String(soundEnabled)); } catch(e) {}
   const btn = document.getElementById('soundToggleBtn');
-  if (btn) btn.classList.toggle('muted', !soundEnabled);
+  if (btn) { btn.classList.toggle('muted', !soundEnabled); btn.title = soundEnabled ? 'Sound on — tap to mute' : 'Sound OFF — tap to turn on'; }
   if (soundEnabled) playSound('tick');
 }
 
 function renderSoundToggle() {
   const btn = document.getElementById('soundToggleBtn');
+  if (btn) btn.title = soundEnabled ? 'Sound on — tap to mute' : 'Sound OFF — tap to turn on';
   if (btn) btn.classList.toggle('muted', !soundEnabled);
 }
 
