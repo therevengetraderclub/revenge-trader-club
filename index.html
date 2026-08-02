@@ -7123,7 +7123,7 @@ function openCalShare() {
   // ── mini grid: colour carries the meaning, numbers stay legible ──
   var cells = '';
   for (var b = 0; b < d.firstDow; b++) cells += '<div></div>';
-  var SHORT = { cleanwin:'CLEAN WIN', dirtywin:'DIRTY WIN', cleanloss:'CLEAN LOSS', tilt:'TILT', discipline:'NO TRADE' };
+  var SHORT = { cleanwin:'CLEAN WIN', dirtywin:'DIRTY WIN', cleanloss:'CLEAN LOSS', tilt:'TILT', discipline:'NO TRADE', pending:'UNREVIEWED' };
   for (var n = 1; n <= d.nDays; n++) {
     var o = d.days[n];
     var future = d.isCurrentMonth && n > d.today;
@@ -7541,7 +7541,11 @@ function renderCalendar() {
     var r = { avg: avg, flags: [] };
     if (o.trades === 0) {
       r.type = o.checkin ? 'discipline' : 'empty';
-    } else if ((o.pnl || 0) >= 0) {
+    } else if (o.pnl === null) {
+      // Trades logged but none reviewed — outcome unknown. Calling this a win
+      // before the review would let a hidden loss wear a green ring.
+      r.type = 'pending';
+    } else if (o.pnl >= 0) {
       r.type = clean ? 'cleanwin' : 'dirtywin';
     } else {
       r.type = clean ? 'cleanloss' : 'tilt';
@@ -7551,7 +7555,7 @@ function renderCalendar() {
     if (ranRed) r.flags.push(['CHIP','RAN THE RED','var(--red)','Ran the Red — traded through an active kill switch']);
     if (o.revenge && !ranRed) r.flags.push(['CHIP','PAST LIMIT','var(--red)','Logged a trade after the app warned you were past your limit']);
     if (o.killFired && !ranRed) r.flags.push(['INFO','SAVED','var(--green)','Saved by the Switch — the kill switch fired and you walked away']);
-    if (o.trades === 1 && (o.pnl || 0) > 0 && clean) r.flags.push(['INFO','SNIPER','var(--gold)','Sniper — one trade, one win']);
+    if (o.trades === 1 && o.pnl !== null && o.pnl > 0 && clean) r.flags.push(['INFO','SNIPER','var(--gold)','Sniper — one trade, one win']);
     if (o.checkin && typeof o.checkin.sleepHours === 'number' && o.checkin.sleepHours <= 5) r.flags.push(['INFO','LOW FUEL','var(--warn)','Low Fuel — traded on ' + o.checkin.sleepHours + 'h sleep']);
     if (o.checkin && o.checkin.stress === 'High') r.flags.push(['INFO','PRESSURE','var(--warn)','Pressure Day — high stress at check-in']);
     return r;
@@ -7561,6 +7565,7 @@ function renderCalendar() {
     dirtywin:  { ring:'var(--red)',   name:'Dirty Win'  },
     cleanloss: { ring:'var(--green)', name:'Clean Loss' },
     tilt:      { ring:'var(--red)',   name:'Tilt Day', bg:'rgba(229,57,53,0.10)' },
+    pending:   { ring:'var(--gold-dim)', name:'Unreviewed' },
     discipline:{ ring:'var(--gold-dim)', name:'Discipline Day' },
     empty:     { ring:'var(--border)', name:'' }
   };
@@ -8285,8 +8290,33 @@ function rtcMenuSwitch(i) {
   if (i === getActiveIdx()) return;
   try { switchAccount(i); } catch(e) { rtcWarn(e); }
 }
+// Browser history for tabs: without this, the back gesture's only move is to
+// leave the site entirely — on iOS that reads as "the app threw me out".
+var _rtcPopNav = false;
+window.addEventListener('popstate', function(e) {
+  var t = e.state && e.state.rtcTab;
+  if (!t) return;
+  _rtcPopNav = true;
+  try {
+    var el = document.querySelector('.nav-tab[onclick*="\'' + t + '\'"]');
+    switchTab(t, el);
+  } catch(err) { rtcWarn(err); }
+  _rtcPopNav = false;
+});
+
 function switchTab(tab, el) {
   try { rtcSet('rtc_tab', tab); } catch(e) { /* pre-boot */ }
+  try {
+    if (!_rtcPopNav) {
+      // Boot lands here too — replace instead of push so the first entry
+      // doesn't double up and back still exits from the starting tab.
+      if (history.state && history.state.rtcTab) {
+        if (history.state.rtcTab !== tab) history.pushState({ rtcTab: tab }, '');
+      } else {
+        history.replaceState({ rtcTab: tab }, '');
+      }
+    }
+  } catch(e) { /* sandboxed iframe etc. */ }
   document.querySelectorAll('.tab-body').forEach(t => {
     t.classList.remove('active');
     t.style.display = 'none';
